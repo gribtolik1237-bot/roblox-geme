@@ -10,6 +10,7 @@ local Net = require(ReplicatedStorage.Shared.Net)
 local Icons = require(ReplicatedStorage.Configs.Icons)
 local StateController = require(script.Parent.StateController)
 local HUDController = require(script.Parent.HUDController)
+local SfxController = require(script.Parent.SfxController)
 
 local C = UIKit.C
 local WHITE = Color3.new(1, 1, 1)
@@ -71,6 +72,7 @@ local function build()
 		local r = Net.invoke("ClaimLogin")
 		busy = false
 		if r.ok then
+			SfxController.Play("claim")
 			HUDController.Toast(("Daily gift: +%s Coins!"):format(Util.fmt(r.amount or 0)), "ok")
 			local t = tiles[r.day]
 			if t then
@@ -81,6 +83,7 @@ local function build()
 		elseif r.err == "AlreadyClaimed" then
 			HUDController.Toast("Already claimed today - come back tomorrow!", "info")
 		else
+			SfxController.Play("deny")
 			HUDController.Toast(UIKit.err(r.err), "err")
 		end
 	end })

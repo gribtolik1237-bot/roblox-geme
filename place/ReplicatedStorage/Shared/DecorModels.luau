@@ -26,25 +26,27 @@ local STUD = Enum.SurfaceType.Studs
 local function blk(m, name, size, cf, color, mat)
 	return part(m, name, size, cf, color, mat or Enum.Material.Plastic, nil, { TopSurface = STUD })
 end
+-- audit 2 / phase B: nature props keep the stacked-block silhouette but read as REAL materials - LeafyGrass canopy,
+-- Wood trunks, Slate rocks - instead of flat Plastic
 B.Rock = function(m)
-	blk(m, "Rock", V(3.2, 1.8, 2.6), CF(0, 0.9, 0) * ANG(0, 0.4, 0), rgb(150, 156, 170))
-	blk(m, "RockTop", V(1.8, 0.9, 1.5), CF(-0.2, 2.2, 0.1) * ANG(0, 0.9, 0), rgb(168, 174, 188))
-	blk(m, "RockB", V(1.9, 1.2, 1.7), CF(1.9, 0.6, 0.8) * ANG(0, 0.8, 0), rgb(124, 130, 146))
+	blk(m, "Rock", V(3.2, 1.8, 2.6), CF(0, 0.9, 0) * ANG(0, 0.4, 0), rgb(150, 156, 170), Enum.Material.Slate)
+	blk(m, "RockTop", V(1.8, 0.9, 1.5), CF(-0.2, 2.2, 0.1) * ANG(0, 0.9, 0), rgb(168, 174, 188), Enum.Material.Slate)
+	blk(m, "RockB", V(1.9, 1.2, 1.7), CF(1.9, 0.6, 0.8) * ANG(0, 0.8, 0), rgb(124, 130, 146), Enum.Material.Slate)
 end
 B.BigRock = function(m)
-	blk(m, "R1", V(6, 3.4, 5), CF(0, 1.7, 0) * ANG(0, 0.4, 0), rgb(140, 146, 162))
-	blk(m, "R1Top", V(3.6, 2, 3), CF(-0.4, 4.3, 0.2) * ANG(0, 0.9, 0), rgb(166, 172, 186))
-	blk(m, "R2", V(3.6, 2.6, 3.2), CF(-3.4, 1.3, 1.6) * ANG(0, 1, 0), rgb(158, 164, 178))
-	blk(m, "R3", V(2.8, 2, 2.4), CF(3.4, 1, -1.4) * ANG(0, 0.3, 0), rgb(124, 130, 146))
+	blk(m, "R1", V(6, 3.4, 5), CF(0, 1.7, 0) * ANG(0, 0.4, 0), rgb(140, 146, 162), Enum.Material.Slate)
+	blk(m, "R1Top", V(3.6, 2, 3), CF(-0.4, 4.3, 0.2) * ANG(0, 0.9, 0), rgb(166, 172, 186), Enum.Material.Slate)
+	blk(m, "R2", V(3.6, 2.6, 3.2), CF(-3.4, 1.3, 1.6) * ANG(0, 1, 0), rgb(158, 164, 178), Enum.Material.Slate)
+	blk(m, "R3", V(2.8, 2, 2.4), CF(3.4, 1, -1.4) * ANG(0, 0.3, 0), rgb(124, 130, 146), Enum.Material.Slate)
 end
 B.Bush = function(m)
-	blk(m, "B1", V(4.8, 2.6, 4.4), CF(0, 1.3, 0), rgb(76, 200, 110))
-	blk(m, "B2", V(3.2, 2, 3), CF(0.3, 3.5, 0.1), rgb(92, 214, 124))
-	blk(m, "B3", V(2.2, 1.6, 2.2), CF(-1.9, 0.8, 2.2), rgb(64, 184, 98))
-	blk(m, "B4", V(1.6, 1.4, 1.6), CF(2.1, 2.9, -1.2), rgb(64, 184, 98))
+	blk(m, "B1", V(4.8, 2.6, 4.4), CF(0, 1.3, 0), rgb(76, 200, 110), Enum.Material.LeafyGrass)
+	blk(m, "B2", V(3.2, 2, 3), CF(0.3, 3.5, 0.1), rgb(92, 214, 124), Enum.Material.LeafyGrass)
+	blk(m, "B3", V(2.2, 1.6, 2.2), CF(-1.9, 0.8, 2.2), rgb(64, 184, 98), Enum.Material.LeafyGrass)
+	blk(m, "B4", V(1.6, 1.4, 1.6), CF(2.1, 2.9, -1.2), rgb(64, 184, 98), Enum.Material.LeafyGrass)
 end
 B.FlowerPatch = function(m)
-	blk(m, "Bed", V(5.6, 0.5, 5.6), CF(0, 0.25, 0), rgb(86, 190, 104))
+	blk(m, "Bed", V(5.6, 0.5, 5.6), CF(0, 0.25, 0), rgb(86, 190, 104), Enum.Material.LeafyGrass)
 	local cols = { rgb(255, 120, 170), rgb(255, 214, 70), rgb(255, 255, 255), rgb(190, 130, 255) }
 	for i = 1, 9 do
 		local a = i * 2.4
@@ -61,17 +63,17 @@ B.Mushrooms = function(m)
 	end
 end
 B.Tree = function(m)
-	part(m, "Trunk", V(1.8, 5.6, 1.8), CF(0, 2.8, 0), rgb(130, 90, 56), Enum.Material.Plastic)
-	blk(m, "C1", V(8.4, 3.2, 8.4), CF(0, 6.6, 0), rgb(76, 188, 96))
-	blk(m, "C1a", V(3.4, 3, 3.4), CF(4.6, 6.2, 2.6), rgb(64, 172, 84))
-	blk(m, "C1b", V(3, 2.8, 3), CF(-4.4, 7, -2.8), rgb(92, 204, 112))
-	blk(m, "C2", V(6, 3.2, 6), CF(0, 9.8, 0), rgb(92, 204, 112))
-	blk(m, "C3", V(3.6, 2.8, 3.6), CF(0, 12.4, 0), rgb(110, 222, 130))
+	part(m, "Trunk", V(1.8, 5.6, 1.8), CF(0, 2.8, 0), rgb(130, 90, 56), Enum.Material.Wood)
+	blk(m, "C1", V(8.4, 3.2, 8.4), CF(0, 6.6, 0), rgb(76, 188, 96), Enum.Material.LeafyGrass)
+	blk(m, "C1a", V(3.4, 3, 3.4), CF(4.6, 6.2, 2.6), rgb(64, 172, 84), Enum.Material.LeafyGrass)
+	blk(m, "C1b", V(3, 2.8, 3), CF(-4.4, 7, -2.8), rgb(92, 204, 112), Enum.Material.LeafyGrass)
+	blk(m, "C2", V(6, 3.2, 6), CF(0, 9.8, 0), rgb(92, 204, 112), Enum.Material.LeafyGrass)
+	blk(m, "C3", V(3.6, 2.8, 3.6), CF(0, 12.4, 0), rgb(110, 222, 130), Enum.Material.LeafyGrass)
 end
 B.PineTree = function(m)
-	part(m, "Trunk", V(1.6, 3.4, 1.6), CF(0, 1.7, 0), rgb(120, 84, 52), Enum.Material.Plastic)
+	part(m, "Trunk", V(1.6, 3.4, 1.6), CF(0, 1.7, 0), rgb(120, 84, 52), Enum.Material.Wood)
 	for i, d in { { 7.4, 3.6 }, { 5.6, 6.2 }, { 3.8, 8.8 }, { 2, 11.2 } } do
-		blk(m, "Tier" .. i, V(d[1], 2.6, d[1]), CF(0, d[2], 0), rgb(40 + i * 10, 140 + i * 14, 92))
+		blk(m, "Tier" .. i, V(d[1], 2.6, d[1]), CF(0, d[2], 0), rgb(40 + i * 10, 140 + i * 14, 92), Enum.Material.LeafyGrass)
 	end
 	part(m, "Tip", V(1.4, 1.4, 1.4), CF(0, 13.2, 0) * ANG(0.5, 0.5, 0), rgb(255, 214, 70), Enum.Material.Neon)
 end

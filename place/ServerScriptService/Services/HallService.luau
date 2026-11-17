@@ -116,9 +116,10 @@ end
 local function plaza(model)
 	local T = 8
 	local HALF = 128          -- five stands at 50-stud spacing
+	local SAND_DEEPER = SignKit.SAND:Lerp(Color3.new(0, 0, 0), 0.2)   -- audit B: readable checkerboard (SAND_DARK was only ~9% off SAND)
 	for cx = 0, HALF * 2 / T - 1 do
 		for cz = 0, 5 do
-			local c = if (cx + cz) % 2 == 0 then SignKit.SAND else SignKit.SAND_DARK
+			local c = if (cx + cz) % 2 == 0 then SignKit.SAND else SAND_DEEPER
 			-- audit 3.3: grid names (row = cz, column = cx, 1-based) instead of 192 identical "Tile"
 			mk(model, ("Tile_R%dC%d"):format(cz + 1, cx + 1), V(T, 0.6, T), CF(-HALF + T / 2 + cx * T, 0.3, -24 + T / 2 + cz * T), c, nil, { studs = true })
 		end

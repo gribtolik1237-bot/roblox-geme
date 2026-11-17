@@ -37,7 +37,8 @@ local ui = {}
 -- session 8 (skill review G01/G02): ONE result per attempt, shown in the build bar line itself (no toast next to it)
 local flashText, flashColor, flashUntil = "", Color3.new(1, 1, 1), 0
 local function flash(text: string, color: Color3, secs: number?)
-	flashText, flashColor, flashUntil = text, color, os.clock() + (secs or 1.4)
+	-- audit 2 (A.5): 2 s default - 1.4 s was too short to read the result line comfortably
+	flashText, flashColor, flashUntil = text, color, os.clock() + (secs or 2)
 end
 
 local function findPlot()
@@ -435,7 +436,13 @@ local function refreshGaps()
 	clearGaps()
 	local s = StateController.State
 	local c = s and s.course
-	if not active or not plot or not originCF or not c or c.playerPlayable then return end
+	if not active then return end
+	-- audit 2 (A.4): a reburst swaps the plot (PlotService.Apply) - never trust the cached origin CFrame;
+	-- re-find the plot and re-read its Origin on every refresh so the marks never linger on the old plot
+	if not plot or not plot.Parent then plot = findPlot() end
+	local origin = plot and plot:FindFirstChild("Origin")
+	if origin and origin:IsA("BasePart") then originCF = origin.CFrame end
+	if not plot or not originCF or not c or c.playerPlayable then return end
 	gapFolder = Instance.new("Folder"); gapFolder.Name = "CourseGapMarks"; gapFolder.Parent = workspace   -- client-only
 	for _, b in c.breaks or {} do
 		gapPad(Vector3.new(b.x, b.y, b.z), C.red, if b.kind == "start" then "START HERE" else "GAP")

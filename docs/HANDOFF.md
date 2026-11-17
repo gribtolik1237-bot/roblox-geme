@@ -122,3 +122,6 @@ Phase 5 iPhone 7/SE окна ок, FOV плавно.
 Открыто: Builder/Noob одежда, Titan причёска, Moving Wall у Runner, 8 игроков, Daily Hard, переподключение, покупка Robux,
 телефон портрет/живые тапы, Lighting.Technology (только руками), Script Analysis strict. Промт: NEXT_CHAT_PROMPT_S9.md.
 Решение владельца (2026-11-17): экономику сессии 8 оставить (утверждена).
+
+## Обновление инструментов 2026-11-17
+Полностью выгружены 73 скрипта из текущего Edit datamodel при PlaceVersion 198. Сверка состава и сумм до/после чтения выполнена. См. place/EXPORT_MANIFEST.json и EXPORT_STATUS.md. Прежние игровые результаты §13 относятся к версии 186. Добавлены tools/export-place.cjs и verify-export.cjs. Агент trap-lab-chief усилен порядком Studio/Blender в docs/ART_WORKFLOW.md, автоматические commit/push разрешены владельцем. Конфигурация и ссылки проверены. Пробный запуск отдельного Claude CLI остановился на Not logged in, API-токены не использованы. Поведение агента нужно проверить в авторизованном Claude Code. Дерево DEVELOPMENT_TREE.md обновлено.

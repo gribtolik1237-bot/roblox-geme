@@ -236,12 +236,14 @@ local function buildPlot(i: number): Plot
 	CollectionService:AddTag(land, "TL_Ground")
 	do local lt = Instance.new("Texture"); lt.Name = "LawnTiles"; lt.Texture = "rbxassetid://108532129961873"; lt.Face = Enum.NormalId.Top; lt.StudsPerTileU = 64; lt.StudsPerTileV = 64; lt.Parent = land end
 	-- the build zone is a test pool: falling off the course = into the water
-	local zone = mk(model, "BuildZone", Vector3.new(10, 0.2, 10), cf * CFrame.new(0, 0.1, -60), PALETTE.pit, Enum.Material.Slate)
+	-- phase B.5: the pool floor reads as water - translucent blue glass with a soft underwater glow
+	local zone = mk(model, "BuildZone", Vector3.new(10, 0.2, 10), cf * CFrame.new(0, 0.1, -60), Color3.fromRGB(90, 180, 255), Enum.Material.Glass, { Transparency = 0.5 })
+	do local wl = Instance.new("PointLight"); wl.Name = "PoolGlow"; wl.Color = Color3.fromRGB(120, 200, 255); wl.Range = 40; wl.Brightness = 0.6; wl.Parent = zone end
 	local tex = Instance.new("Texture"); tex.Name = "PoolTiles"; tex.Texture = POOL_TILE; tex.Face = Enum.NormalId.Top; tex.StudsPerTileU = 16; tex.StudsPerTileV = 16; tex.Parent = zone
 	-- audit 3.6: faint build grid at the build step (Balance.GridSize) over the pool tiles: shows where pieces can go
 	local grid = Instance.new("Texture"); grid.Name = "BuildGrid"; grid.Texture = POOL_TILE; grid.Face = Enum.NormalId.Top
 	grid.StudsPerTileU = Balance.GridSize; grid.StudsPerTileV = Balance.GridSize; grid.Transparency = 0.7; grid.Parent = zone
-	for _, n in { "PoolRim_L", "PoolRim_R", "PoolRim_B" } do mk(model, n, Vector3.new(1, 0.1, 1), cf, Color3.fromRGB(24, 116, 190), nil, { CanCollide = false, CanQuery = false, CanTouch = false }) end
+	for _, n in { "PoolRim_L", "PoolRim_R", "PoolRim_B" } do mk(model, n, Vector3.new(1, 0.1, 1), cf, Color3.fromRGB(24, 116, 190), Enum.Material.Marble, { CanCollide = false, CanQuery = false, CanTouch = false }) end
 	for _, side in { "L", "R" } do      -- pool ladders: two chrome rails over the coping + two steps into the water (placed by Apply)
 		local lad = Instance.new("Model"); lad.Name = "PoolLadder_" .. side; lad.Parent = model
 		for _, dz in { -1.8, 1.8 } do mk(lad, "Rail", Vector3.new(0.6, 8, 0.6), cf, Color3.fromRGB(214, 222, 236), Enum.Material.Metal, { CanCollide = false, CanQuery = false, CanTouch = false }):SetAttribute("Dz", dz) end
@@ -259,7 +261,8 @@ local function buildPlot(i: number): Plot
 		pad.CFrame = pad.CFrame * CFrame.Angles(0, 0, math.rad(90))
 		pad:SetAttribute("PadIndex", k)
 		local pg = Instance.new("SurfaceGui"); pg.Face = Enum.NormalId.Right; pg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud; pg.PixelsPerStud = 30; pg.LightInfluence = 0; pg.Parent = pad
-		SignKit.text(pg, { Size = UDim2.fromScale(1, 1), Text = tostring(k), Font = SignKit.TITLE, strokeThickness = 3 })
+		SignKit.text(pg, { Name = "Num", Size = UDim2.fromScale(1, 1), Text = tostring(k), Font = SignKit.TITLE, strokeThickness = 3 })
+		do local lock = Instance.new("ImageLabel"); lock.Name = "Lock"; lock.BackgroundTransparency = 1; lock.Image = Icons.lock or ""; lock.Size = UDim2.fromScale(0.7, 0.7); lock.Position = UDim2.fromScale(0.15, 0.15); lock.ScaleType = Enum.ScaleType.Fit; lock.Visible = false; lock.Parent = pg end
 		CollectionService:AddTag(pad, "TL_NpcPad")
 	end
 	-- pool coping: studded sand-coloured curb (resized by Apply)
@@ -329,9 +332,16 @@ function PlotService.Apply(plot: Plot, rebirth: number)
 	for k = 1, Balance.NpcPads do
 		local pad = m:FindFirstChild("Pad_" .. k) :: Part
 		local unlocked = k <= limit
-		pad.Color = if unlocked then Color3.fromRGB(70, 230, 110) else Color3.fromRGB(110, 116, 130)   -- audit 3.6: open pads = neon green (number on top)
+		pad.Color = if unlocked then Color3.fromRGB(70, 230, 110) else Color3.fromRGB(130, 136, 150)   -- phase B.6: open pads = neon green, locked = grey
 		pad.Material = if unlocked then Enum.Material.Neon else Enum.Material.Metal
 		pad:SetAttribute("Unlocked", unlocked)
+		local pg = pad:FindFirstChildOfClass("SurfaceGui")
+		if pg then
+			local num = pg:FindFirstChildWhichIsA("TextLabel")
+			local lock = pg:FindFirstChildWhichIsA("ImageLabel")
+			if num then num.Visible = unlocked end
+			if lock then lock.Visible = not unlocked end
+		end
 	end
 end
 
