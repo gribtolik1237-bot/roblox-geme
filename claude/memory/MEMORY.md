@@ -7,3 +7,4 @@
 - [Tutorial = arrows only](feedback-tutorial-arrows.md) — TRAP LAB onboarding: arrow leads + 1 word, no cards/panels
 - [One shopkeeper rule](feedback-shopkeeper.md) — TRAP LAB: each shop has ONE NPC seller behind the counter, not a crowd
 - [Build snapping bug](feedback-build-snapping.md) — TRAP LAB: pieces could not be joined - FIXED s7 with a magnet; re-test after build changes
+- [GitHub repo](reference-github-repo.md) — TRAP LAB home repo roblox-geme: pull at start, docs+memory+place scripts, commit+push at end
