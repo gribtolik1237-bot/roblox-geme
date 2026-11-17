@@ -1,0 +1,204 @@
+# TRAP LAB — МАСТЕР-АУДИТ И ПОЛНЫЙ АПГРЕЙД ИГРЫ
+
+Ты работаешь над Roblox-игрой "Trap Lab" (Лаборатория ловушек). Ты уже знаешь архитектуру:
+сервер — ServerScriptService.Services + Systems, клиент — StarterPlayerScripts.Controllers,
+RPC через ReplicatedStorage.Shared.Net, конфиги в ReplicatedStorage.Configs, UI генерируется
+кодом через UIKit. НЕ переписывай архитектуру — улучшай внутри неё.
+
+Работай пофазно: одна фаза = один коммит. После каждой фазы запускай игру в Studio,
+проверяй Output на ошибки и только потом переходи к следующей. Не меняй несколько систем
+в одном коммите.
+
+════════════════════════════════════════════
+ФАЗА 1 — КРИТИЧЕСКИЕ БАГИ (исправить в первую очередь)
+════════════════════════════════════════════
+
+1.1. ServerScriptService.Services.NPCRunService, функция checkProgress():
+     там while true do БЕЗ task.wait() внутри — busy-wait, грузит CPU.
+     Перепиши на обычный цикл for по стадиям с break или добавь выход по условию.
+
+1.2. ServerScriptService.Services.ShopCore: таблица lastSaveAt никогда не чистится —
+     добавь очистку при выходе игрока (Players.PlayerRemoving или там, где чистишь
+     остальные таблицы этого сервиса).
+
+1.3. ServerScriptService.Main: Players.CharacterAutoLoads = false — deprecated.
+     Замени на Players.CharacterAutoLoad = false.
+
+1.4. Удали мёртвый ремоут TestRun: он объявлен в Net.Functions, но ни один скрипт
+     его не вызывает. Убери из списка функций.
+
+1.5. RewardService.Grant(): оберни MarkDirty и StateSync.Push в pcall, чтобы при сбое
+     синхронизации монеты не терялись молча.
+
+1.6. LeaderboardService.Flush(): добавь ретраи вокруг SetAsync (по образцу PlayerDataService:
+     MAX_TRIES с экспоненциальной задержкой).
+
+════════════════════════════════════════════
+ФАЗА 2 — ПРОИЗВОДИТЕЛЬНОСТЬ И КАЧЕСТВО КОДА
+════════════════════════════════════════════
+
+2.1. Клиентские бесконечные циклы опроса — замени на события где возможно:
+     - ShopController (task.wait(0.5) цикл обновления полок) → слушай ShopSync event,
+       который сервер уже шлёт; цикл оставь только как fallback-ресинк раз в 30с.
+     - RunController (task.wait(0.1) таймер) → таймер должен тикать только пока
+       идёт забег: while run do ... task.wait(0.1) end, запускай через task.spawn
+       при старте забега, а не один вечный цикл.
+     - MetaController (task.wait(1) бонус-пиллюля) → обновляй по StateController.Changed.
+     - CourseSlotsController (task.wait(30)) → оставь, но привяжи к открытому окну:
+       цикл живёт только пока окно открыто.
+     - HUDController (task.wait(0.15) детект модалок) → замени на событие/флаг
+         из UIKit.window (open/close уже есть).
+     - SfxController музыка-цикл — допустимо, но добавь выход при mute.
+
+2.2. Переведи NPC-сервисы на --!strict: NPCBrainService, NPCPlacementService,
+     NPCRunService, ObstacleTraversalService, RebirthService и Shared.NPCRig сейчас
+     на --!nonstrict. Добавь типы (хотя бы промежуточные typeof-аннотации), исправь
+     все ошибки типов. Это самая большая зона скрытых багов в игре.
+
+2.3. Вынеси хардкод в Configs.Balance:
+     - MAX_OWNED = 99 (ObstacleShopService) → Balance.Shop.MaxOwned
+     - SAVE_SLOTS = 3 (BuildService) → Balance.Build.SaveSlots
+     - AUTOSAVE = 60, MAX_TRIES = 4, MAX_BYTES (PlayerDataService) → Balance.Data
+     - порог скорости 170 (ManualCourseRunService) → Balance.Run.SpeedLimit
+     - импульс отбрасывания 55/26 (NPCRunService) → Balance.Npc.KnockImpulse
+     - BASE_FOV = 80, DEFAULT_FOV = 70 (FirstPersonController) → Balance.Client
+     - MAGNET_RANGE = 5 (BuildController) → Balance.Build.MagnetRange
+     Не меняй значения — только перенеси.
+
+2.4. Дублирование: isGround() одинаков в ManualCourseRunService и NPCRunService —
+     вынеси в Shared.Util. Тексты ошибок клиентов (TELEPORT_ERRORS, REASONS, ERR,
+     ERRORS в Shop/Run/CourseSlots/Decor контроллерах) собери в один модуль
+     ReplicatedStorage.Configs.Strings.
+
+2.5. WaitForChild без таймаута: HUDController (PlayerGui), GuideController (PlayerGui),
+     CourseSlotsController (поиск SaveBoard) — добавь таймауты и graceful-выход.
+
+════════════════════════════════════════════
+ФАЗА 3 — ВИЗУАЛ: МАГАЗИНЫ, ПРЕПЯТСТВИЯ, МИР
+════════════════════════════════════════════
+Это твоя слабая сторона, поэтому работай строго по рецепту. Цель: киоски уровня
+"яркая тир-категория" как на референсах — насыщенные цвета, разнообразные материалы,
+читаемые силуэты, светящиеся акценты.
+
+3.1. МАГАЗИНЫ (Workspace.WorldAssets.Shops: Shop_obstacle, Shop_npc).
+     Сейчас: всё из примитивных Parts, весь материал Plastic, цвета грязноватые
+     (пол — тёмный тауп 0.31/0.29/0.27, крыша — блёклый лиловый). Проблема не в
+     геометрии — она нормальная — а в материалах, цветах и деталях.
+
+     Рецепт переделки (правь скриптом через командную строку/Plugin, не руками):
+     a) Материалы по смыслу: пол киоска — Enum.Material.WoodPlanks или SmoothPlastic
+        с ярким цветом; крыша — Enum.Material.Fabric насыщенного цвета (например,
+        Color3.fromRGB(255, 89, 89) красный или fromRGB(64, 156, 255) синий);
+        колонны — Metal; витрины/дисплеи — Glass; подиумы — Marble.
+     b) Цветовая схема: каждый киоск — 2 основных цвета + 1 акцент неон
+        (Enum.Material.Neon) для кромок: SignBoard, TerminalScreen, BeaconGem,
+        TradeRing — сделай Neon и подсвети. Добавь PointLight внутрь киоска
+        тёплого цвета.
+     c) Дисплеи товаров (Display_BasicPlatform, Display_LavaFloor,
+        Display_RotatingBar, Display_SpikePlatform, Display_RampUp,
+        Display_SmallJumpPlatform): у LavaFloor — Material.CrackedLava + Neon
+        для StoneGlow; у Spikes — Metal; каждому дисплею — своя цветовая
+        идентичность, чтобы игрок отличал товары с первого взгляда.
+     d) Добавь детали из мелких частей: ценники (SurfaceGui с TextLabel) над
+        каждым дисплеем, вывеску с названием киоска на SignBoard (SurfaceGui,
+        крупный шрифт, UIStroke), гирлянду из мелких Neon-сфер вдоль козырька
+        (Awning 1-8 уже есть — по одной сфере на каждый).
+     e) Проверь у моделей магазинов PrimaryPart (сейчас его может не быть) —
+        установи на Floor или Plaza.
+
+3.2. ПРЕПЯТСТВИЯ (ReplicatedStorage.Shared.ObstacleModels — процедурные билдеры,
+     24 типа). Улучшения:
+     a) Каждый тип препятствия должен иметь уникальный силуэт и читаемую
+        "опасность": kill-препятствия — красные/оранжевые Neon-акценты, knock —
+        жёлтые, безопасные — зелёные/синие. Сейчас многие похожи друг на друга.
+     b) Добавь материал по типу: вращающиеся бары — Metal + полосы
+        (Texture или чередование цветов частей), лава — CrackedLava + Neon-глоу,
+        движущиеся платформы — SmoothPlastic с неоновой кромкой по контуру
+        (тонкая Neon-часть-рамка), чтобы траектория читалась.
+     c) Проверь консистентность масштаба: все препятствия должны кратны
+        GridSize = 4 из Balance.
+     d) Каждому препятствию — лёгкая анимационная подпись в статике: например,
+        у finish-пада флаг, у спиннеров — стрелки направления.
+
+3.3. HALL (Workspace.WorldAssets.Hall): 192 части "Tile" — переименуй по сетке
+     (Tile_R1C1 ... или хотя бы Tile_1..Tile_192 группами), установи PrimaryPart
+     модели. Материал пола: чередуй два оттенка (светлый/тёмный) в шахматном
+     порядке для визуального ритма. Доски Board_money/rebirths/obyb/popular/daily
+     должны иметь заголовки (SurfaceGui) — проверь, есть ли они.
+
+3.4. Пустые папки-призраки в Workspace: Lobby, DailyChallenges, Leaderboards,
+     Runtime, а внутри плотов — Course и Npcs. Если они заполняются в рантайме —
+     оставь и добавь комментарий в Main; если нет — удали мёртвые.
+
+3.5. Освещение и атмосфера: проверь Lighting (Technology должен быть
+     ShadowMap/Lighting.ForceGlobalShadows, Atmosphere уже есть). Добавь/усиль:
+     Bloom intensity ~0.4-0.6, ColorCorrection saturation +0.05..0.1 для
+     "симуляторной" сочности. Вечерне-дневной баланс: яркий дневной свет.
+
+3.6. Плот игрока: Pad_1..Pad_10 — сейчас Neon-голубые одинаковые. Сделай
+     стартовые пады заметнее (Neon-зелёный + номер площадки через SurfaceGui),
+     а границу BuildZone — полупрозрачной сеткой (Texture) чтобы игрок видел
+     где можно строить.
+
+════════════════════════════════════════════
+ФАЗА 4 — МЕХАНИКИ И БАЛАНС
+════════════════════════════════════════════
+
+4.1. В Configs.Balance стоит комментарий "Values are PROVISIONAL, NOT
+     economy-playtested". Прогони мысленный симулякл экономики: старт 750 монет,
+     награда за забег BasePerStage=12 + Flat=20, цены NPC от 0 до 230 000,
+     цены препятствий до 200 000, MaxRebirth = 10. Оцени время до первой покупки
+     NPC (цель: 5-10 минут), до первого ребёрса и до топового контента.
+     Если прогрессия рваная — сгладь цены/награды, измени не более 30% значений
+     за раз и выпиши changelog.
+
+4.2. NPC-забеги: проверь связку ObstacleTraversalService → NPCBrainService →
+     NPCRunService. Известные слабости Brain.Step(): обращения к hum.Jump и
+     hazard-полям (h.pose, h.active, h.size) без проверок на nil — добавь
+     defensive-проверки. Проверь, что NPC не застревает на препятствиях с
+     поведением vanish/reveal (они помечены как несовместимые — убедись, что
+     валидация курса их реально отклоняет для NPC-забегов).
+
+4.3. Рейтинг курсов (RatingService): Bayesian-подход правильный, но проверь
+     анти-абьюз: кулдаун, запрет саморейтинга и лимит MAX_VOTERS = 150 —
+     убедись, что один игрок не может голосовать дважды за одну версию курса.
+
+4.4. Rate limits в Balance.RateLimits: Buy=0.5, Build=0.08 — Build слишком
+     частый для RemoteFunction? Проверь, что Net.handle применяет их ко всем
+     хендлерам единообразно (сейчас каждый сервис регистрирует сам — сверь
+     все регистрации со значениями из Balance).
+
+════════════════════════════════════════════
+ФАЗА 5 — UI/UX ПОЛИРОВКА
+════════════════════════════════════════════
+
+5.1. UIKit.isCompact уже есть — проверь все окна на маленьких вьюпортах
+     (Studio Device Simulator: iPhone SE, 375x667): Shop, Inventory, NPC,
+     Rebirth, Donate. Все карточки должны скроллиться, ничего не должно
+     вылезать за экран.
+
+5.2. Добавь ContextActionService для мобильных билд-действий (rotate, level
+     up/down, remove) — сейчас они только на клавиатуре (R, E, Q, X), на таче
+     их нет. Это блокирует мобильных строителей.
+
+5.3. Escape/Backspace отменяет билд — добавь этому подсказку в UI (маленький
+     hint-лейбл в хотбаре).
+
+5.4. FirstPersonController: BASE_FOV 80 при DEFAULT 70 — проверь переходы
+     FOV при входе/выходе из забега, не должно быть рывка камеры.
+
+════════════════════════════════════════════
+ПРАВИЛА ДЛЯ ВСЕХ ФАЗ
+════════════════════════════════════════════
+- Не ломай existing API: Net.invoke возвращает {ok, err, ...} — сохрани контракт.
+- Не вводи новые глобальные сервисы/паттерны — расширяй существующие.
+- После каждого изменения: запусти Studio, прочитай Output, протестируй
+  затронутую механику руками (магазин, билд, забег, ребёрс, NPC-запуск).
+- Все значения, которые ты переносишь в конфиги, НЕ меняй по пути.
+- Для визуальных правок используй скрипты (command bar), а не ручное
+  перетаскивание — чтобы правки были воспроизводимы.
+- Если что-то в этой инструкции противоречит реальному коду — код главнее,
+  но сообщи об этом в отчёте.
+
+Начни с Фазы 1. После её завершения дай краткий отчёт: что исправлено,
+что проверено тестом, что отложено и почему.
