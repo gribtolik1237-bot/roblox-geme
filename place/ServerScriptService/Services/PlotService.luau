@@ -60,7 +60,7 @@ local function padLocal(i: number): Vector3   -- NPC pad i (1..NpcPads), local t
 end
 PlotService.PadLocal = padLocal
 
-local SIGN_BOARD = {   -- the sign board carries the plot's flag colour (same order as PLOT_COLORS)
+local SIGN_BOARD = {   -- the sign board carries the plot colour
 	Color3.fromRGB(34, 190, 222), Color3.fromRGB(150, 84, 235), Color3.fromRGB(70, 190, 48), Color3.fromRGB(240, 128, 28),
 	Color3.fromRGB(236, 170, 20), Color3.fromRGB(235, 64, 64), Color3.fromRGB(240, 76, 148), Color3.fromRGB(52, 128, 240),
 }
@@ -68,7 +68,7 @@ local function buildSign(model: Model, cf: CFrame, index: number): Model
 	local sign = Instance.new("Model"); sign.Name = "PlaySign"; sign.Parent = model
 	-- Stands just outside the start edge, facing the lobby aisle (+Z local). Built for the GIANT lobby avatar (Balance.Avatar.Lobby).
 	-- Owner reference 2 (session 5, TRAP_LAB/references_s5): ONE huge green PLAY button with an icon + a dark rating strip under it.
-	-- Coloured plastic only (no wood, D-030/D-034): red posts, navy feet/cap, yellow frame, board in the plot's flag colour.
+	-- Coloured plastics for the sign: red posts, navy feet/cap, yellow frame, board in the plot colour.
 	local K = Balance.Avatar.Lobby
 	local S = Vector3.new
 	local z = 5 * K
@@ -183,12 +183,6 @@ local function prop(model: Model, base: CFrame, id: string, x: number, z: number
 end
 
 local POOL_TILE = "rbxassetid://126806655453119"   -- seamless tiled water texture (TRAP_LAB/assets/make_water_tile.py)
-local PLOT_COLORS = {
-	Color3.fromRGB(34, 200, 232), Color3.fromRGB(172, 92, 255), Color3.fromRGB(86, 214, 56), Color3.fromRGB(255, 142, 32),
-	Color3.fromRGB(255, 190, 24), Color3.fromRGB(255, 72, 72), Color3.fromRGB(255, 84, 160), Color3.fromRGB(58, 142, 255),
-}
-local INERT = { CanCollide = false, CanQuery = false, CanTouch = false }
-
 -- wooden fence run (decoration only): posts every ~16 studs + two studded rails. axis "z": along local z at x = fixed (a -> b); "x": along x at z = fixed
 local function fence(model: Model, cf: CFrame, axis: string, fixed: number, a: number, b: number)
 	local f = Instance.new("Folder"); f.Name = "Fence"; f.Parent = model
@@ -204,22 +198,6 @@ local function fence(model: Model, cf: CFrame, axis: string, fixed: number, a: n
 		local t = a + (b - a) * i / n
 		local pos = if axis == "z" then Vector3.new(fixed, 3.5, t) else Vector3.new(t, 3.5, fixed)
 		mk(f, "Post", Vector3.new(2, 7, 2), cf * CFrame.new(pos), SignKit.WOOD_DARK, nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	end
-end
-
--- tall flag with the plot number, visible from the aisle and from afar (the PLAY sign's text is small at a distance)
-local function totem(model: Model, cf: CFrame, x: number, z: number, index: number)
-	local col = PLOT_COLORS[(index - 1) % #PLOT_COLORS + 1]
-	local f = Instance.new("Model"); f.Name = "Totem"; f.Parent = model
-	local dir = if x < 0 then 1 else -1       -- the flag points toward the plot centre
-	mk(f, "Foot", Vector3.new(7, 2, 7), cf * CFrame.new(x, 1, z), SignKit.WOOD_DARK, nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	mk(f, "Pole", Vector3.new(2.4, 46, 2.4), cf * CFrame.new(x, 24, z), SignKit.WOOD, Enum.Material.Plastic, INERT)
-	mk(f, "Knob", Vector3.new(4, 4, 4), cf * CFrame.new(x, 48.5, z), Color3.fromRGB(255, 206, 60), nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	local flag = mk(f, "Flag", Vector3.new(20, 22, 1.6), cf * CFrame.new(x + dir * 11.2, 36, z), col, nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	mk(f, "FlagTrim", Vector3.new(20.8, 2, 2), cf * CFrame.new(x + dir * 11.2, 46.5, z), col:Lerp(Color3.new(0, 0, 0), 0.35), nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	for _, face in { Enum.NormalId.Back, Enum.NormalId.Front } do
-		local sg = Instance.new("SurfaceGui"); sg.Face = face; sg.LightInfluence = 0; sg.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud; sg.PixelsPerStud = 4.6; sg.Parent = flag
-		SignKit.text(sg, { Size = UDim2.fromScale(1, 1), Text = tostring(index), Font = SignKit.TITLE, strokeThickness = 3 })
 	end
 end
 
@@ -279,12 +257,11 @@ local function buildPlot(i: number): Plot
 		prop(model, cf, "FlowerPatch", sx * 14, 50, 0, 2.6); prop(model, cf, "Lantern", sx * 10, 30, 0, 2.2); prop(model, cf, "Lantern", sx * 10, 80, 0, 2.2)
 	end
 	prop(model, cf, "Tree", -58, 70, 0, 2.6); prop(model, cf, "Tree", 60, 76, 90, 2.6)
-	-- plot dressing (decoration only, never collides): fences on the cell border, brick pines along the sides, number flags at the entrance
+	-- plot dressing (decoration only, never collides): fences on the cell border and brick pines along the sides
 	fence(model, cf, "z", -129, 88, -330); fence(model, cf, "z", 129, 88, -330); fence(model, cf, "x", -329, -129, 129)
 	for _, sx in { -1, 1 } do
 		for zi = 0, 6 do prop(model, cf, "PineTree", sx * 124, 56 - zi * 62, (zi * 53 + sx * 20) % 360, 1.35) end
 		prop(model, cf, "Tree", sx * 98, 80, 30 * sx, 1.9)
-		totem(model, cf, sx * 34, 84, i)
 	end
 	local function folder(n: string): Folder local f = Instance.new("Folder"); f.Name = n; f.Parent = model; return f end
 	local course, decor, npcs = folder("Course"), folder("Decor"), folder("Npcs")
@@ -397,21 +374,21 @@ function PlotService.BuildCliffs(wa: Instance)
 	wall("E", 835, 0, false, 1470, Enum.NormalId.Left); wall("W", -835, 0, false, 1470, Enum.NormalId.Right)
 end
 
+local Promenade = require(game:GetService("ServerStorage").WorldRecipes.LobbyPromenade)
+
 function PlotService.BuildWorld(force: boolean?)
 	local root = workspace.PlayerPlots
+	local wa = workspace.WorldAssets
 	if force then root:ClearAllChildren() end
 	if #root:GetChildren() == 0 then
-		local wa = workspace.WorldAssets
-		for _, n in { "Ground", "LobbyFloor", "LobbyCurbN", "LobbyCurbS", "Cliffs" } do local o = wa:FindFirstChild(n); if o then o:Destroy() end end
+		for _, n in { "Ground", "LobbyFloor", "LobbyCurbN", "LobbyCurbS", "Cliffs", "MarketPromenade" } do local o = wa:FindFirstChild(n); if o then o:Destroy() end end
 		local g = mk(wa, "Ground", Vector3.new(1700, 2, 1500), CFrame.new(0, -1.5, 0), PALETTE.ground, Enum.Material.Grass)
 		CollectionService:AddTag(g, "TL_Ground")
 		do local gt = Instance.new("Texture"); gt.Name = "LawnTiles"; gt.Texture = "rbxassetid://108532129961873"; gt.Face = Enum.NormalId.Top; gt.StudsPerTileU = 64; gt.StudsPerTileV = 64; gt.Parent = g end
-		mk(wa, "LobbyFloor", Vector3.new(1300, 1, 40), CFrame.new(0, -0.5, 0), SignKit.SAND_DARK, nil, { studs = true })
-		mk(wa, "LobbyCurbN", Vector3.new(1300, 0.8, 2.4), CFrame.new(0, 0.4, 21.2), SignKit.WOOD_DARK, nil, { studs = true })
-		mk(wa, "LobbyCurbS", Vector3.new(1300, 0.8, 2.4), CFrame.new(0, 0.4, -21.2), SignKit.WOOD_DARK, nil, { studs = true })
 		for i = 1, Balance.PlotCount do buildPlot(i) end
 		PlotService.BuildCliffs(wa)
 	end
+	Promenade.Build(wa, root)
 	plots = {}
 	for i = 1, Balance.PlotCount do
 		local m = root:FindFirstChild("Plot_" .. i) :: Model

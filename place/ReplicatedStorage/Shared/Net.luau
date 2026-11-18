@@ -10,7 +10,7 @@ local Net = {}
 Net.Functions = {
 	"GetState", "Buy", "GetShops", "BuildPlace", "BuildMove", "BuildRemove", "ValidateCourse", "SetCourseName",
 	"SetSlot", "PlaceNpc", "LaunchNpc", "RecallNpc", "StartManual", "CancelManual", "GetPlaySign",
-	"Rebirth", "Rate", "GetBoards", "GetDaily", "StartDaily", "PlaceDecor", "RemoveDecor", "TeleportToShop", "GetDonate",
+	"Rebirth", "Rate", "GetBoards", "PlaceDecor", "RemoveDecor", "TeleportToShop", "GetDonate",
 	"CourseSlots", "ClaimLogin",
 }
 Net.Events = { "State", "ShopSync", "Notify", "RunState", "Effect", "Knock", "NpcState", "OpenShop", "OpenBoard" }

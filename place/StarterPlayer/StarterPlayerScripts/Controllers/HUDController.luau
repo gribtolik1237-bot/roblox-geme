@@ -13,9 +13,14 @@ local StateController = require(script.Parent.StateController)
 local HUDController = {}
 HUDController.Gui = nil :: ScreenGui?
 HUDController.Menu = {} :: { [string]: TextButton }
-HUDController.Compact = false        -- phone / tiny viewport: smaller tiles, 5 per row (see Start)
+HUDController.Compact = false
 local C = UIKit.C
 local WHITE = Color3.new(1, 1, 1)
+local MENU_GAP = 8
+
+local function tileSize(): number
+	return if HUDController.Compact then 74 else 66
+end
 
 function HUDController.Gui_(): ScreenGui
 	return HUDController.Gui :: ScreenGui
@@ -25,30 +30,26 @@ function HUDController.Toast(text: string, kind: string?)
 	if HUDController.Gui then UIKit.toast(HUDController.Gui, text, kind) end
 end
 
--- short captions so every tile label fits under its icon
 local TILE = {
-	shop = Color3.fromRGB(34, 200, 232), npcshop = Color3.fromRGB(172, 92, 255), build = Color3.fromRGB(255, 142, 32), npcs = Color3.fromRGB(58, 142, 255),
-	rebirth = Color3.fromRGB(236, 72, 180), daily = Color3.fromRGB(86, 214, 56), popular = Color3.fromRGB(255, 190, 24), decor = Color3.fromRGB(24, 196, 150),
-	inventory = Color3.fromRGB(196, 122, 66), donate = Color3.fromRGB(255, 84, 104),
+	npcs = Color3.fromRGB(55, 143, 232),
+	rebirth = Color3.fromRGB(164, 82, 227),
+	donate = Color3.fromRGB(229, 78, 103),
 }
-local CAPTION = { inventory = "Items", npcshop = "NPC Shop", popular = "Popular", rebirth = "Rebirth", donate = "Donate" }
 
--- Adds a tile to the left menu grid (called by other controllers): glossy colour plate + big 3D icon + outlined caption
+-- Small action tiles under the currency bar. The whole tile is the button.
 function HUDController.AddMenuButton(id: string, text: string, color: Color3, order: number, onClick: () -> ())
 	local col = (HUDController.Gui :: ScreenGui):FindFirstChild("MenuColumn") :: Frame
-	local compact = HUDController.Compact
-	local S = if compact then 56 else 80
+	local S = tileSize()
 	local b = UIKit.button(col, { text = "", color = TILE[id] or color, size = UDim2.fromOffset(S, S), textSize = 14, order = order, onClick = onClick })
 	b.Name = id
 	local img = Icons[id]
 	if img then
-		local isz = if compact then 38 else 58
+		local isz = S - 25
 		UIKit.new("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = img, Size = UDim2.fromOffset(isz, isz), AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, if compact then 2 else 3), ZIndex = 4, ScaleType = Enum.ScaleType.Fit }, b)
+			Position = UDim2.new(0.5, 0, 0, 1), ZIndex = 4, ScaleType = Enum.ScaleType.Fit }, b)
 	end
-	local cap = UIKit.label(b, { Name = "Caption", Text = CAPTION[id] or text, TextSize = if compact then 11 else 15, TextScaled = true, Size = UDim2.new(1, -6, 0, if compact then 15 else 20),
-		Position = UDim2.new(0, 3, 1, if compact then -17 else -22), ZIndex = 5, stroke = if compact then 2 else 3 })
-	UIKit.new("UITextSizeConstraint", { MaxTextSize = if compact then 11 else 15, MinTextSize = 7 }, cap)
+	UIKit.label(b, { Name = "Caption", Text = text, TextSize = 17, Size = UDim2.new(1, -8, 0, 22),
+		Position = UDim2.new(0, 4, 1, -24), ZIndex = 5, stroke = 2.4 })
 	HUDController.Menu[id] = b
 	return b
 end
@@ -103,13 +104,12 @@ function HUDController.Start()
 	local barText = UIKit.label(bar, { Text = "Rebirth 0", TextSize = if compact then 13 else 17, Size = UDim2.fromScale(1, 1), ZIndex = 3, stroke = 3 })
 
 	-- Left menu grid
-	local S = if compact then 56 else 80
-	local gap = if compact then 6 else 10
-	local cols = if compact then 5 else 2
-	local width = cols * S + (cols - 1) * gap
+	local S = tileSize()
 	local top = cs + barH + 28
-	local col = UIKit.new("Frame", { Name = "MenuColumn", BackgroundTransparency = 1, Size = UDim2.fromOffset(width, if compact then 2 * (S + gap) else 5 * (S + gap)), Position = UDim2.fromOffset(16, top) }, gui)
-	UIKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(S, S), CellPadding = UDim2.fromOffset(gap, gap), SortOrder = Enum.SortOrder.LayoutOrder, FillDirectionMaxCells = cols }, col)
+	local col = UIKit.new("Frame", { Name = "MenuColumn", BackgroundTransparency = 1, Size = UDim2.fromOffset(0, S),
+		AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.fromOffset(16, top) }, gui)
+	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, MENU_GAP),
+		SortOrder = Enum.SortOrder.LayoutOrder }, col)
 
 	-- Storage-mode banner (honest indicator when progress cannot be saved)
 	local banner = UIKit.label(gui, { Name = "MockBanner", Text = "Studio test: data is NOT saved", TextSize = 16, Size = UDim2.fromOffset(300, 24), Position = UDim2.new(1, -10, 1, -6), AnchorPoint = Vector2.new(1, 1), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = C.orange, Visible = false })   -- corner: never behind the hotbar

@@ -101,17 +101,8 @@ Balance.NpcStatMap = {
 	RecoveryChanceDivisor = 12,      -- P(recover) = recovery/this
 }
 
--- Daily challenges (existing Coins sources only are multiplied) -----------------
--- A challenge = clear `goalRuns` DIFFERENT courses (by hand, PLAY) of at least `minDifficulty` after accepting it. Reward = ONLY a Coins multiplier
--- for `minutes` on the existing multipliable sources (manual clears, NPC stage/finish): no new source of Coins. One completion per tier per UTC day.
+-- Course difficulty order (also used for leaderboard scoring).
 Balance.DifficultyOrder = { "Easy", "Normal", "Hard", "VeryHard", "Extreme" }
-Balance.Daily = {
-	Easy = { mult = 2, minutes = 10, goalRuns = 1, title = "Warm-up", minDifficulty = 1, othersOnly = false },
-	Hard = { mult = 2, minutes = 20, goalRuns = 2, title = "Courage", minDifficulty = 2, othersOnly = true },
-	SuperHard = { mult = 3, minutes = 15, goalRuns = 3, title = "Nightmare", minDifficulty = 3, othersOnly = true },
-	Order = { "Easy", "Hard", "SuperHard" },
-	ResetUtcHour = 0,
-}
 
 -- Daily login gift (LoginRewardService): 7-day streak, missing a day restarts it. Coins = Rewards[day] * (1 + rebirth). Only after the first NPC run.
 Balance.Login = { Rewards = { 50, 75, 100, 150, 200, 250, 600 }, ResetUtcHour = 0 }
@@ -133,7 +124,7 @@ Balance.RateLimits = { Buy = 0.5, Build = 0.08, Npc = 0.5, Run = 1.0, Rate = 1.0
 	-- audit 4.4: every Net.handle now reads its minimum interval (seconds per player) from HERE; values are the ones that were
 	-- hard-coded in the services (unchanged). Build stays 0.08: one cheap server-side validation per click, no DataStore write.
 	GetState = 0.5, GetShops = 0.3, Validate = 1, CourseName = 1, CourseSlots = 2, CancelRun = 0.5, NpcSlot = 0.25,
-	Teleport = 2, Boards = 2, GetDaily = 0.5, StartDaily = 1, Decor = 0.25, GetDonate = 1, ClaimLogin = 2,
+	Teleport = 2, Boards = 2, Decor = 0.25, GetDonate = 1, ClaimLogin = 2,
 }
 Balance.RatingEditCooldown = 3600       -- seconds before the same player may change a rating
 

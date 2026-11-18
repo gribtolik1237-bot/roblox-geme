@@ -1,14 +1,12 @@
 --!strict
--- The ONLY module that changes Coins. Idempotent grants, atomic spends, Daily multiplier on eligible sources.
--- Eligible for the Daily multiplier (BALANCE.md): manual-run rewards and NPC stage/finish rewards. Nothing else.
+-- The only module that changes Coins. Grants are idempotent and spends are atomic.
 local PlayerDataService = require(script.Parent.PlayerDataService)
 local StateSync = require(script.Parent.StateSync)
 
 local RewardService = {}
 
-local MULTIPLIABLE: { [string]: boolean } = { manual = true, npcStage = true, npcFinish = true }
 local LIFETIME_SOURCES: { [string]: boolean } = {
-	manual = true, creator = true, npcStage = true, npcFinish = true, daily = true, achievement = true, login = true,
+	manual = true, creator = true, npcStage = true, npcFinish = true, achievement = true, login = true,
 }
 
 -- audit 1.5: the coin change is already in the profile; a failing dirty-mark or sync must not throw out of a grant (the caller would
@@ -26,12 +24,6 @@ local function commit(player: Player, what: string)
 	if not okSync then warn(("[Reward] StateSync.Push failed after %s for %s: %s"):format(what, player.Name, tostring(e3))) end
 end
 
-function RewardService.Multiplier(player: Player): number
-	local p = PlayerDataService.Get(player)
-	if p and p.daily.bonusMult > 1 and os.time() < p.daily.bonusUntil then return p.daily.bonusMult end
-	return 1
-end
-
 -- Returns the amount actually granted (0 if idempotency key already used / invalid / no profile).
 function RewardService.Grant(player: Player, amount: number, source: string, idemKey: string?): number
 	local p = PlayerDataService.Get(player)
@@ -41,9 +33,7 @@ function RewardService.Grant(player: Player, amount: number, source: string, ide
 		if p.paid[idemKey] then return 0 end
 		p.paid[idemKey] = os.time()           -- claimed BEFORE any yield: concurrent duplicates lose
 	end
-	local final = amount
-	if MULTIPLIABLE[source] then final = amount * RewardService.Multiplier(player) end
-	final = math.floor(final)
+	local final = math.floor(amount)
 	if final <= 0 then return 0 end
 	p.coins += final
 	if LIFETIME_SOURCES[source] then p.lifetime += final end

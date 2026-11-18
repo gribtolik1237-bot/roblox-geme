@@ -228,34 +228,38 @@ function ShopController.Start()
 	makeView("obstacle", "Obstacle Shop", C.teal, Icons.shop)
 	makeView("npc", "NPC Shop", C.purple, Icons.npcshop)
 	-- Owner rule (T37): the Shop / NPC Shop buttons sit at the TOP of the screen and ONLY teleport to the shop building; the window opens at the counter
-	local bar = UIKit.new("Frame", { Name = "ShopBar", BackgroundTransparency = 1, Size = UDim2.fromOffset(0, if HUDController.Compact then 52 else 88), AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.new(0.5, 0, 0, 8), AnchorPoint = Vector2.new(0.5, 0) }, HUDController.Gui)
-	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 14), SortOrder = Enum.SortOrder.LayoutOrder }, bar)
-	-- owner reference 3 ("Buildings / Home / Monsters"): wide glossy plates, huge icon on the left, huge outlined caption; click = teleport only
-	local PLATES = {      -- order as in the reference: shop | home | NPC shop
+	local compact = HUDController.Compact
+	local height, width, gap = if compact then 74 else 54, if compact then 126 else 146, 10
+	local npcExtra = if compact then 36 else 30
+	local rowWidth = width * 3 + npcExtra + gap * 2
+	local bar = UIKit.new("Frame", { Name = "ShopBar", BackgroundTransparency = 1, Size = UDim2.fromOffset(rowWidth, height),
+		Position = UDim2.new(0.5, 0, 0, 8), AnchorPoint = Vector2.new(0.5, 0) }, HUDController.Gui)
+	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, gap),
+		SortOrder = Enum.SortOrder.LayoutOrder }, bar)
+	-- The reference uses horizontal plates, with the icon and label entirely inside each plate.
+	local PLATES = {
 		{ kind = "obstacle", id = "shop", text = "Shop", col = Color3.fromRGB(32, 150, 240), icon = Icons.shop },
 		{ kind = "home", id = "home", text = "Home", col = Color3.fromRGB(46, 184, 62), icon = Icons.home or Icons.build },
 		{ kind = "npc", id = "npcshop", text = "NPC Shop", col = Color3.fromRGB(150, 70, 235), icon = Icons.npcshop },
 	}
 	for i, p in PLATES do
-		local compact = HUDController.Compact
-		local W, H = (if compact then 160 else 240) + (if p.kind == "npc" then (if compact then 30 else 60) else 0), if compact then 48 else 80   -- "NPC Shop" is longer: wider plate keeps it on one line
-		local b = UIKit.button(bar, { text = "", color = p.col, size = UDim2.fromOffset(W, H), order = i, textSize = 14, onClick = function() ShopController.Teleport(p.kind) end })
-		b.Name = p.id
-		local isz = H + (if compact then 10 else 14)
-		UIKit.new("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = p.icon, Size = UDim2.fromOffset(isz, isz), AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 4, 0.5, 0), ZIndex = 4, ScaleType = Enum.ScaleType.Fit }, b)
-		local cap = UIKit.label(b, { Name = "Caption", Text = p.text, TextScaled = true, TextSize = 30, Size = UDim2.new(1, -(isz + 14), 1, -10), Position = UDim2.new(0, isz + 8, 0, 5), ZIndex = 5, stroke = if compact then 3.5 else 5 })
-		UIKit.new("UITextSizeConstraint", { MaxTextSize = if compact then 24 else 38, MinTextSize = 10 }, cap)
+		local w = width + (if p.kind == "npc" then npcExtra else 0)
+		local b = UIKit.button(bar, { name = p.id, text = "", color = p.col, size = UDim2.fromOffset(w, height),
+			order = i, onClick = function() ShopController.Teleport(p.kind) end })
+		local icon = if compact then 47 else 42
+		UIKit.new("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = p.icon, Size = UDim2.fromOffset(icon, icon),
+			AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 7, 0.5, 0), ZIndex = 4, ScaleType = Enum.ScaleType.Fit }, b)
+		UIKit.label(b, { Name = "Caption", Text = p.text, TextSize = if compact then 22 else 24,
+			Size = UDim2.new(1, -(icon + 17), 1, -10), Position = UDim2.fromOffset(icon + 10, 5), ZIndex = 5, stroke = 3.2 })
 		HUDController.Menu[p.id] = b
 	end
-	-- Placement of the top row (checked on PC 16:9, iPad 4:3, phone landscape + portrait):
-	-- 1) centred at the top; 2) if that touches the left HUD column (coins + rebirth bar), slide right;
-	-- 3) if it then runs off the right edge (phone portrait), put it UNDER the left menu, centred and scaled to fit the width.
+	-- Keep the row away from currency on narrow screens. If it can't fit beside it, stack it below the action tiles.
 	local fit = Instance.new("UIScale"); fit.Name = "FitScale"; fit.Parent = bar
 	local function keepClear()
 		local gui = HUDController.Gui
 		local us = gui:FindFirstChildOfClass("UIScale")
 		local scale = if us then us.Scale else 1
-		local rawW = bar.AbsoluteSize.X / math.max(fit.Scale, 0.01)       -- row width at fit = 1
+		local rawW = rowWidth * scale
 		fit.Scale = 1
 		bar.AnchorPoint = Vector2.new(0.5, 0)
 		local gw = gui.AbsoluteSize.X
@@ -273,7 +277,7 @@ function ShopController.Start()
 		else
 			local menu = gui:FindFirstChild("MenuColumn")
 			local bottom = if menu then (menu.AbsolutePosition.Y - gui.AbsolutePosition.Y + menu.AbsoluteSize.Y) else 200 * scale
-			fit.Scale = math.min(1, (gw - 24 * scale) / rawW)
+			fit.Scale = math.clamp((gw - 24 * scale) / rawW, 0.1, 1)
 			bar.Position = UDim2.new(0.5, 0, 0, bottom / scale + 10)
 		end
 	end

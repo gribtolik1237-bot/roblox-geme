@@ -59,7 +59,7 @@ local function template(): any
 		slots = { "Starter", false, false, false, false },
 		plot = { objects = {}, decor = {}, version = 1, name = "My Course", changes = 0, nextUid = 1, plays = 0, clears = 0, visitors = {}, rating = { n = 0, sum = { 0, 0, 0, 0, 0 } }, raters = {} },
 		stats = { manualRuns = 0, manualClears = 0, npcRuns = 0, npcStages = 0, npcFinishes = 0, earnedManual = 0, earnedNpc = 0 },
-		daily = { day = 0, done = {}, bonusMult = 1, bonusUntil = 0, active = false, progress = 0, counted = {} },
+		daily = { creatorDay = 0, creatorEarned = 0 }, -- daily cap for course creator Coins
 		ratings = {},
 		paid = {},          -- recent idempotency keys
 		clears = {},        -- manual clears: ["ownerId:version"] = true

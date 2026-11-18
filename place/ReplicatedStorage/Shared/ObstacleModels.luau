@@ -442,13 +442,6 @@ local function roleAccents(m: Model, def: any)
 				part(ferry, "EdgeGlow" .. i, e[1], top.CFrame * e[2], col, Enum.Material.Neon, DECO)
 			end
 		end
-	elseif id == "FinishPad" then
-		local best: BasePart? = nil
-		for _, p in m:GetChildren() do if p:IsA("BasePart") and p.Name == "PostCap" and (not best or p.Position.X > best.Position.X) then best = p end end
-		if best then
-			local pole = part(m, "FlagPole", V(0.4, 4.5, 0.4), best.CFrame * CF(0, best.Size.Y / 2 + 2.25, 0), Color3.fromRGB(236, 240, 246), Enum.Material.Metal, DECO)
-			part(m, "Flag", V(3.2, 2, 0.15), pole.CFrame * CF(1.8, 1.2, 0), Color3.fromRGB(255, 72, 72), Enum.Material.Fabric, DECO)
-		end
 	end
 end
 

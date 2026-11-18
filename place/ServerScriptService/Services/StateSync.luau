@@ -28,9 +28,7 @@ function StateSync.Snapshot(player: Player): any?
 		maxRebirth = Balance.MaxRebirth,
 		inv = Util.deepCopy(p.inv), npcs = npcs, slots = Util.deepCopy(p.slots),
 		stats = Util.deepCopy(p.stats),
-		daily = { mult = p.daily.bonusMult, untilT = p.daily.bonusUntil },
 		mock = PlayerDataService.IsMock(),
-		serverTime = os.time(),
 	}
 	for name, fn in providers do
 		local ok, v = pcall(fn, player)

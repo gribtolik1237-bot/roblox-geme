@@ -1,9 +1,5 @@
 --!nonstrict
--- The lobby "hall": three leaderboard stands (TOP MONEY / TOP REBIRTHS / TOP OBBY) and the Daily Challenges stand, in the middle of the lobby
--- aisle. Look (docs/ART_DIRECTION.md, "Etalony"): chunky wooden stands with a coloured studded frame, a dark list with medal ranks and fat outlined
--- text, standing on a two-tone studded paved plaza. Boards are two-sided SurfaceGuis (players arrive from both plot rows) re-rendered by the server.
--- Built for the giant lobby avatar (x2).
-local Players = game:GetService("Players")
+-- Four two-sided leaderboard stands in the market courtyard.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -11,7 +7,8 @@ local Balance = require(ReplicatedStorage.Configs.Balance)
 local Net = require(ReplicatedStorage.Shared.Net)
 local SignKit = require(ReplicatedStorage.Shared.SignKit)
 local Leaderboard = require(script.Parent.LeaderboardService)
-local Daily = require(script.Parent.DailyService)
+
+local Promenade = require(game:GetService("ServerStorage").WorldRecipes.LobbyPromenade)
 
 local Hall = {}
 local V, CF = Vector3.new, CFrame.new
@@ -20,11 +17,10 @@ local INNER, ROW_A, ROW_B = Color3.fromRGB(46, 36, 42), Color3.fromRGB(82, 66, 7
 local PLACE = { Color3.fromRGB(255, 196, 61), Color3.fromRGB(214, 222, 236), Color3.fromRGB(226, 140, 74) }   -- gold, silver, bronze
 
 local STANDS = {
-	{ id = "money", x = -100, title = "TOP MONEY", sub = "most Coins right now", color = Color3.fromRGB(255, 190, 48) },
-	{ id = "rebirths", x = -50, title = "TOP REBIRTHS", sub = "most Rebirths", color = Color3.fromRGB(160, 120, 255) },
-	{ id = "popular", x = 0, title = "POPULAR COURSES", sub = "online now - press E to visit", color = Color3.fromRGB(255, 120, 60) },   -- owner request: Popular lives in the Hall (no HUD tile)
-	{ id = "obby", x = 50, title = "TOP OBBY", sub = "best course creators", color = Color3.fromRGB(40, 196, 214) },
-	{ id = "daily", x = 100, title = "DAILY CHALLENGES", sub = "", color = Color3.fromRGB(80, 206, 96) },
+	{ id = "money", x = -75, title = "TOP MONEY", sub = "most Coins right now", color = Color3.fromRGB(255, 190, 48) },
+	{ id = "rebirths", x = -25, title = "TOP REBIRTHS", sub = "most Rebirths", color = Color3.fromRGB(160, 120, 255) },
+	{ id = "popular", x = 25, title = "POPULAR COURSES", sub = "online now - press E to visit", color = Color3.fromRGB(255, 120, 60) },   -- owner request: Popular lives in the Hall (no HUD tile)
+	{ id = "obby", x = 75, title = "TOP OBBY", sub = "best course creators", color = Color3.fromRGB(40, 196, 214) },
 }
 
 local function text(parent, name, props)
@@ -34,7 +30,7 @@ end
 
 local function corner(inst, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = inst end
 
--- one face of a stand: title, subtitle, 10 rows (leaderboards) or 3 challenge rows (daily), footer
+-- One face of a stand: heading, ranked rows and a footer.
 local function buildFace(board, face, stand)
 	local g = Instance.new("SurfaceGui"); g.Name = "Face_" .. face.Name; g.Face = face; g.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	g.PixelsPerStud = 30; g.LightInfluence = 0; g.Brightness = 1.1; g.Parent = board
@@ -43,33 +39,19 @@ local function buildFace(board, face, stand)
 	text(bar, "Title", { Size = UDim2.fromScale(0.94, 0.7), Position = UDim2.fromScale(0.03, 0.03), Text = stand.title, Font = SignKit.TITLE, TextColor3 = Color3.new(1, 1, 1), strokeThickness = 5 })
 	local sub = text(bar, "Sub", { Size = UDim2.fromScale(0.94, 0.22), Position = UDim2.fromScale(0.03, 0.75), Text = stand.sub, TextColor3 = SignKit.INK, noStroke = true })
 	local refs = { sub = sub, rows = {} }
-	if stand.id == "daily" then
-		for i, id in Balance.Daily.Order do
-			local t = Balance.Daily[id]
-			local y = 0.215 + (i - 1) * 0.225
-			local row = Instance.new("Frame"); row.Size = UDim2.fromScale(0.94, 0.205); row.Position = UDim2.fromScale(0.03, y); row.BackgroundColor3 = ROW_A; row.BorderSizePixel = 0; row.Parent = bg
-			corner(row, 12)
-			text(row, "Name", { Size = UDim2.fromScale(0.52, 0.46), Position = UDim2.fromScale(0.03, 0.06), Text = (id == "SuperHard" and "SUPER HARD" or id:upper()) .. " - " .. t.title, Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = stand.color, strokeThickness = 3.5 })
-			text(row, "Mult", { Size = UDim2.fromScale(0.4, 0.46), Position = UDim2.fromScale(0.57, 0.06), Text = ("x%d Coins - %d min"):format(t.mult, t.minutes), Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = PLACE[1], strokeThickness = 3.5 })
-			local goal = ("Clear %d course%s%s%s"):format(t.goalRuns, t.goalRuns > 1 and "s" or "", t.minDifficulty > 1 and (" (" .. Balance.DifficultyOrder[t.minDifficulty] .. "+)") or "", t.othersOnly and " of other players" or "")
-			text(row, "Goal", { Size = UDim2.fromScale(0.94, 0.34), Position = UDim2.fromScale(0.03, 0.58), Text = goal, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = SignKit.CREAM, strokeThickness = 2.5 })
-		end
-		refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.06), Position = UDim2.fromScale(0.03, 0.91), Text = "", TextColor3 = SignKit.MUTED, noStroke = true })
-	else
-		for i = 1, Balance.Boards.Size do
-			local row = Instance.new("Frame"); row.Size = UDim2.fromScale(0.94, 0.068); row.Position = UDim2.fromScale(0.03, 0.208 + (i - 1) * 0.0715)
-			row.BackgroundColor3 = if PLACE[i] then PLACE[i]:Lerp(INNER, 0.6) else (if i % 2 == 0 then ROW_A else ROW_B); row.BorderSizePixel = 0; row.Parent = bg
-			corner(row, 9)
-			local rank = text(row, "Rank", { Size = UDim2.fromScale(0.3, 0.86), Position = UDim2.fromScale(0.012, 0.07), Text = tostring(i), Font = SignKit.TITLE,
-				TextColor3 = if PLACE[i] then SignKit.INK else SignKit.MUTED, BackgroundTransparency = if PLACE[i] then 0 else 1, BackgroundColor3 = PLACE[i] or INNER, noStroke = PLACE[i] ~= nil, strokeThickness = 2.5 })
-			local ar = Instance.new("UIAspectRatioConstraint"); ar.AspectRatio = 1; ar.DominantAxis = Enum.DominantAxis.Height; ar.Parent = rank
-			corner(rank, 100)
-			text(row, "Name", { Size = UDim2.fromScale(0.55, 0.76), Position = UDim2.fromScale(0.1, 0.12), Text = "-", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = if PLACE[i] then Color3.new(1, 1, 1) else SignKit.CREAM, strokeThickness = 3 })
-			text(row, "Value", { Size = UDim2.fromScale(0.3, 0.76), Position = UDim2.fromScale(0.67, 0.12), Text = "", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = PLACE[i] or stand.color, strokeThickness = 3 })
-			refs.rows[i] = row
-		end
-		refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.955), Text = "", TextColor3 = SignKit.MUTED, noStroke = true })
+	for i = 1, Balance.Boards.Size do
+		local row = Instance.new("Frame"); row.Size = UDim2.fromScale(0.94, 0.068); row.Position = UDim2.fromScale(0.03, 0.208 + (i - 1) * 0.0715)
+		row.BackgroundColor3 = if PLACE[i] then PLACE[i]:Lerp(INNER, 0.6) else (if i % 2 == 0 then ROW_A else ROW_B); row.BorderSizePixel = 0; row.Parent = bg
+		corner(row, 9)
+		local rank = text(row, "Rank", { Size = UDim2.fromScale(0.3, 0.86), Position = UDim2.fromScale(0.012, 0.07), Text = tostring(i), Font = SignKit.TITLE,
+			TextColor3 = if PLACE[i] then SignKit.INK else SignKit.MUTED, BackgroundTransparency = if PLACE[i] then 0 else 1, BackgroundColor3 = PLACE[i] or INNER, noStroke = PLACE[i] ~= nil, strokeThickness = 2.5 })
+		local ar = Instance.new("UIAspectRatioConstraint"); ar.AspectRatio = 1; ar.DominantAxis = Enum.DominantAxis.Height; ar.Parent = rank
+		corner(rank, 100)
+		text(row, "Name", { Size = UDim2.fromScale(0.55, 0.76), Position = UDim2.fromScale(0.1, 0.12), Text = "-", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = if PLACE[i] then Color3.new(1, 1, 1) else SignKit.CREAM, strokeThickness = 3 })
+		text(row, "Value", { Size = UDim2.fromScale(0.3, 0.76), Position = UDim2.fromScale(0.67, 0.12), Text = "", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = PLACE[i] or stand.color, strokeThickness = 3 })
+		refs.rows[i] = row
 	end
+	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.955), Text = "", TextColor3 = SignKit.MUTED, noStroke = true })
 	return refs
 end
 
@@ -105,17 +87,10 @@ local function renderPopular()
 	end
 end
 
-local function renderDaily()
-	local s = Daily.SecondsToReset()
-	for _, refs in stands.daily.faces do
-		refs.footer.Text = ("New challenges in %dh %02dm (UTC midnight) - press E to open"):format(math.floor(s / 3600), math.floor(s % 3600 / 60))
-	end
-end
-
 -- a two-tone studded paved plaza (8x8 tiles) under the whole hall, with a darker curb
 local function plaza(model)
 	local T = 8
-	local HALF = 128          -- five stands at 50-stud spacing
+	local HALF = 104          -- four stands at 50-stud spacing
 	local SAND_DEEPER = SignKit.SAND:Lerp(Color3.new(0, 0, 0), 0.2)   -- audit B: readable checkerboard (SAND_DARK was only ~9% off SAND)
 	for cx = 0, HALF * 2 / T - 1 do
 		for cz = 0, 5 do
@@ -147,9 +122,9 @@ local function buildStand(model, st)
 	mk(model, "Cap_" .. st.id, V(50, 2.2, 4.4), CF(x, 36.9, 0), SignKit.WOOD_DARK, nil, { studs = true })
 	for i = -1, 1 do mk(model, "Lamp", V(2, 1.4, 2), CF(x + i * 12, 38.6, 0), Color3.fromRGB(255, 236, 190), Enum.Material.Neon, { CanCollide = false }) end
 	buildFace(board, Enum.NormalId.Front, st); buildFace(board, Enum.NormalId.Back, st)
-	if st.id == "daily" or st.id == "popular" then
+	if st.id == "popular" then
 		local pp = mk(model, "PromptPart", V(6, 3, 6), CF(x, 5.5, 0), c, nil, { Transparency = 1, CanCollide = false, CanQuery = false, CanTouch = false })
-		local prompt = Instance.new("ProximityPrompt"); prompt.ActionText = "Open"; prompt.ObjectText = if st.id == "daily" then "Daily Challenges" else "Popular Courses"; prompt.HoldDuration = 0
+		local prompt = Instance.new("ProximityPrompt"); prompt.ActionText = "Open"; prompt.ObjectText = "Popular Courses"; prompt.HoldDuration = 0
 		prompt.KeyboardKeyCode = Enum.KeyCode.E; prompt.RequiresLineOfSight = false; prompt.MaxActivationDistance = 30; prompt.Parent = pp
 		prompt:SetAttribute("Board", st.id); CollectionService:AddTag(prompt, "TL_BoardPrompt")
 	end
@@ -165,6 +140,7 @@ function Hall.Build(force)
 		for _, st in STANDS do buildStand(model, st) end
 		model.Parent = wa
 	end
+	Promenade.PlaceHall(model)
 	return model
 end
 
@@ -188,12 +164,9 @@ function Hall.Start()
 		if CollectionService:HasTag(prompt, "TL_BoardPrompt") then Net.fire("OpenBoard", player, prompt:GetAttribute("Board")) end
 	end)
 	task.spawn(function()
-		local n = 0
 		while true do
 			for _, id in Leaderboard.Kinds do pcall(renderBoard, id) end
-			pcall(renderDaily)
 			pcall(renderPopular)
-			n += 1
 			task.wait(30)
 		end
 	end)

@@ -232,7 +232,7 @@ end
 -- Compact layout = phones / very small viewports: bigger relative UI (reference 1000x540) and a grid menu
 function UIKit.isCompact(): boolean
 	local v = workspace.CurrentCamera.ViewportSize
-	return (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or v.Y < 420
+	return (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled) or v.Y < 420 or v.X < 480
 end
 
 function UIKit.scaleFor(): number

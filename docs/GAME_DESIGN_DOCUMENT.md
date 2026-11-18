@@ -34,4 +34,4 @@ Coins; Lifetime Earned Coins для Rebirth; награды раздельные
 Не сбрасывает Coins, постройки, инвентарь, NPC, слоты, косметику. Растут участок, лимит объектов, лимит NPC, открываются предметы/NPC.
 
 ## Дополнительно
-Daily Challenges (Easy x2/10 мин, Hard x2/20 мин, Super Hard x3/15 мин), TOP MONEY / TOP REBIRTHS / TOP OBBY, рейтинг трасс (5 критериев), косметика участка.
+Ежедневный подарок за вход, рейтинг трасс по пяти критериям и косметика участка. Рядом с двумя магазинами стоят TOP MONEY, TOP REBIRTHS, TOP OBBY и POPULAR COURSES.

@@ -1,77 +1,15 @@
 --!nonstrict
--- Meta windows: Daily Challenges (+ active bonus pill), Popular courses, and the "Rate this course" popup shown after a clear. Display only: the server decides.
+-- Meta windows: Popular Courses and the "Rate this course" popup shown after a clear. Display only: the server decides.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIKit = require(ReplicatedStorage.Shared.UIKit)
 local Net = require(ReplicatedStorage.Shared.Net)
 local Balance = require(ReplicatedStorage.Configs.Balance)
 local HUDController = require(script.Parent.HUDController)
 local Icons = require(ReplicatedStorage.Configs.Icons)
-local StateController = require(script.Parent.StateController)
 
 local C = UIKit.C
 local Meta = {}
-local daily, popular, rate = {}, {}, {}
-local resetAt = 0
-local bonus = { mult = 1, untilT = 0, serverTime = 0, at = 0 }
-
-local function tierName(id) return if id == "SuperHard" then "Super Hard" else id end
-
--- DAILY ---------------------------------------------------------------------------------------
-local TIER_COL = { Easy = C.green, Hard = C.orange, SuperHard = C.red }
--- session 8 (skill review G13): task, reward and status on separate lines; ONE challenge at a time is said on the button
--- ("Switch" + a second tap), because the server replaces the active challenge and its progress.
-local anyActive, confirmTier, confirmUntil = false, nil, 0
-local function refreshDaily()
-	local r = Net.invoke("GetDaily")
-	if not r.ok then return end
-	resetAt = os.clock() + r.resetIn
-	anyActive = false
-	for _, t in r.tiers do if t.status == "active" then anyActive = true end end
-	for _, t in r.tiers do
-		local row = daily.rows[t.id]
-		row.title.Text = t.title
-		row.goal.Text = ("Task: clear %d course%s%s%s with PLAY"):format(t.goal, t.goal > 1 and "s" or "", t.minDifficulty ~= "Easy" and (" (" .. t.minDifficulty .. " or harder)") or "", t.othersOnly and " of other players" or "")
-		local reward = ("Reward: x%d Coins for %d min"):format(t.mult, t.minutes)
-		row.prog.Text = if t.status == "active" then ("Progress %d/%d   -   %s"):format(t.progress, t.goal, reward)
-			elseif t.status == "done" then "Completed today!" else (reward .. " (starts when you finish)")
-		local confirming = confirmTier == t.id and os.clock() < confirmUntil
-		row.btn.Text = if t.status == "done" then "Done" elseif t.status == "active" then "In progress"
-			elseif confirming then "Tap again" elseif anyActive then "Switch" else "Start"
-		row.btn.Interactable = t.status == "available"
-		row.btn.BackgroundColor3 = if t.status == "available" then (if anyActive then C.orange else C.green) elseif t.status == "active" then C.blue else C.panel2
-	end
-end
-
-local function buildDaily()
-	daily.win = UIKit.window(HUDController.Gui, "Daily Challenges", UDim2.fromOffset(760, 560), C.green, Icons.daily)
-	local body = daily.win.body
-	daily.info = UIKit.label(body, { Text = "", TextSize = 22, Size = UDim2.new(1, 0, 0, 32), TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
-	daily.rows = {}
-	for i, id in Balance.Daily.Order do
-		local f = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 120), Position = UDim2.fromOffset(0, 42 + (i - 1) * 132), BackgroundColor3 = Color3.new(1, 1, 1) }, body)
-		UIKit.round(f, 16); UIKit.stroke(f, UIKit.INK, 4)
-		UIKit.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(84, 88, 124), Color3.fromRGB(52, 55, 82)), Rotation = 90 }, f)
-		UIKit.tag(f, string.upper(tierName(id)), TIER_COL[id] or C.teal, UDim2.fromOffset(130, 28), UDim2.fromOffset(14, 10), 16)
-		local row = {}
-		row.title = UIKit.label(f, { Size = UDim2.new(1, -200, 0, 32), Position = UDim2.fromOffset(14, 42), TextSize = 26, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
-		row.goal = UIKit.label(f, { Font = UIKit.BODY, Size = UDim2.new(1, -200, 0, 22), Position = UDim2.fromOffset(14, 76), TextSize = 17, TextColor3 = C.muted, TextXAlignment = Enum.TextXAlignment.Left, stroke = 2 })
-		row.prog = UIKit.label(f, { Size = UDim2.new(1, -200, 0, 22), Position = UDim2.fromOffset(14, 96), TextSize = 18, TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 2.5 })
-		row.btn = UIKit.button(f, { text = "Start", color = C.green, size = UDim2.fromOffset(160, 58), pos = UDim2.new(1, -176, 0.5, -29), textSize = 26, onClick = function()
-			if anyActive and not (confirmTier == id and os.clock() < confirmUntil) then
-				confirmTier, confirmUntil = id, os.clock() + 3
-				HUDController.Toast("Your current challenge and its progress will be cancelled", "info")
-				refreshDaily()
-				return
-			end
-			confirmTier = nil
-			local r = Net.invoke("StartDaily", { tier = id })
-			if r.ok then HUDController.Toast("Challenge started: clear the course(s) with PLAY", "ok") else HUDController.Toast("Can't start now (" .. tostring(r.err) .. ")", "err") end
-			refreshDaily()
-		end })
-		daily.rows[id] = row
-	end
-	daily.win.onOpen = refreshDaily
-end
+local popular, rate = {}, {}
 
 -- POPULAR -------------------------------------------------------------------------------------
 local function refreshPopular()
@@ -127,55 +65,12 @@ local function buildRate()
 	end })
 end
 
--- BONUS PILL ----------------------------------------------------------------------------------
-local function remaining() return math.max(0, bonus.untilT - (bonus.serverTime + (os.clock() - bonus.at))) end
-
 function Meta.Start()
-	buildDaily(); buildPopular(); buildRate()
-	HUDController.AddMenuButton("daily", "Daily", C.green, 6, function() daily.win.toggle() end)
-	local col = HUDController.Gui:FindFirstChild("MenuColumn")
-	local pill = UIKit.new("Frame", { Name = "BonusPill", Size = UDim2.fromOffset(240, 46), Position = UDim2.new(0.5, 0, 0, 12), AnchorPoint = Vector2.new(0.5, 0), BackgroundColor3 = C.green, Visible = false }, HUDController.Gui)
-	UIKit.round(pill, 16); UIKit.stroke(pill, UIKit.INK, 4); UIKit.gloss(pill, C.green:Lerp(Color3.new(1, 1, 1), 0.35), C.green:Lerp(Color3.new(0, 0, 0), 0.2))
-	local pillText = UIKit.label(pill, { Text = "", TextSize = 24, Size = UDim2.fromScale(1, 1), TextColor3 = Color3.new(1, 1, 1), stroke = 3.5 })
-	-- audit 2.1: event-driven. The pill is (re)evaluated on every state change and only counts down while a bonus is running;
-	-- the Daily reset countdown only ticks while the Daily window is open.
-	local pillLoop = false
-	local function runPill()
-		if pillLoop then return end
-		pillLoop = true
-		task.spawn(function()
-			while bonus.mult > 1 and remaining() > 0 do
-				local left = remaining()
-				pill.Visible = true
-				pillText.Text = ("x%d  %d:%02d"):format(bonus.mult, math.floor(left / 60), math.floor(left % 60))
-				task.wait(1)
-			end
-			pill.Visible = false
-			pillLoop = false
-		end)
-	end
-	local function setBonus(s)
-		if s and s.daily then bonus = { mult = s.daily.mult, untilT = s.daily.untilT, serverTime = s.serverTime or os.time(), at = os.clock() } end
-		if bonus.mult > 1 and remaining() > 0 then runPill() else pill.Visible = false end
-	end
-	StateController.Changed.Event:Connect(setBonus)
-	if StateController.State then setBonus(StateController.State) end
-	local dailyLoop = false
-	local baseOpen = daily.win.onOpen
-	daily.win.onOpen = function()
-		if baseOpen then baseOpen() end
-		if dailyLoop then return end
-		dailyLoop = true
-		task.spawn(function()
-			while daily.win.isOpen() do
-				local left = math.max(0, resetAt - os.clock())
-				daily.info.Text = ("New challenges in %dh %02dm (UTC midnight)"):format(math.floor(left / 3600), math.floor(left % 3600 / 60))
-				task.wait(1)
-			end
-			dailyLoop = false
-		end)
-	end
-	Net.on("OpenBoard", function(kind) if kind == "daily" then daily.win.open() elseif kind == "popular" then popular.win.open() end end)
+	buildPopular()
+	buildRate()
+	Net.on("OpenBoard", function(kind)
+		if kind == "popular" then popular.win.open() end
+	end)
 	Net.on("RunState", function(p)       -- after clearing someone ELSE's course: offer to rate it
 		if p.state == "end" and p.outcome == "cleared" and p.isSelf == false and p.ownerId then
 			rate.owner = p.ownerId; rate.scores = { 3, 3, 3, 3, 3 }
