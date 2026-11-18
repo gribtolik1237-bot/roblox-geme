@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-18T09:41:47.947Z",
+  "exportedAt": "2026-11-18T10:03:45.479Z",
   "placeId": 135937017652181,
   "placeVersion": 199,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -458,9 +458,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau",
       "class": "ModuleScript",
-      "bytes": 31452,
-      "adler32": 2871184179,
-      "sha256": "d8c96aafb9eec1e2903bfb523dc8825e3c5c5da5654ec83df95f814bdddd25e5"
+      "bytes": 34703,
+      "adler32": 2718238629,
+      "sha256": "be58cf75a7351d448fa87eecf41c66fa00a51762bafe0cf7fa66e037543438a3"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/CameraController",

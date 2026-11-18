@@ -20,6 +20,7 @@ local HUDController = require(script.Parent.HUDController)
 local C = UIKit.C
 local player = Players.LocalPlayer
 local BuildController = {}
+local hasTouch = UserInputService.TouchEnabled
 
 local active, mode = false, "place"          -- mode: place | move | remove
 local selectedId, rot, level, fine = nil, 0, 0, false
@@ -93,14 +94,14 @@ local function makeGhost(id)
 end
 
 local function cursorRay()
-	local pos
-	if lastTouch and UserInputService.TouchEnabled and not UserInputService.MouseEnabled then pos = lastTouch
-	else pos = UserInputService:GetMouseLocation() end
+	local pos = if UserInputService.PreferredInput == Enum.PreferredInput.Touch then lastTouch else UserInputService:GetMouseLocation()
+	if not pos then return nil end
 	return workspace.CurrentCamera:ViewportPointToRay(pos.X, pos.Y)
 end
 
 local function cursorOnPlane(planeY)
 	local ray = cursorRay()
+	if not ray then return nil end
 	if math.abs(ray.Direction.Y) < 1e-4 then return nil end
 	local t = (planeY - ray.Origin.Y) / ray.Direction.Y
 	if t < 0 or t > 900 then return nil end
@@ -133,6 +134,7 @@ end
 
 local function hoveredObstacle()
 	local ray = cursorRay()
+	if not ray then return nil end
 	local rp = RaycastParams.new()
 	rp.FilterType = Enum.RaycastFilterType.Include
 	rp.FilterDescendantsInstances = { plot.Course }
@@ -143,14 +145,16 @@ local function hoveredObstacle()
 end
 
 -- ===== hotbar (slots, as in every Roblox game): slot 1 = hammer; with the hammer in hand the slots hold the inventory; last slot = Delete =====
-local SLOT = if UIKit.isTouch() then 56 else 68
-local PAGE = 8
+local BASE_SLOT = if hasTouch then 56 else 68
+local MAX_PAGE, SLOT_GAP = 8, 6
+local slotSize, pageSize = BASE_SLOT, MAX_PAGE
+local toolWidth, toolHeight, tightTools = 540, 36, false
 local page = 1
 local KEYNUM = { [Enum.KeyCode.One] = 1, [Enum.KeyCode.Two] = 2, [Enum.KeyCode.Three] = 3, [Enum.KeyCode.Four] = 4, [Enum.KeyCode.Five] = 5, [Enum.KeyCode.Six] = 6, [Enum.KeyCode.Seven] = 7, [Enum.KeyCode.Eight] = 8, [Enum.KeyCode.Nine] = 9 }
 local SLOT_BG = Color3.fromRGB(22, 24, 30)
 
 local function newSlot(parent, order, keyText, selected)
-	local b = UIKit.new("TextButton", { Size = UDim2.fromOffset(SLOT, SLOT), BackgroundColor3 = SLOT_BG, BackgroundTransparency = 0.2, Text = "", AutoButtonColor = false, LayoutOrder = order }, parent)
+	local b = UIKit.new("TextButton", { Size = UDim2.fromOffset(slotSize, slotSize), BackgroundColor3 = SLOT_BG, BackgroundTransparency = 0.2, Text = "", AutoButtonColor = false, LayoutOrder = order }, parent)
 	UIKit.round(b, 10)
 	UIKit.stroke(b, if selected then C.yellow else UIKit.INK, if selected then 5 else 3)
 	if keyText then UIKit.label(b, { Text = keyText, TextSize = 15, Size = UDim2.fromOffset(24, 18), Position = UDim2.fromOffset(5, 2), TextXAlignment = Enum.TextXAlignment.Left, stroke = 2.5 }) end
@@ -167,9 +171,27 @@ local function refreshTools()
 	if ui.tools.place then ui.tools.place.Visible = holding end
 	if ui.tools.cancel then ui.tools.cancel.Visible = holding end
 	ui.tools.move.Visible = mode ~= "remove" and not (mode == "place" and holding)
-	ui.tools.move.Text = if mode == "move" then "Stop moving" else ui.tools.moveText
 	ui.tools.move.BackgroundColor3 = if mode == "move" then C.yellow else C.blue
-	ui.tools.move.Size = UDim2.fromOffset(if mode == "move" then 150 else ui.tools.moveW, 36)
+	local visibleCount, naturalWidth = 0, 0
+	for _, button in ui.toolButtons do
+		if button.Visible then
+			visibleCount += 1
+			naturalWidth += if button == ui.tools.move and mode == "move" then 150 else button:GetAttribute("BaseWidth")
+		end
+	end
+	local gaps = 8 * math.max(0, visibleCount - 1)
+	local compactLabels = tightTools or naturalWidth + gaps > toolWidth
+	local share = math.min(160, (toolWidth - gaps) / math.max(1, visibleCount))
+	local shortcuts = not hasTouch and not compactLabels
+	ui.tools.move.Text = if mode == "move" then (if compactLabels and holding then "Stop" else "Stop moving") elseif compactLabels then "Move" else ui.tools.moveText
+	ui.tools.rotate.Text = if shortcuts then "Turn (R)" else "Turn"
+	ui.tools.up.Text = if shortcuts then "Up (E)" else "Up"
+	ui.tools.down.Text = if shortcuts then "Down (Q)" else "Down"
+	ui.tools.cancel.Text = if shortcuts then "Cancel (Bksp)" else "Cancel"
+	for _, button in ui.toolButtons do
+		local width = if button == ui.tools.move and mode == "move" then 150 else button:GetAttribute("BaseWidth")
+		button.Size = UDim2.fromOffset(if compactLabels then share else width, toolHeight)
+	end
 end
 
 local function refreshBar()
@@ -193,16 +215,16 @@ local function refreshBar()
 	if not active then return end
 	local list = {}
 	for _, def in Obstacles.List do if availableOf(def) > 0 then list[#list + 1] = def end end
-	local pages = math.max(1, math.ceil(#list / PAGE))
+	local pages = math.max(1, math.ceil(#list / pageSize))
 	page = math.clamp(page, 1, pages)
-	for i = 1, PAGE do
-		local def = list[(page - 1) * PAGE + i]
+	for i = 1, pageSize do
+		local def = list[(page - 1) * pageSize + i]
 		if not def then break end
 		local n = availableOf(def)
 		local sel = selectedId == def.id and mode == "place"
 		local b = newSlot(ui.hot, i, tostring(i + 1), sel)
 		b.Name = "Slot_" .. def.id
-		if sel then b.Size = UDim2.fromOffset(SLOT + 12, SLOT + 12); b.BackgroundTransparency = 0.05 end
+		if sel then b.Size = UDim2.fromOffset(slotSize + 12, slotSize + 12); b.BackgroundTransparency = 0.05 end
 		local pv = UIKit.new("Frame", { Size = UDim2.new(1, -8, 1, -14), Position = UDim2.fromOffset(4, 8), BackgroundTransparency = 1 }, b)
 		local m = ObstacleModels.build(def.id)
 		if m then UIKit.preview(pv, m) end
@@ -222,7 +244,7 @@ local function refreshBar()
 	UIKit.label(del, { Text = "X", TextSize = 34, Size = UDim2.new(1, 0, 0.6, 0), Position = UDim2.fromScale(0, 0.1), TextColor3 = Color3.new(1, 1, 1), stroke = 3.5 })
 	UIKit.label(del, { Text = "Delete", TextSize = 14, Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 1, -22), stroke = 2.5 })
 	del.Activated:Connect(function() BuildController.SetMode(if mode == "remove" then "place" else "remove") end)
-	if mode == "remove" then del.Size = UDim2.fromOffset(SLOT + 12, SLOT + 12); del.BackgroundTransparency = 0 end
+	if mode == "remove" then del.Size = UDim2.fromOffset(slotSize + 12, slotSize + 12); del.BackgroundTransparency = 0 end
 end
 
 local function setMode(m)
@@ -366,7 +388,8 @@ local function onStep()
 			joined = mx ~= nil
 			if mx then gx, gz, level, ghostR = mx, mz, my, mr end
 		end
-		valid, reason = evaluate(def, gx, gz)
+		if p then valid, reason = evaluate(def, gx, gz)
+		else valid, joined, reason = false, false, "Aim" end
 		ghost:PivotTo(PlotMath.cframe(originCF, gx, level, gz, ghostR))
 		local tint = if valid then (if joined then "join" else "ok") else "bad"
 		if ghost:GetAttribute("Tint") ~= tint then
@@ -385,13 +408,16 @@ local function onStep()
 		local s = StateController.State
 		-- plain words (session 6): what to do now + the one number that matters
 		local info
-		if mode == "remove" then info = "Click one of your traps to remove it"
-		elseif mode == "move" then info = if moveUid then "Click where it should go" else "Click a trap to move it"
+		if mode == "remove" then info = if hasTouch then "Tap a trap to remove it" else "Click a trap to remove it"
+		elseif mode == "move" then
+			if moveUid then info = if hasTouch then "Tap a spot, then press PLACE" else "Click where it should go"
+			else info = if hasTouch then "Tap a trap to move it" else "Click a trap to move it" end
 		elseif not ghost then
 			local c = s and s.course
 			info = if c and not c.playerPlayable and c.objectCount and c.objectCount > 0 then "The course is broken at the red GAP - pick a trap and join it there" else "Pick a trap in the slots below"
-		elseif valid and joined then info = (if turnJoin then "Turn - joins the course! Click to place" else "Joins the course! Click to place") .. "   -   R: turn"
-		elseif valid then info = "Click to place   -   R: turn" .. (if level > 0 then ("   -   height " .. level / Balance.LevelStep) else "")
+		elseif reason == "Aim" then info = "Tap where the trap should go"
+		elseif valid and joined then info = if hasTouch then "Joins the course. Press PLACE" else (if turnJoin then "Turn - joins the course! Click to place" else "Joins the course! Click to place") .. "   -   R: turn"
+		elseif valid then info = (if hasTouch then "Press PLACE" else "Click to place   -   R: turn") .. (if level > 0 then ("   -   height " .. level / Balance.LevelStep) else "")
 		else info = UIKit.err(reason) end
 		if s and s.plot then info = info .. ("      %d/%d"):format(s.plot.count, s.plot.limit) end
 		if os.clock() < flashUntil then
@@ -476,7 +502,7 @@ function BuildController.SetActive(on)
 	end
 	active = on
 	ui.bar.Visible = on
-	if not on then clearGhost(); setHover(nil); selectedId = nil; moveUid = nil; mode = "place" end
+	if not on then clearGhost(); setHover(nil); selectedId = nil; moveUid = nil; lastTouch = nil; mode = "place" end
 	if on then setMode("place") end
 	bindBuildActions(on)
 	refreshBar()
@@ -516,42 +542,79 @@ end
 
 function BuildController.Start()
 	local gui = HUDController.Gui
-	local bar = UIKit.new("Frame", { Name = "BuildBar", Size = UDim2.fromOffset(560, 92), Position = UDim2.new(0.5, 0, 1, -(SLOT + 30)), AnchorPoint = Vector2.new(0.5, 1), BackgroundColor3 = Color3.new(1, 1, 1), Visible = false }, gui)
+	local bar = UIKit.new("Frame", { Name = "BuildBar", AnchorPoint = Vector2.new(0.5, 1), BackgroundColor3 = Color3.new(1, 1, 1), Visible = false }, gui)
 	UIKit.round(bar, 18); UIKit.stroke(bar, UIKit.INK, 4.5)
 	UIKit.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(66, 70, 98), Color3.fromRGB(32, 34, 50)), Rotation = 90 }, bar)
 	ui.bar = bar
-	ui.status = UIKit.label(bar, { Text = "", TextSize = 18, Size = UDim2.new(1, -20, 0, 26), Position = UDim2.fromOffset(12, 6), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = C.yellow, stroke = 3 })
+	ui.status = UIKit.label(bar, { Name = "Status", Text = "", TextSize = 18, Position = UDim2.fromOffset(12, 6), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = C.yellow, stroke = 3 })
 	ui.items = UIKit.new("ScrollingFrame", { BackgroundTransparency = 1, Visible = false, Size = UDim2.new(1, -20, 0, 108), Position = UDim2.fromOffset(10, 34), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.X, ScrollBarThickness = 6, ScrollBarImageColor3 = C.muted, ScrollingDirection = Enum.ScrollingDirection.X, BorderSizePixel = 0 }, bar)
 	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder }, ui.items)
 	UIKit.new("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4) }, ui.items)
-	local row = UIKit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -20, 0, 36), Position = UDim2.new(0, 10, 1, -42) }, bar)
-	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8) }, row)
-	local function btn(text, color, w, fn) return UIKit.button(row, { text = text, color = color, size = UDim2.fromOffset(w, 36), textSize = 18, onClick = fn }) end
+	local row = UIKit.new("Frame", { Name = "Actions", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 10, 1, -6) }, bar)
+	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, row)
+	ui.toolButtons = {}
+	local function btn(name, text, color, width, fn)
+		local button = UIKit.button(row, { name = name, text = text, color = color, textSize = 18, onClick = fn })
+		button:SetAttribute("BaseWidth", width)
+		button.LayoutOrder = #ui.toolButtons + 1
+		table.insert(ui.toolButtons, button)
+		return button
+	end
 	-- session 8: one colour for the piece actions (blue), green = the commit (PLACE on touch); keys shown on PC; the actions appear only while
 	-- a piece is in hand. Place = pick a slot, Remove = the Delete slot (no duplicate mode buttons).
-	local keys = not UIKit.isTouch()
+	local keys = not hasTouch
 	ui.tools = {}
 	ui.tools.moveText = if keys then "Move a trap (M)" else "Move a trap"
-	ui.tools.moveW = if keys then 160 else 130
-	ui.tools.move = btn(ui.tools.moveText, C.blue, ui.tools.moveW, function() setMode(if mode == "move" then "place" else "move") end)
-	ui.tools.rotate = btn(if keys then "Turn (R)" else "Turn", C.blue, if keys then 104 else 80, rotate)
-	ui.tools.up = btn(if keys then "Up (E)" else "Up", C.blue, if keys then 86 else 60, function() lvl(1) end)
-	ui.tools.down = btn(if keys then "Down (Q)" else "Down", C.blue, if keys then 104 else 76, function() lvl(-1) end)
-	btn("Fine", C.orange, 64, function() fine = not fine end).Visible = false   -- 1-stud grid made pieces miss each other (broken links): hidden (G key still works)
-	if UIKit.isTouch() then ui.tools.place = btn("PLACE", C.green, 100, doClick) end
+	ui.tools.move = btn("Move", ui.tools.moveText, C.blue, if keys then 160 else 130, function() setMode(if mode == "move" then "place" else "move") end)
+	ui.tools.rotate = btn("Turn", "Turn", C.blue, if keys then 104 else 80, rotate)
+	ui.tools.up = btn("Up", "Up", C.blue, if keys then 86 else 60, function() lvl(1) end)
+	ui.tools.down = btn("Down", "Down", C.blue, if keys then 104 else 76, function() lvl(-1) end)
+	if hasTouch then ui.tools.place = btn("Place", "PLACE", C.green, 100, doClick) end
 	-- audit 5.3: the way to put a piece away is on screen (PC shows the keys = the hint; touch gets the action itself)
-	ui.tools.cancel = btn(if keys then "Cancel (Esc)" else "Cancel", C.red, if keys then 136 else 90, function() cancelHand() end)
+	ui.tools.cancel = btn("Cancel", "Cancel", C.red, if keys then 136 else 90, cancelHand)
 
 	-- hotbar: slot 1 = hammer (toggles build mode); the item slots and Delete appear while the hammer is in hand
-	local hot = UIKit.new("Frame", { Name = "Hotbar", Size = UDim2.fromOffset(0, SLOT), AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.new(0.5, 0, 1, -10), AnchorPoint = Vector2.new(0.5, 1), BackgroundTransparency = 1 }, gui)
-	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Bottom }, hot)
+	local hot = UIKit.new("Frame", { Name = "Hotbar", AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.new(0.5, 0, 1, -10), AnchorPoint = Vector2.new(0.5, 1), BackgroundTransparency = 1 }, gui)
+	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, SLOT_GAP), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Bottom }, hot)
 	ui.hot = hot
 	local hb = newSlot(hot, 0, "1", false)
 	hb.Name = "Hammer"; ui.hammer = hb
 	UIKit.new("ImageLabel", { BackgroundTransparency = 1, Image = Icons.hammer or Icons.build, Size = UDim2.new(1, -16, 1, -26), Position = UDim2.fromOffset(8, 6), ScaleType = Enum.ScaleType.Fit }, hb)
 	UIKit.label(hb, { Text = "Hammer", TextSize = 13, Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0, 0, 1, -18), stroke = 2.5 })
 	hb.Activated:Connect(function() BuildController.SetActive(not active) end)
-	refreshBar()
+	local function layout()
+		local viewport = workspace.CurrentCamera.ViewportSize
+		local scale = UIKit.scaleFor()
+		local touch = hasTouch and UserInputService.PreferredInput == Enum.PreferredInput.Touch
+		local portrait = viewport.X <= viewport.Y
+		local phone = math.min(viewport.X, viewport.Y) <= 500
+		-- Keep the native jump button clear without shrinking the build actions.
+		local sideRoom = if touch and not portrait then (if phone then 104 else 154) else 10
+		local bottomRoom = if touch and portrait then math.ceil((if phone then 88 else 138) / scale) else 0
+		local available = (viewport.X - 2 * sideRoom) / scale
+		local width = math.min(560, available)
+		tightTools = viewport.X < 520 or width < 560 or hasTouch
+		toolWidth = width - 20
+		toolHeight = if tightTools then math.max(36, math.ceil(46 / scale)) else 36
+		slotSize = if tightTools then math.max(BASE_SLOT, math.ceil(46 / scale)) else BASE_SLOT
+		pageSize = math.clamp(math.floor((available - 12 + SLOT_GAP) / (slotSize + SLOT_GAP)) - 3, 1, MAX_PAGE)
+		local statusHeight = if tightTools then 42 else 26
+		bar.Size = UDim2.fromOffset(width, math.max(92, statusHeight + toolHeight + 18))
+		bar.Position = UDim2.new(0.5, 0, 1, -(slotSize + 30 + bottomRoom))
+		row.Size = UDim2.new(1, -20, 0, toolHeight)
+		ui.status.Size = UDim2.new(1, -24, 0, statusHeight)
+		ui.status.TextWrapped = tightTools
+		hot.Size = UDim2.fromOffset(0, slotSize + 12)
+		hot.Position = UDim2.new(0.5, 0, 1, -(10 + bottomRoom))
+		hb.Size = UDim2.fromOffset(slotSize, slotSize)
+		refreshBar()
+	end
+	layout()
+	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+		lastTouch = nil
+		layout()
+	end)
+	UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(layout)
 	local lastGapKey = ""
 	StateController.Changed.Event:Connect(function()
 		if not active then return end
@@ -579,7 +642,9 @@ function BuildController.Start()
 		end
 	end)
 	UserInputService.TouchTapInWorld:Connect(function(pos, processed)
-		if active and not processed then lastTouch = pos end
+		if not active or processed then return end
+		lastTouch = pos
+		if mode == "remove" or (mode == "move" and not moveUid) then doClick() end
 	end)
 	RunService.RenderStepped:Connect(onStep)
 end
