@@ -5,10 +5,10 @@
 -- If an item fails to load, NPCRig falls back to the old procedural look for that NPC. Body size/physics are untouched.
 return {
 	Bacon = { hair = { 63690008 }, shirt = 398635081, pants = 398634487, keep = {} },            -- Pal Hair, blue plaid shirt, nice jeans
-	Noob = { hair = {}, keep = {} },                                                               -- classic: colours only
+	Noob = { hair = {}, shirt = 607785314, pants = 382537950, keep = {} },                           -- Roblox jacket and shorts, classic yellow head
 	Starter = { hair = { 607702162 }, shirt = 607785314, pants = 382537569, keep = {} },         -- Roblox cap, Roblox jacket, black jeans
 	Guest = { hair = { 9243992729 }, shirt = 144076436, pants = 382538503, keep = {} },          -- short & sleek, striped shirt + denim jacket
-	Builder = { hair = {}, pants = 144076760, keep = { "HardHat" } },                             -- keeps the hard hat
+	Builder = { hair = {}, shirt = 398635081, pants = 144076760, keep = { "HardHat" } },           -- work shirt and trousers, keeps the hard hat
 	Runner = { hair = { 7193442167 }, shirt = 382538059, pants = 382537950, keep = {} },         -- ponytail, green jersey, denim shorts
 	Ninja = { hair = { 617605556 }, keep = { "Sash" } },                                           -- mystery hood + sash
 	Astronaut = { hair = {}, keep = { "SpaceHelmet", "Backpack" } },

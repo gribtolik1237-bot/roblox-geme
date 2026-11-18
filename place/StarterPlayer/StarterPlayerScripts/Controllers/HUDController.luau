@@ -19,7 +19,7 @@ local WHITE = Color3.new(1, 1, 1)
 local MENU_GAP = 8
 
 local function tileSize(): number
-	return if HUDController.Compact then 74 else 66
+	return if HUDController.Compact then 88 else 92
 end
 
 function HUDController.Gui_(): ScreenGui
@@ -48,8 +48,8 @@ function HUDController.AddMenuButton(id: string, text: string, color: Color3, or
 		UIKit.new("ImageLabel", { Name = "Icon", BackgroundTransparency = 1, Image = img, Size = UDim2.fromOffset(isz, isz), AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.new(0.5, 0, 0, 1), ZIndex = 4, ScaleType = Enum.ScaleType.Fit }, b)
 	end
-	UIKit.label(b, { Name = "Caption", Text = text, TextSize = 17, Size = UDim2.new(1, -8, 0, 22),
-		Position = UDim2.new(0, 4, 1, -24), ZIndex = 5, stroke = 2.4 })
+	UIKit.label(b, { Name = "Caption", Text = text, TextSize = 20, Size = UDim2.new(1, -8, 0, 24),
+		Position = UDim2.new(0, 4, 1, -26), ZIndex = 5, stroke = 2.6 })
 	HUDController.Menu[id] = b
 	return b
 end
@@ -106,10 +106,16 @@ function HUDController.Start()
 	-- Left menu grid
 	local S = tileSize()
 	local top = cs + barH + 28
-	local col = UIKit.new("Frame", { Name = "MenuColumn", BackgroundTransparency = 1, Size = UDim2.fromOffset(0, S),
-		AutomaticSize = Enum.AutomaticSize.X, Position = UDim2.fromOffset(16, top) }, gui)
-	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, MENU_GAP),
+	local col = UIKit.new("Frame", { Name = "MenuColumn", BackgroundTransparency = 1, Size = UDim2.fromOffset(S, 0),
+		AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(16, top) }, gui)
+	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, Padding = UDim.new(0, MENU_GAP),
 		SortOrder = Enum.SortOrder.LayoutOrder }, col)
+	local function placeActions()
+		local v = workspace.CurrentCamera.ViewportSize
+		col.Position = UDim2.fromOffset(16, top + (if v.X < 480 and v.X < v.Y then 78 else 0))
+	end
+	placeActions()
+	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeActions)
 
 	-- Storage-mode banner (honest indicator when progress cannot be saved)
 	local banner = UIKit.label(gui, { Name = "MockBanner", Text = "Studio test: data is NOT saved", TextSize = 16, Size = UDim2.fromOffset(300, 24), Position = UDim2.new(1, -10, 1, -6), AnchorPoint = Vector2.new(1, 1), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = C.orange, Visible = false })   -- corner: never behind the hotbar

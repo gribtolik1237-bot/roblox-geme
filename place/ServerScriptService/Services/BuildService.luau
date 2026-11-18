@@ -22,6 +22,11 @@ local BuildService = {}
 BuildService.Changed = Instance.new("BindableEvent")   -- (player, kind) after a successful mutation
 
 local models: { [Player]: { [number]: Model } } = {}
+local rebuilding: { [Player]: boolean } = {}
+
+function BuildService.IsRebuilding(player: Player): boolean
+	return rebuilding[player] == true
+end
 
 local function placedCount(profile: any, id: string, ignore: number?): number
 	local n = 0
@@ -91,6 +96,7 @@ local function bump(player: Player, profile: any, kind: string)
 end
 
 function BuildService.Place(player: Player, req: any): any
+	if rebuilding[player] then return { ok = false, err = "CourseLoading" } end
 	local profile, plot = PlayerDataService.Get(player), PlotService.Get(player)
 	if not profile or not plot then return { ok = false, err = "NoPlot" } end
 	if type(req) ~= "table" or not Net.isId(req.id) then return { ok = false, err = "Invalid" } end
@@ -117,6 +123,7 @@ local function find(profile: any, uid: any): any?
 end
 
 function BuildService.Move(player: Player, req: any): any
+	if rebuilding[player] then return { ok = false, err = "CourseLoading" } end
 	local profile, plot = PlayerDataService.Get(player), PlotService.Get(player)
 	if not profile or not plot then return { ok = false, err = "NoPlot" } end
 	if type(req) ~= "table" then return { ok = false, err = "Invalid" } end
@@ -133,6 +140,7 @@ function BuildService.Move(player: Player, req: any): any
 end
 
 function BuildService.Remove(player: Player, req: any): any
+	if rebuilding[player] then return { ok = false, err = "CourseLoading" } end
 	local profile = PlayerDataService.Get(player)
 	if not profile or not PlotService.Get(player) then return { ok = false, err = "NoPlot" } end
 	local uid = if type(req) == "table" then req.uid else nil
@@ -192,7 +200,25 @@ local function clearModels(player: Player)
 	models[player] = {}
 end
 
+local function spawnCourse(player: Player, profile: any, plot: any): boolean
+	rebuilding[player] = true
+	local ok, complete = pcall(function()
+		for i, entry in profile.plot.objects do
+			spawnModel(player, plot, entry)
+			if i % 20 == 0 then
+				task.wait()
+				if not player.Parent or PlayerDataService.Get(player) ~= profile or PlotService.Get(player) ~= plot then return false end
+			end
+		end
+		return true
+	end)
+	rebuilding[player] = nil
+	if not ok then error(complete) end
+	return complete
+end
+
 function BuildService.CourseSlots(player: Player, req: any): any
+	if rebuilding[player] then return { ok = false, err = "CourseLoading" } end
 	local profile, plot = PlayerDataService.Get(player), PlotService.Get(player)
 	if not profile or not plot then return { ok = false, err = "NoPlot" } end
 	if type(req) ~= "table" then return { ok = false, err = "Invalid" } end
@@ -238,10 +264,7 @@ function BuildService.CourseSlots(player: Player, req: any): any
 		end
 		if #profile.plot.objects == 0 then profile.plot.objects = old; return { ok = false, err = "NothingFits" } end
 		clearModels(player)
-		for i, o in profile.plot.objects do
-			spawnModel(player, plot, o)
-			if i % 20 == 0 then task.wait() end
-		end
+		if not spawnCourse(player, profile, plot) then return { ok = false, err = "NoPlot" } end
 		bump(player, profile, "load")
 		return { ok = true, loaded = #profile.plot.objects, skipped = skipped }
 	end
@@ -254,10 +277,7 @@ local function rebuild(player: Player, profile: any, plot: any)
 		local d = Obstacles.ById[o.id]
 		if d and d.symmetric and type(o.r) == "number" and o.r >= 180 then o.r -= 180; profile.plot.version += 1; PlayerDataService.MarkDirty(player) end
 	end
-	for i, o in profile.plot.objects do
-		spawnModel(player, plot, o)
-		if i % 20 == 0 then task.wait() end
-	end
+	if spawnCourse(player, profile, plot) then StateSync.Push(player) end
 end
 
 function BuildService.Start()

@@ -15,7 +15,7 @@
 - `ReplicatedStorage/Configs/` — данные: `Balance` (ВСЕ числа, лимиты remotes), `Obstacles` (27 ловушек), `NPCs` (21), `Progression`, `Rarities`, `Donate`, `Icons`, `NPCWear`, `Decor`, `Strings` (тексты ошибок).
 - `ReplicatedStorage/Shared/` — общее: `Net` (реестр remotes, `Net.handle` с rate limit и pcall), `UIKit` (вся визуальная система UI: окна, кнопки, тосты, превью), `ObstacleModels` (процедурные модели ловушек, общие для сервера и призрака), `NPCRig` (сборка аватаров), `PlotMath`, `Util`, `SignKit`, `DecorModels`.
 - `StarterPlayer/StarterPlayerScripts/Client.client.luau` — запускает `Controllers/`: `HUDController` (монеты, меню, модальность), `BuildController` (стройка, магнит, GAP), `ShopController`, `NPCController`, `RunController` + `FirstPersonController` (забег), `GuideController` (стрелки обучения), `MetaController` (Popular/Rate), `RebirthController`, `InventoryController`, `DonateController`, `LoginRewardController`, `CourseSlotsController`, `CameraController`, `SfxController`, `StateController` (зеркало состояния), `DecorController`.
-- `ServerStorage/WorldRecipes/ShopRestyle.luau` — построитель киосков, сохраняющий одетых продавцов при перепекании. `ServerStorage/WorldRecipes/LobbyPromenade.luau` строит аллею, подходы и задаёт расположение досок.
+- `ServerStorage/WorldRecipes/ShopRestyle.luau` — построитель киосков, сохраняющий одетых продавцов при перепекании. `ServerStorage/WorldRecipes/LobbyPromenade.luau` строит физические ленты и подходы и задаёт расположение досок. Клиентский `PromenadeController` двигает стрелки.
 
 ## Правила кода
 - Сервер решает всё (монеты, покупки, награды); клиент только показывает. Каждый remote — через `Net.handle(name, Balance.RateLimits.X, fn)`; проверка типов/NaN/диапазонов на сервере.

@@ -265,7 +265,7 @@ UIKit.errText = {
 	Server = "Server error, try again", NoProfile = "Still loading your data...",
 	PadLocked = "That pad unlocks with more Rebirths", EmptySlot = "Pick an NPC for that slot first", NotOwned = "You don't own that NPC",
 	PadBusy = "That pad is already in use", AlreadyActive = "That NPC is already on a pad", NpcLimit = "Active NPC limit reached - Rebirth for more",
-	ServerBusy = "Server is busy, try again soon", Busy = "Already running", CourseNotReady = "Finish your course first: it needs a Finish Pad and a route",
+	ServerBusy = "Server is busy, try again soon", Busy = "Already running", CourseLoading = "Your course is still loading", CourseNotReady = "Finish your course first: it needs a Finish Pad and a route",
 	NpcIncompatible = "Your route has obstacles NPCs can't use",
 	NotEnough = "Not enough Lifetime Coins yet", MaxRebirth = "You reached the maximum Rebirth", Stale = "Already done - refreshing",
 }

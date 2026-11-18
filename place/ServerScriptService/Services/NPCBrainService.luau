@@ -98,7 +98,6 @@ end
 -- line down the middle to clear never works for a wall that sweeps the whole deck (BUG-012: Moving Wall, Prism Spinner: NPC
 -- waited forever), so: plan ONE hazard at a time, stop at its staging point, and look for a LANE + start time for which the whole
 -- crossing (simulated forward with the hazard's pose at each moment) is hit-free; steer into that lane (b.lane) and go.
-local LANE_SPEED = 8
 local function projHalf(cf: CFrame, size: Vector3, dir: Vector3): number
 	return math.abs(dir:Dot(flat(cf.RightVector))) * size.X / 2 + math.abs(dir:Dot(flat(cf.LookVector))) * size.Z / 2
 end
@@ -113,11 +112,20 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 			if ahead > -(half + reach) and (not nearest or ahead < nearest.ahead) then nearest = { h = h, half = half, ahead = ahead, reach = reach } end
 		end
 	end
-	if not nearest then b.mHold = nil return "go", nil end
+	if not nearest then b.mHold = nil; b.mCross = nil; return "go", nil end
+	local obstacleId = model and model:GetAttribute("ObstacleId")
+	local isWall = obstacleId == "MovingWall"
+	-- Once a wall has a clear lane, keep that lane and pace until the body passes it.
+	local committed = b.mCross
+	if isWall and committed and committed.hazard == nearest.h then
+		b.lane = committed.lane
+		return "go", committed.speed
+	end
+	b.mCross = nil
 	local reach, half = nearest.reach, nearest.half
 	local dn, df = nearest.ahead - half, nearest.ahead + half
 	if dn < reach - 0.1 then b.mHold = nil return "go", nil end                  -- already touching its reach: keep going in the chosen lane
-	local toStage = dn - (reach + GAP)
+	local toStage = dn - (reach + GAP + (if isWall then 0.35 else 0))
 	if toStage > APPROACH then b.mHold = nil return "go", nil end
 	if toStage > 0.3 then return "go", math.clamp(3 + 3.5 * toStage, 4, speed) end
 	-- Two phases at the staging point: (1) shift sideways into the lane while standing at this distance, (2) cross STRAIGHT.
@@ -125,7 +133,9 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 	local vEff = 0.85 * speed
 	local T = (df + reach) / vEff + 0.3
 	local vLat = math.min(speed, 10)
-	local def = model and Obstacles.ById[model:GetAttribute("ObstacleId")]
+	local radius = if isWall then 2.05 else 1.8
+	local late = if isWall then 0.24 else 0.2
+	local def = obstacleId and Obstacles.ById[obstacleId]
 	local hw = math.max(1.5, (if def then def.size.X / 2 else 6) - 1.6)         -- keep inside the deck
 	local c0 = (b.segFrom - model:GetPivot().Position):Dot(lat)
 	local cl = (hrp.Position - b.segFrom):Dot(lat)                              -- where we stand now, in line coordinates
@@ -140,7 +150,7 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 				if tau <= ts then lateral = cl + (lane - cl) * (tau / math.max(ts, 1e-3)); fwd = 0 end
 				local p = hrp.Position + dir * fwd + lat * (lateral - cl)
 				-- the brain decides every 0.1 s and the body lags the decision by 0.05-0.15 s: check the hazard now AND a bit later
-				if hazardHit(nearest.h, p, nowT + tau + 0.05, 1.8) or hazardHit(nearest.h, p, nowT + tau + 0.2, 1.8) then clear = false break end
+				if hazardHit(nearest.h, p, nowT + tau + 0.05, radius) or hazardHit(nearest.h, p, nowT + tau + late, radius) then clear = false break end
 			end
 			if clear then best, bestTs = lane, ts end
 		end
@@ -148,7 +158,14 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 	if best then
 		b.mHold = nil
 		b.lane = best
-		if bestTs > 0.15 then b.shiftVec = lat * math.clamp(best - cl, -4, 4) return "hold", nil end   -- still moving into the lane: stay at this distance
+		if bestTs > 0.15 then
+			b.shiftVec = lat * math.clamp(best - cl, -4, 4)
+			return "hold", if isWall then vLat else nil
+		end
+		if isWall then
+			b.mCross = { hazard = nearest.h, lane = best, speed = vEff }
+			return "go", vEff
+		end
 		return "go", nil
 	end
 	b.mHold = b.mHold or now
@@ -219,8 +236,9 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
 end
 -- returns action, cap when the planner is in charge of this hazard; nil to fall back to the reactive logic
 plannedControl = function(run: Run, b: any, step: Step, hz: { Hazard }, hrp: BasePart, dir: Vector3, grounded: boolean, now: number, nowT: number): (string?, number?)
-	if not needsPlan(hz) then return nil end
 	local model = step.hazardModel
+	local isMovingLaser = model and model:GetAttribute("ObstacleId") == "MovingLaser"
+	if not isMovingLaser and not needsPlan(hz) then return nil end
 	local pl = b.jplan
 	if pl and pl.model ~= model then pl = nil; b.jplan = nil end
 	if not pl then
@@ -243,7 +261,7 @@ plannedControl = function(run: Run, b: any, step: Step, hz: { Hazard }, hrp: Bas
 		elseif tau > jt + 0.15 then pl.i += 1 end
 	end
 	if tau > pl.T + 1.0 then return nil end                     -- crossing done: hand back
-	return "go", nil
+	return "go", if isMovingLaser then 0.92 * b.m.walkSpeed else nil
 end
 
 -- returns "go" | "hold" | "retreat" (and may trigger a jump over a low hazard)
@@ -303,7 +321,7 @@ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, no
 	local pAction, pCap = periodicControl(b, hz, hrp, dir, b.m.walkSpeed, nowT, now)
 	if pAction == "hold" then return "hold" end
 	local mAction, mCap = movingControl(b, hz, hrp, dir, lat, b.m.walkSpeed, nowT, now, step.hazardModel)
-	if mAction == "hold" then return "hold" end
+	if mAction == "hold" then return "hold", mCap end
 	pCap = pCap or mCap
 	for _, h in hz do
 		if h.periodic then
@@ -354,7 +372,7 @@ function Brain.Step(run: Run, dt: number)
 		b.i += 1 return                -- audit 4.2: a malformed step is skipped instead of erroring every tick
 	end
 	if b.lastI ~= b.i then
-		b.lastI = b.i; b.segFrom = hrp.Position; b.bestD = math.huge; b.stuckAt = now; b.leap = nil; b.ferry = nil; b.retries = 0; b.lane = nil
+		b.lastI = b.i; b.segFrom = hrp.Position; b.bestD = math.huge; b.stuckAt = now; b.leap = nil; b.ferry = nil; b.retries = 0; b.lane = nil; b.mCross = nil
 	end
 	local m = b.m
 	if b.speedI ~= b.i and hum:GetAttribute("BaseSpeed") == nil then   -- adapt speed to the step: short hops need less run-up
@@ -413,9 +431,12 @@ function Brain.Step(run: Run, dt: number)
 			-- aim at a point a few studs AHEAD on the path line, shifted sideways by the wobble: the body really sways
 			local along = (flat(hrp.Position) - flat(b.segFrom)):Dot(dir)
 			local ahead = flat(b.segFrom) + dir * math.clamp(along + 4.5, 0, math.max(len, 0.1))
-			local off = b.dev + (b.lane or 0)
+			local off = (if b.mCross then 0 else b.dev) + (b.lane or 0)
 			hum:MoveTo(V3(ahead.X, step.p.Y, ahead.Z) + lat * off)
-			if hdist(hrp.Position, step.p) <= step.tol + math.abs(off) then b.i += 1 end   -- arrival counts the offset we aimed with
+			local wall = step.hazardModel and step.hazardModel:GetAttribute("ObstacleId") == "MovingWall"
+			local destination = if wall then step.p + lat * off else step.p
+			local tolerance = if wall then step.tol else step.tol + math.abs(off)
+			if hdist(hrp.Position, destination) <= tolerance then b.i += 1 end
 		end
 	elseif step.kind == "leap" then
 		if not b.leap then

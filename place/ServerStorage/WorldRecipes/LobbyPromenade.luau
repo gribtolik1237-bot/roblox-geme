@@ -1,5 +1,6 @@
 -- The west plaza joins the shop fronts and the leaderboard courtyard to the plot aisle.
 local Promenade = {}
+local settings = require(game:GetService("ReplicatedStorage").Configs.Balance).Promenade
 
 local V, CF, rgb = Vector3.new, CFrame.new, Color3.fromRGB
 local ROAD_START, ROAD_END, ROAD_HALF_WIDTH = -548, 524, 20
@@ -39,7 +40,6 @@ local function buildRoad(parent)
 		{ "InsideCurb", 2.5, 1, CURB },
 		{ "InsideLine", 3.5, 0.5, AMBER },
 		{ "InsideEdge", 4, 1, ORANGE },
-		{ "Lane", 5, 9, BLUE },
 		{ "OutsideEdge", 14, 1, ORANGE },
 		{ "OutsideLine", 15, 0.5, AMBER },
 		{ "OutsideCurb", 15.5, 1, CURB },
@@ -50,48 +50,44 @@ local function buildRoad(parent)
 			local p = part(parent, name, V(length, 0.08, width), CF(center, top, side * (offset + width / 2)), color)
 			p.CastShadow = false
 		end
-		-- Adjacent lanes point in opposite directions. Markings are decorative, with no conveyor force.
-		for x = ROAD_START + 13, ROAD_END - 9, 22 do
-			local lane = side * 9.5
-			local tip = V(x + side * 2.5, top + 0.045, lane)
+		local laneZ = side * 9.5
+		local lane = part(parent, if side < 0 then "WestLane" else "EastLane", V(length, 0.26, 9),
+			CF(center, top - 0.01, laneZ), BLUE, true)
+		lane.CastShadow = false
+		lane.CustomPhysicalProperties = PhysicalProperties.new(1, 0.8, 0, 100, 1)
+
+		local arrows = Instance.new("Folder")
+		arrows.Name = lane.Name .. "Arrows"
+		arrows:SetAttribute("Direction", side)
+		local interval = settings.MarkerSpacing
+		local count = math.floor((length - 12) / interval)
+		local first = center - count * interval / 2
+		arrows:SetAttribute("StartX", first)
+		arrows:SetAttribute("Span", count * interval)
+		for i = 0, count - 1 do
+			local x = first + i * interval
+			local tip = V(x + side * 2.5, top + 0.145, laneZ)
 			for _, wing in { -1, 1 } do
-				local tail = V(x - side * 2.5, tip.Y, lane + wing * 3.9)
+				local tail = V(x - side * 2.5, tip.Y, laneZ + wing * 3.9)
 				local delta = tip - tail
 				local mid = (tip + tail) / 2 + V(0, wing * 0.003, 0)
-				local p = part(parent, "Chevron", V(1.35, 0.036, delta.Magnitude + 0.5), CFrame.lookAt(mid, mid + delta), INK)
+				local p = part(arrows, "Chevron", V(1.35, 0.036, delta.Magnitude + 0.5), CFrame.lookAt(mid, mid + delta), INK)
+				p:SetAttribute("TrackX", x)
 				p.CastShadow = false
 			end
 		end
+		arrows.Parent = parent
 	end
 end
 
 local function buildApproach(parent, path)
 	local pos = path.Position
 	local top = pos.Y + path.Size.Y / 2
-	local rise = top - Promenade.FloorY
-	if rise <= 0.8 then
-		part(parent, "PlotApproach", V(path.Size.X, 0.35, 2.2), CF(pos.X, top - 0.175, math.sign(pos.Z) * 20.9), SAND, true)
-		return
-	end
-
-	-- Follow the shoulder up to raised plot entrances without changing plot origins or build zones.
 	local side = math.sign(pos.Z)
 	local edge = math.abs(pos.Z) - path.Size.Z / 2
-	local width = edge - ROAD_HALF_WIDTH + 0.6
-	local z = side * (ROAD_HALF_WIDTH + width / 2)
-	local landingX = pos.X - path.Size.X / 2 - 1
-	local run = rise * 3.2
-	local high = V(landingX, top, z)
-	local low = V(landingX - run, Promenade.FloorY, z)
-	local axis = (high - low).Unit
-	local up = V(-axis.Y, axis.X, 0)
-	local slope = CFrame.fromMatrix((low + high) / 2 - up * 0.23, axis, up)
-	part(parent, "RaisedPlotRamp", V((high - low).Magnitude, 0.46, width), slope, SAND, true)
-	part(parent, "RaisedPlotLanding", V(path.Size.X + 2, 0.46, width), CF(pos.X, top - 0.23, z), SAND, true)
-	for _, t in { 0.35, 0.72, 0.98 } do
-		local posOnRamp = low:Lerp(high, t)
-		part(parent, "RampColumn", V(2.5, posOnRamp.Y, 2.5), CF(posOnRamp.X, posOnRamp.Y / 2 - 0.2, z), CURB)
-	end
+	local width = math.max(1, edge - ROAD_HALF_WIDTH + 1.2)
+	part(parent, "PlotApproach", V(path.Size.X, 0.35, width),
+		CF(pos.X, top - 0.175, side * (ROAD_HALF_WIDTH + width / 2 - 0.4)), SAND, true)
 end
 
 function Promenade.Build(world, plots)
@@ -116,6 +112,13 @@ function Promenade.Build(world, plots)
 
 	model.Parent = world
 	return model
+end
+
+function Promenade.EnableBelts(model)
+	for _, side in { -1, 1 } do
+		local lane = model:FindFirstChild(if side < 0 then "WestLane" else "EastLane")
+		if lane then lane.AssemblyLinearVelocity = Vector3.xAxis * settings.BeltSpeed * side end
+	end
 end
 
 function Promenade.PlaceHall(hall)

@@ -9,7 +9,7 @@ local NPCWear = require(script.Parent.Parent.Configs.NPCWear)
 local NPCRig = {}
 
 -- welds a catalog Accessory onto the rig by its attachment (works without a Humanoid parent, so ViewportFrame previews dress too)
-local function wearAccessory(m: Model, acc: Accessory)
+local function wearAccessory(m: Model, acc: Accessory, scale: number?)
 	local handle = acc:FindFirstChild("Handle") :: BasePart?
 	if not handle then return end
 	local att = handle:FindFirstChildOfClass("Attachment")
@@ -24,9 +24,17 @@ local function wearAccessory(m: Model, acc: Accessory)
 		target = head and head:FindFirstChild("HatAttachment") :: Attachment?
 	end
 	if not target then return end
+	if scale and scale ~= 1 then
+		handle.Size *= scale
+		if att then att.Position *= scale end
+		local mesh = handle:FindFirstChildOfClass("SpecialMesh")
+		if mesh then
+			mesh.Scale *= scale
+			mesh.Offset *= scale
+		end
+	end
 	handle.Anchored = false; handle.CanCollide = false; handle.CanQuery = false; handle.CanTouch = false; handle.Massless = true
-	-- PHYSICS (session 7 A/B: dressed Runner 6/8 vs undressed 8/8 on Moving Wall/Rotating Platform): on the SERVER the NPC is simulated,
-	-- so the accessory gets exactly ONE weld from Humanoid:AddAccessory (a second, slightly different weld made the solver fight).
+	-- The attachment is scaled to the rig before the one local weld is created.
 	if att then handle.CFrame = target.WorldCFrame * att.CFrame:Inverse() else handle.CFrame = target.WorldCFrame end
 	local w = Instance.new("WeldConstraint"); w.Part0 = target.Parent :: BasePart; w.Part1 = handle; w.Parent = handle
 	acc.Parent = m
@@ -209,17 +217,6 @@ local function paint(m: Model, names: { string }, color: Color3, material: Enum.
 	end
 end
 
-local FACE_TEX = {
-	happy = "rbxassetid://100335808194876", grin = "rbxassetid://125473485397206", determined = "rbxassetid://140413707011741",
-	cool = "rbxassetid://111355523323234", wonder = "rbxassetid://80977836453507",
-}
-local FACE_OF = {
-	Bacon = "happy", Noob = "happy", Starter = "happy", Guest = "wonder", Builder = "happy", Runner = "grin",
-	Ninja = "determined", Astronaut = "wonder", Knight = "determined", Cyber = "cool", Frost = "cool", Blaze = "grin",
-	Golden = "grin", Titan = "determined", Angel = "wonder", Shadow = "cool", Galaxy = "wonder", Crystal = "wonder",
-	Glitch = "cool", Overlord = "determined", Spectrum = "grin",
-}
-
 local function baseModel(): Model
 	local a = ReplicatedStorage:FindFirstChild("Assets") or ReplicatedStorage:WaitForChild("Assets", 10)
 	local base = a and a:WaitForChild("R15Base", 10)
@@ -262,11 +259,6 @@ function NPCRig.build(id: string): Model
 		local f = A[name]
 		if f then f(m, def) end
 	end
-	-- original expressive face decals (TRAP_LAB/assets/make_faces.py), one character per NPC type instead of the default smiley
-	local head = m:FindFirstChild("Head")
-	local decal = head and head:FindFirstChild("face")
-	local tex = FACE_TEX[FACE_OF[id] or "happy"]
-	if decal and tex then decal.Texture = tex end
 	if L.scale then m:ScaleTo(L.scale) end
 	m:SetAttribute("NpcId", id)
 	if L.rainbow then m:SetAttribute("Rainbow", true) end
@@ -280,11 +272,11 @@ function NPCRig.DressLocal(m: Model)
 	local wear = id and NPCWear[id]
 	local store = ReplicatedStorage:FindFirstChild("NPCWear")
 	if not wear or not store or not m:FindFirstChild("Head") then return end
-	if math.abs(m:GetScale() - 1) > 0.05 then return end      -- scaled rigs (Titan) keep their procedural look: catalog hair isn't rescaled
 	m:SetAttribute("DressedLocal", true)
+	local scale = m:GetScale()
 	for _, hid in wear.hair or {} do
 		local src = store:FindFirstChild(tostring(hid))
-		if src then wearAccessory(m, src:Clone()) end
+		if src then wearAccessory(m, src:Clone(), scale) end
 	end
 end
 

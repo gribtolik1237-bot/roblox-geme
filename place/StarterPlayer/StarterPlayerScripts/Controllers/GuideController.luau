@@ -237,17 +237,8 @@ local function onStep()
 		local vs = ui.sg.AbsoluteSize
 		local ap, as = b.AbsolutePosition, b.AbsoluteSize
 		local c = ap + as / 2
-		-- a tile in the left menu grid: point from beside the WHOLE grid, never on top of a neighbouring tile
 		local col = b.Parent
-		local below = false
-		if col and col.Name == "MenuColumn" and col:IsA("GuiObject") then
-			if HUDController.Compact then
-				below = true                -- phone: the tiles are ONE row - point up at the tile from under it
-			else
-				local right = col.AbsolutePosition.X + col.AbsoluteSize.X
-				as = Vector2.new(right - ap.X, as.Y)
-			end
-		end
+		local actionTile = col and col.Name == "MenuColumn"
 		local us = HUDController.Gui and HUDController.Gui:FindFirstChildOfClass("UIScale")
 		local k = math.clamp(us and us.Scale or 1, 0.6, 1.4)
 		local aw, ah = 112 * k, 56 * k
@@ -256,11 +247,15 @@ local function onStep()
 		ui.sLabel.TextSize = math.floor(38 * k)
 		local gap = 8 * k
 		local apos, lpos, rot, lanchor, lalign
-		if c.Y > vs.Y * 0.7 then          -- bottom (hotbar): arrow above, pointing down, word above it
+		if actionTile then                 -- point alongside the vertical column, clear of the neighboring tiles
+			rot = 180
+			apos = Vector2.new(ap.X + as.X + gap + aw / 2 + math.abs(bob), c.Y)
+			lpos = apos + Vector2.new(aw / 2 + 4 * k, 0); lanchor = Vector2.new(0, 0.5); lalign = Enum.TextXAlignment.Left
+		elseif c.Y > vs.Y * 0.7 then          -- bottom (hotbar): arrow above, pointing down, word above it
 			rot = 90
 			apos = Vector2.new(c.X, ap.Y - gap - aw / 2 - math.abs(bob))
 			lpos = apos - Vector2.new(0, aw / 2 + 2 * k); lanchor = Vector2.new(0.5, 1); lalign = Enum.TextXAlignment.Center
-		elseif below or c.Y < vs.Y * 0.22 then     -- top bar (or a phone menu tile): arrow below, pointing up, word under it
+		elseif c.Y < vs.Y * 0.22 then     -- top bar: arrow below, pointing up, word under it
 			rot = -90
 			apos = Vector2.new(c.X, ap.Y + as.Y + gap + aw / 2 + math.abs(bob))
 			lpos = apos + Vector2.new(0, aw / 2 + 2 * k); lanchor = Vector2.new(0.5, 0); lalign = Enum.TextXAlignment.Center

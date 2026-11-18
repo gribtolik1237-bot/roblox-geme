@@ -54,3 +54,5 @@
 | Стрелка обучения (экран + маркер) | rbxassetid://106505602112612 | `assets/make_guide_chevron.py 256 guide_arrow.png` (оригинал, Python) |
 | Дорожка стрелок на земле (Beam) | rbxassetid://107943447868244 | `assets/make_guide_arrows.py` (оригинал, Python) |
 | Шевроны (тонкие, не используются) | rbxassetid://87060573364779 | `assets/make_guide_chevron.py 384` |
+
+В версии 212 пять неполучаемых текстур лица заменены встроенным лицом Roblox `rbxasset://textures/face.png`. Для одежды Noob и Builder использованы уже сохранённые вещи каталога.

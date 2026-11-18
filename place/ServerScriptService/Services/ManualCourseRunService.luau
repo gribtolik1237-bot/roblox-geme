@@ -158,6 +158,7 @@ function Service.Start(player: Player, plot: any)
 end
 
 local function step(player: Player, run: any)
+	if BuildService.IsRebuilding(run.ownerPlayer) then finish(player, run, "changed") return end
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local hum = char and char:FindFirstChildOfClass("Humanoid")

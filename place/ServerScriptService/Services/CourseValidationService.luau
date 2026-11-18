@@ -159,6 +159,7 @@ function Service.Compute(profile: any): any
 end
 
 function Service.Analyze(player: Player): any?
+	if BuildService.IsRebuilding(player) then return nil end
 	local profile = PlayerDataService.Get(player)
 	if not profile then return nil end
 	local c = cache[player]

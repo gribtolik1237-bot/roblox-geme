@@ -253,7 +253,7 @@ function ShopController.Start()
 			Size = UDim2.new(1, -(icon + 17), 1, -10), Position = UDim2.fromOffset(icon + 10, 5), ZIndex = 5, stroke = 3.2 })
 		HUDController.Menu[p.id] = b
 	end
-	-- Keep the row away from currency on narrow screens. If it can't fit beside it, stack it below the action tiles.
+	-- Keep the navigation clear of currency and the vertical action buttons.
 	local fit = Instance.new("UIScale"); fit.Name = "FitScale"; fit.Parent = bar
 	local function keepClear()
 		local gui = HUDController.Gui
@@ -275,10 +275,11 @@ function ShopController.Start()
 		elseif left + need + rawW <= gw - 8 * scale then
 			bar.Position = UDim2.new(0.5, need / scale, 0, 8)
 		else
-			local menu = gui:FindFirstChild("MenuColumn")
-			local bottom = if menu then (menu.AbsolutePosition.Y - gui.AbsolutePosition.Y + menu.AbsoluteSize.Y) else 200 * scale
-			fit.Scale = math.clamp((gw - 24 * scale) / rawW, 0.1, 1)
-			bar.Position = UDim2.new(0.5, 0, 0, bottom / scale + 10)
+			local progress = gui:FindFirstChild("Rebirth")
+			local bottom = if progress then progress.AbsolutePosition.Y - gui.AbsolutePosition.Y + progress.AbsoluteSize.Y else 74 * scale
+			local available = gw - 24 * scale
+			fit.Scale = math.clamp(available / rawW, 0.1, 1)
+			bar.Position = UDim2.new(0.5, 0, 0, bottom / scale + 8)
 		end
 	end
 	task.defer(keepClear)

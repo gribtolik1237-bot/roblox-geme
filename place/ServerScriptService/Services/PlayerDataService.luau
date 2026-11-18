@@ -26,9 +26,12 @@ local profiles: { [Player]: any } = {}
 local dirty: { [Player]: boolean } = {}
 local saving: { [Player]: boolean } = {}
 local lostLock: { [Player]: boolean } = {}
+local loading: { [Player]: boolean } = {}
+local releasing: { [Player]: boolean } = {}
 local store: any = nil
 local usingMock = false
 local started = false
+local closing = false
 
 PlayerDataService.Loaded = Instance.new("BindableEvent")   -- (player, profile)
 PlayerDataService.Removing = Instance.new("BindableEvent") -- (player, profile) before the final save
@@ -178,7 +181,7 @@ local function saveProfile(player: Player, profile: any, release: boolean): bool
 	end
 	local ok = retry(function()
 		store:UpdateAsync(key(player), function(old: any)
-			if old and old.lock and old.lock.id ~= SESSION and os.time() - old.lock.t < LOCK_STALE then
+			if not old or not old.lock or old.lock.id ~= SESSION then
 				lostLock[player] = true
 				return nil
 			end
@@ -188,21 +191,35 @@ local function saveProfile(player: Player, profile: any, release: boolean): bool
 	end, MAX_TRIES)
 	saving[player] = false
 	if ok and not lostLock[player] then dirty[player] = false end
-	if queued[player] and not release then
-		queued[player] = nil
+	local retryQueued = queued[player] and not release
+	queued[player] = nil
+	if retryQueued then
 		task.defer(function() if profiles[player] == profile then saveProfile(player, profile, false) end end)
 	end
 	return ok and not lostLock[player]
 end
 
+local function releaseProfile(player: Player, profile: any)
+	releasing[player] = true
+	while saving[player] do task.wait() end
+	saveProfile(player, profile, true)
+	dirty[player] = nil
+	lostLock[player] = nil
+	saving[player] = nil
+	releasing[player] = nil
+end
+
 local function onJoin(player: Player)
+	if closing or loading[player] or profiles[player] then return end
+	loading[player] = true
 	local profile = loadProfile(player)
+	loading[player] = nil
 	if not profile then
-		if player.Parent then player:Kick("TRAP LAB could not load your data. Please rejoin in a minute.") end
+		if player.Parent and not closing then player:Kick("TRAP LAB could not load your data. Please rejoin in a minute.") end
 		return
 	end
-	if not player.Parent then
-		saveProfile(player, profile, true)
+	if closing or not player.Parent then
+		releaseProfile(player, profile)
 		return
 	end
 	profiles[player] = profile
@@ -220,51 +237,42 @@ end
 
 local function onLeave(player: Player)
 	local profile = profiles[player]
-	if not profile then return end
+	if not profile or releasing[player] then return end
+	releasing[player] = true
 	PlayerDataService.Removing:Fire(player, profile)
 	profiles[player] = nil
-	while saving[player] do task.wait(0.1) end
-	saveProfile(player, profile, true)
-	dirty[player] = nil
-	lostLock[player] = nil
-	saving[player] = nil
+	releaseProfile(player, profile)
 end
 
 function PlayerDataService.Start()
 	if started then return end
 	started = true
-	local real = DataStoreService:GetDataStore(STORE_NAME)
-	local ok, err = pcall(function() return real:GetAsync("__probe") end)
-	-- Dev switch (Studio only): ServerStorage attribute DevFreshProfile = true -> every Play starts as a BRAND-NEW player in an
-	-- in-memory store (FTUE tests) and NOTHING is saved, so the real Studio test profile can't be overwritten.
-	if RunService:IsStudio() and game:GetService("ServerStorage"):GetAttribute("DevFreshProfile") == true then
-		ok, err = false, "DevFreshProfile switch"
-	end
-	if ok then
-		store = real
-	elseif RunService:IsStudio() then
+	local studio = RunService:IsStudio()
+	if studio and game:GetService("ServerStorage"):GetAttribute("DevFreshProfile") == true then
 		usingMock = true
 		store = Mock.new()
-		warn("[PlayerData] DataStore unavailable in Studio (" .. tostring(err) .. ") -> IN-MEMORY MOCK. Progress is NOT saved.")
+		print("[PlayerData] Fresh Studio profile in memory.")
 	else
-		-- live server with a failing DataStore: keep the real store; loads will retry and kick safely
+		local real = DataStoreService:GetDataStore(STORE_NAME)
+		local ok, err = pcall(function() return real:GetAsync("__probe") end)
 		store = real
-		warn("[PlayerData] DataStore probe failed on a live server: " .. tostring(err))
+		if not ok then
+			if studio then
+				usingMock = true
+				store = Mock.new()
+			end
+			warn("[PlayerData] DataStore probe failed: " .. tostring(err))
+		end
 	end
 	Players.PlayerAdded:Connect(function(p) task.spawn(onJoin, p) end)
 	Players.PlayerRemoving:Connect(function(p) task.spawn(onLeave, p) end)
 	for _, p in Players:GetPlayers() do task.spawn(onJoin, p) end
 	game:BindToClose(function()
-		local pending = 0
-		for p, prof in profiles do
-			pending += 1
-			task.spawn(function()
-				saveProfile(p, prof, true)
-				pending -= 1
-			end)
-		end
+		closing = true
+		local active = table.clone(profiles)
+		for p in active do task.spawn(onLeave, p) end
 		local t0 = os.clock()
-		while pending > 0 and os.clock() - t0 < 25 do task.wait(0.2) end
+		while (next(loading) or next(releasing)) and os.clock() - t0 < 25 do task.wait(0.2) end
 	end)
 end
 

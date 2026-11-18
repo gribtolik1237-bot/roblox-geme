@@ -55,6 +55,13 @@ local function plotCFrame(i: number): CFrame
 	return CFrame.new(x, 0, Balance.PlotRowOffset) * CFrame.Angles(0, math.pi, 0)
 end
 
+function PlotService.AlignPlot(model: Model, index: number)
+	local origin = model.Origin :: BasePart
+	local target = plotCFrame(index)
+	if origin.CFrame:FuzzyEq(target, 0.001) then return end
+	model:PivotTo(target * origin.CFrame:ToObjectSpace(model:GetPivot()))
+end
+
 local function padLocal(i: number): Vector3   -- NPC pad i (1..NpcPads), local to the plot
 	return Vector3.new(-27 + (i - 1) * 6, 2, -15)
 end
@@ -141,6 +148,25 @@ local function buildSign(model: Model, cf: CFrame, index: number): Model
 end
 PlotService.BuildSign = buildSign       -- used to re-bake the signs in Edit
 
+function PlotService.EnsureSignFaces(sign: Model, parts: { string }?)
+	local board = sign.Board :: BasePart
+	for _, name in parts or { "Board", "PlayButton", "RatingBar" } do
+		local part = sign:FindFirstChild(name) :: BasePart
+		local source = part:FindFirstChildWhichIsA("SurfaceGui")
+		if source and not part:FindFirstChild(source.Name .. "Reverse") then
+			if part ~= board then
+				local depth = board.CFrame:PointToObjectSpace(part.Position).Z
+				local required = 2 * (depth + board.Size.Z / 2 + 0.035)
+				if part.Size.Z < required then part.Size = Vector3.new(part.Size.X, part.Size.Y, required) end
+			end
+			local copy = source:Clone()
+			copy.Name = source.Name .. "Reverse"
+			copy.Face = Enum.NormalId.Front
+			copy.Parent = part
+		end
+	end
+end
+
 -- Owner reference 1 (T41): "Course saves" board, mirror of the PLAY sign on the other side of the path, same plastic family.
 -- The 3 slot rows and their buttons are drawn ONLY by the owner's client (CourseSlotsController adorns a SurfaceGui to "Board");
 -- everybody sees the yellow header plate.
@@ -183,6 +209,45 @@ local function prop(model: Model, base: CFrame, id: string, x: number, z: number
 end
 
 local POOL_TILE = "rbxassetid://126806655453119"   -- seamless tiled water texture (TRAP_LAB/assets/make_water_tile.py)
+
+-- Keep the walkable zone and raycasts stable. Small opaque plates render independently of the lawn below them.
+local function paintPool(model: Model, zone: BasePart)
+	local w, length = zone.Size.X, zone.Size.Z
+	local old = model:FindFirstChild("PoolSurface")
+	if old and old:GetAttribute("Width") == w and old:GetAttribute("Length") == length then return end
+
+	zone.Transparency = 1
+	for _, name in { "PoolTiles", "BuildGrid" } do
+		local texture = zone:FindFirstChild(name)
+		if texture then texture:Destroy() end
+	end
+	local tiles = Instance.new("Folder")
+	tiles.Name = "PoolSurface"
+	tiles:SetAttribute("Width", w)
+	tiles:SetAttribute("Length", length)
+	local step = 64
+	for x = 0, w - 1, step do
+		for z = 0, length - 1, step do
+			local sx, sz = math.min(step, w - x), math.min(step, length - z)
+			local cf = zone.CFrame * CFrame.new(x + (sx - w) / 2, zone.Size.Y / 2 + 0.04, z + (sz - length) / 2)
+			local tile = mk(tiles, "WaterTile", Vector3.new(sx, 0.08, sz), cf,
+				Color3.fromRGB(30, 169, 226), Enum.Material.Slate,
+				{ CanCollide = false, CanTouch = false, CanQuery = false, CastShadow = false })
+			for index, studs in { 16, Balance.GridSize } do
+				local texture = Instance.new("Texture")
+				texture.Texture = POOL_TILE
+				texture.Face = Enum.NormalId.Top
+				texture.StudsPerTileU = studs
+				texture.StudsPerTileV = studs
+				texture.Transparency = if index == 1 then 0 else 0.7
+				texture.ZIndex = index
+				texture.Parent = tile
+			end
+		end
+	end
+	tiles.Parent = model
+	if old then old:Destroy() end
+end
 -- wooden fence run (decoration only): posts every ~16 studs + two studded rails. axis "z": along local z at x = fixed (a -> b); "x": along x at z = fixed
 local function fence(model: Model, cf: CFrame, axis: string, fixed: number, a: number, b: number)
 	local f = Instance.new("Folder"); f.Name = "Fence"; f.Parent = model
@@ -215,12 +280,8 @@ local function buildPlot(i: number): Plot
 	do local lt = Instance.new("Texture"); lt.Name = "LawnTiles"; lt.Texture = "rbxassetid://108532129961873"; lt.Face = Enum.NormalId.Top; lt.StudsPerTileU = 64; lt.StudsPerTileV = 64; lt.Parent = land end
 	-- the build zone is a test pool: falling off the course = into the water
 	-- phase B.5: the pool floor reads as water - translucent blue glass with a soft underwater glow
-	local zone = mk(model, "BuildZone", Vector3.new(10, 0.2, 10), cf * CFrame.new(0, 0.1, -60), Color3.fromRGB(90, 180, 255), Enum.Material.Glass, { Transparency = 0.5 })
+	local zone = mk(model, "BuildZone", Vector3.new(10, 0.2, 10), cf * CFrame.new(0, 0.1, -60), Color3.fromRGB(90, 180, 255), Enum.Material.Glass, { Transparency = 1 })
 	do local wl = Instance.new("PointLight"); wl.Name = "PoolGlow"; wl.Color = Color3.fromRGB(120, 200, 255); wl.Range = 40; wl.Brightness = 0.6; wl.Parent = zone end
-	local tex = Instance.new("Texture"); tex.Name = "PoolTiles"; tex.Texture = POOL_TILE; tex.Face = Enum.NormalId.Top; tex.StudsPerTileU = 16; tex.StudsPerTileV = 16; tex.Parent = zone
-	-- audit 3.6: faint build grid at the build step (Balance.GridSize) over the pool tiles: shows where pieces can go
-	local grid = Instance.new("Texture"); grid.Name = "BuildGrid"; grid.Texture = POOL_TILE; grid.Face = Enum.NormalId.Top
-	grid.StudsPerTileU = Balance.GridSize; grid.StudsPerTileV = Balance.GridSize; grid.Transparency = 0.7; grid.Parent = zone
 	for _, n in { "PoolRim_L", "PoolRim_R", "PoolRim_B" } do mk(model, n, Vector3.new(1, 0.1, 1), cf, Color3.fromRGB(24, 116, 190), Enum.Material.Marble, { CanCollide = false, CanQuery = false, CanTouch = false }) end
 	for _, side in { "L", "R" } do      -- pool ladders: two chrome rails over the coping + two steps into the water (placed by Apply)
 		local lad = Instance.new("Model"); lad.Name = "PoolLadder_" .. side; lad.Parent = model
@@ -277,6 +338,7 @@ function PlotService.Apply(plot: Plot, rebirth: number)
 	local zone = m.BuildZone :: Part
 	zone.Size = Vector3.new(W, 0.2, L - D)
 	zone.CFrame = cf * CFrame.new(0, 0.1, -(D + L) / 2)
+	paintPool(m, zone)
 	local sp = m.StartPlatform :: Part
 	local pw = math.max(W, 64)
 	sp.Size = Vector3.new(pw, 2, D); sp.CFrame = cf * CFrame.new(0, 1, -D / 2)
@@ -323,18 +385,26 @@ function PlotService.Apply(plot: Plot, rebirth: number)
 end
 
 function PlotService.SetSignInfo(plot: Plot, title: string, owner: string, stats: string, status: string)
-	local face = (plot.sign :: any).Board.InfoFace
-	face.Title.Text = title; face.Owner.Text = owner; face.Stats.Text = stats; face.Status.Text = status
+	local board = (plot.sign :: any).Board
+	for _, name in { "InfoFace", "InfoFaceReverse" } do
+		local face = board:FindFirstChild(name)
+		if face then
+			face.Title.Text = title; face.Owner.Text = owner; face.Stats.Text = stats; face.Status.Text = status
+		end
+	end
 	if title == "Free plot" then PlotService.SetSignRating(plot, 0, 0) end
 end
 
 -- the dark strip under the PLAY button: shown course rating (Bayesian mean, RatingService) and number of votes
 function PlotService.SetSignRating(plot: Plot, avg: number, n: number)
 	local bar = (plot.sign :: any):FindFirstChild("RatingBar")
-	local face = bar and bar:FindFirstChild("RatingFace")
-	local t = face and face:FindFirstChild("Rating")
-	if not t then return end
-	(t :: any).Text = if n > 0 then string.format("%.1f  -  %d %s", avg, n, if n == 1 then "vote" else "votes") else "No ratings yet"
+	if not bar then return end
+	local rating = if n > 0 then string.format("%.1f  -  %d %s", avg, n, if n == 1 then "vote" else "votes") else "No ratings yet"
+	for _, name in { "RatingFace", "RatingFaceReverse" } do
+		local face = bar:FindFirstChild(name)
+		local text = face and face:FindFirstChild("Rating")
+		if text and text:IsA("TextLabel") then text.Text = rating end
+	end
 end
 
 -- brick cliff ring at the edge of the world: a checker of two browns (2 rows), a studded grass cap and pines on top; solid, so nobody walks off the map
@@ -388,14 +458,17 @@ function PlotService.BuildWorld(force: boolean?)
 		for i = 1, Balance.PlotCount do buildPlot(i) end
 		PlotService.BuildCliffs(wa)
 	end
-	Promenade.Build(wa, root)
 	plots = {}
 	for i = 1, Balance.PlotCount do
 		local m = root:FindFirstChild("Plot_" .. i) :: Model
+		PlotService.AlignPlot(m, i)
+		PlotService.EnsureSignFaces(m.PlaySign)
+		PlotService.EnsureSignFaces(m.SaveBoard, { "Header" })
 		plots[i] = { index = i, model = m, cf = (m.Origin :: Part).CFrame, owner = nil, ownerId = 0, course = m.Course, decor = m.Decor, npcs = m.Npcs, spawn = m.Spawn, sign = m.PlaySign }
 		PlotService.Apply(plots[i], 0)
 		PlotService.SetSignInfo(plots[i], "Free plot", "", "", "")
 	end
+	Promenade.EnableBelts(Promenade.Build(wa, root))
 end
 
 function PlotService.Assign(player: Player, rebirth: number): Plot?

@@ -160,6 +160,7 @@ end
 
 local function step(run: Run, dt: number)
 	if run.ended then return end
+	if BuildService.IsRebuilding(run.player) then endRun(run, "cancelled", "changed") return end
 	local hum, hrp = run.hum, run.hrp
 	if not hrp.Parent or not hum.Parent then endRun(run, "failed", "lost") return end
 	if os.clock() - run.startedAt > Balance.Npc.AttemptTimeout then endRun(run, "failed", "timeout") return end
@@ -203,7 +204,10 @@ function Service.Start()
 		for _, run in runs do if run.player == player then endRun(run, "cancelled", "left") end end
 	end)
 	BuildService.Changed.Event:Connect(function(player)
-		for _, run in runs do if run.player == player and run.version ~= CourseValidationService.Analyze(player).version then endRun(run, "cancelled", "changed") end end
+		local profile = PlayerDataService.Get(player)
+		for _, run in runs do
+			if run.player == player and (not profile or run.version ~= profile.plot.version) then endRun(run, "cancelled", "changed") end
+		end
 	end)
 	game:BindToClose(function() for _, run in runs do endRun(run, "cancelled", "shutdown") end end)
 end

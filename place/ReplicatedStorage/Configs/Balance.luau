@@ -36,6 +36,7 @@ Balance.PlotCell = Vector2.new(260, 420) -- fixed land cell per player (max expa
 Balance.PlotRowOffset = 110             -- distance of start edge from lobby centre line
 Balance.StartAreaDepth = 24             -- reserved start area (local z 0 .. -24)
 Balance.PlotColumns = { -390, -130, 130, 390 }
+Balance.Promenade = { BeltSpeed = 32, MarkerSpacing = 22 }
 
 -- Index = rebirth count + 1 (r0 = index 1)
 Balance.PlotWidth  = { 72, 88, 104, 120, 136, 152, 168, 184, 200, 216, 232 }
