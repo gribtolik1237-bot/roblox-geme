@@ -89,11 +89,12 @@ B.Tree = function(m)
 	for i, b in balls do part(m, "Crown" .. i, V(b[4], b[4] * 0.94, b[4]), CF(b[1], b[2], b[3]), b[5], Enum.Material.SmoothPlastic, BALL) end
 end
 B.PineTree = function(m)
+	-- round toy pine: trunk + three balls shrinking upward + a glowing tip (same language as the round tree and bush)
 	part(m, "Trunk", V(1.6, 3.4, 1.6), CF(0, 1.7, 0), rgb(120, 84, 52), Enum.Material.Wood)
-	for i, d in { { 7.4, 3.6 }, { 5.6, 6.2 }, { 3.8, 8.8 }, { 2, 11.2 } } do
-		blk(m, "Tier" .. i, V(d[1], 2.6, d[1]), CF(0, d[2], 0), rgb(40 + i * 10, 140 + i * 14, 92), Enum.Material.LeafyGrass)
+	for i, d in { { 7.4, 5.0 }, { 5.6, 7.9 }, { 3.9, 10.4 } } do
+		part(m, "Tier" .. i, V(d[1], d[1] * 0.9, d[1]), CF(0, d[2], 0), rgb(34 + i * 12, 138 + i * 16, 86), Enum.Material.SmoothPlastic, BALL)
 	end
-	part(m, "Tip", V(1.4, 1.4, 1.4), CF(0, 13.2, 0) * ANG(0.5, 0.5, 0), rgb(255, 214, 70), Enum.Material.Neon)
+	part(m, "Tip", V(1.3, 1.3, 1.3), CF(0, 12.4, 0), rgb(255, 214, 70), Enum.Material.Neon, BALL)
 end
 B.Lantern = function(m)
 	post(m, "Pole", 6, 0.3, 0, 0, rgb(104, 56, 44), Enum.Material.Plastic)
