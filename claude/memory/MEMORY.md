@@ -11,3 +11,4 @@
 - [Master prompt](reference-master-prompt.md) — owner original prompt saved in docs/MASTER_PROMPT.md; read its override table
 - [Restore Studio window](feedback-restore-studio-window.md) — white screenshots: run tools/restore-studio-window.ps1 myself, do not ask the owner
 - [Luau analyzer](reference-luau-analyze.md) — luau-analyze 0.747 downloaded, node tools/luau-lint.cjs, record in docs/TOOLS.md; continue TECH-05 on "продолжать"
+- [Skill roblox-craft-studio](reference-roblox-craft-studio-skill.md) — owner: ALWAYS use anthropic-skills:roblox-craft-studio for Roblox game development, in every chat
