@@ -60,4 +60,4 @@
 ## Сессия 10 (2026-11-19)
 | Ассет | Файлы | Статус |
 |---|---|---|
-| Круглый куст с ягодами (Blender 5.2, 770 tris, 4 меша по материалам Leaf_Mid/Dark/Light, Berry_Red) | `assets/bush_round.blend`, `assets/models/bush_round.fbx` | НЕ загружен в Roblox: папка не одобрена для выгрузок. В игре временный куст из шаров (`DecorModels.Bush`) |
+| Круглый куст с ягодами (Blender 5.2, 770 tris, 4 меша по материалам Leaf_Mid/Dark/Light, Berry_Red) | `assets/bush_round.blend`, `assets/models/bush_round.fbx` | Загружен 2026-11-19, asset id 93309155255799 (Model, Approved, создатель владелец). Шаблон `ReplicatedStorage.Assets.RoundBush` (4 MeshPart, цвета заданы в Studio), использует `DecorModels.Bush`; запасной вариант из шаров остался в том же коде |
