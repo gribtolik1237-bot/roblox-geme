@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T19:20:25.593Z",
+  "exportedAt": "2026-11-19T19:24:37.250Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -202,9 +202,9 @@
       "studioPath": "ServerScriptService/Services/HallService",
       "file": "ServerScriptService/Services/HallService.luau",
       "class": "ModuleScript",
-      "bytes": 7485,
-      "adler32": 3587772624,
-      "sha256": "8d51d680aee8077cbcf821684004da9e1dd4b5d9b30501b0b0c6ba046de2a226"
+      "bytes": 7059,
+      "adler32": 2521796264,
+      "sha256": "eb4504e3e49595d96dbd86ae5d70ceb0d1ba1afdaf9efeb7441195801d17f0be"
     },
     {
       "studioPath": "ServerScriptService/Services/LeaderboardService",

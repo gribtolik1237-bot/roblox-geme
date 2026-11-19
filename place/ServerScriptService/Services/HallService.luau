@@ -14,8 +14,7 @@ local Promenade = require(game:GetService("ServerStorage").WorldRecipes.LobbyPro
 local Hall = {}
 local V, CF = Vector3.new, CFrame.new
 local mk = SignKit.mk
-local INNER, ROW_A, ROW_B = Color3.fromRGB(46, 36, 42), Color3.fromRGB(82, 66, 72), Color3.fromRGB(66, 52, 58)
-local PLACE = { Color3.fromRGB(255, 196, 61), Color3.fromRGB(214, 222, 236), Color3.fromRGB(226, 140, 74) }   -- gold, silver, bronze
+local INNER = Color3.fromRGB(46, 36, 42)
 
 local STANDS = {   -- title/sub/colour live in BoardSkin.INFO
 	{ id = "money", x = -75 },
@@ -24,13 +23,6 @@ local STANDS = {   -- title/sub/colour live in BoardSkin.INFO
 	{ id = "obby", x = 75 },
 }
 for _, st in STANDS do for k, v in Skin.INFO[st.id] do st[k] = v end end
-
-local function text(parent, name, props)
-	props.Name = name
-	return SignKit.text(parent, props)
-end
-
-local function corner(inst, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = inst end
 
 local buildFace = Skin.build
 
