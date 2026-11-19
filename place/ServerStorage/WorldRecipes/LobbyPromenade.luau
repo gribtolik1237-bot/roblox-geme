@@ -105,6 +105,7 @@ function Promenade.Build(world, plots)
 		part(model, "HallWalk", V(26, 0.6, 36), CF(-627, Promenade.FloorY - 0.3, side * 86), SAND, true)
 	end
 	buildRoad(model)
+	require(script.Parent.MarketDress).Build(model, false, true)   -- paving, curb, shop discs, props (ART-04/08)
 	for _, plot in plots:GetChildren() do
 		local path = plot:FindFirstChild("Path")
 		if path and path:IsA("BasePart") then buildApproach(model, path) end

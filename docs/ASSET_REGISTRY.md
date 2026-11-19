@@ -56,3 +56,8 @@
 | Шевроны (тонкие, не используются) | rbxassetid://87060573364779 | `assets/make_guide_chevron.py 384` |
 
 В версии 212 пять неполучаемых текстур лица заменены встроенным лицом Roblox `rbxasset://textures/face.png`. Для одежды Noob и Builder использованы уже сохранённые вещи каталога.
+
+## Сессия 10 (2026-11-19)
+| Ассет | Файлы | Статус |
+|---|---|---|
+| Круглый куст с ягодами (Blender 5.2, 770 tris, 4 меша по материалам Leaf_Mid/Dark/Light, Berry_Red) | `assets/bush_round.blend`, `assets/models/bush_round.fbx` | НЕ загружен в Roblox: папка не одобрена для выгрузок. В игре временный куст из шаров (`DecorModels.Bush`) |

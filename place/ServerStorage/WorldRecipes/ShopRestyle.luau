@@ -14,8 +14,8 @@ local TOP = rgb(232, 76, 67)
 local PALE = rgb(220, 198, 246)
 
 ShopRestyle.Definitions = {
-	obstacle = { label = "Obstacle Shop", heading = "OBSTACLES", seller = "Bacon", color = rgb(37, 120, 236), z = -24 },
-	npc = { label = "NPC Shop", heading = "NPC SHOP", seller = "Runner", color = rgb(255, 199, 42), z = 24 },
+	obstacle = { label = "Obstacle Shop", heading = "OBSTACLES", seller = "Bacon", color = rgb(37, 120, 236), z = -58, yaw = 0 },
+	npc = { label = "NPC Shop", heading = "NPC SHOP", seller = "Runner", color = rgb(255, 199, 42), z = 58, yaw = math.pi },
 }
 
 local function piece(model, base, name, size, offset, color, solid)
@@ -108,7 +108,7 @@ end
 
 function ShopRestyle.BuildKiosk(kind, previous)
 	local definition = assert(ShopRestyle.Definitions[kind], "Unknown shop kind")
-	local base = CF(Promenade.ShopX, Promenade.FloorY, definition.z) * CFrame.Angles(0, math.pi / 2, 0)
+	local base = CF(Promenade.ShopX, Promenade.FloorY, definition.z) * CFrame.Angles(0, definition.yaw, 0)
 	local model = Instance.new("Model")
 	model.Name = "Shop_" .. kind
 	model:SetAttribute("ShopKind", kind)

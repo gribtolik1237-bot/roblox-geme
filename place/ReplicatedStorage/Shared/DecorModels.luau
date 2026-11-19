@@ -40,10 +40,20 @@ B.BigRock = function(m)
 	blk(m, "R3", V(2.8, 2, 2.4), CF(3.4, 1, -1.4) * ANG(0, 0.3, 0), rgb(124, 130, 146), Enum.Material.Slate)
 end
 B.Bush = function(m)
-	blk(m, "B1", V(4.8, 2.6, 4.4), CF(0, 1.3, 0), rgb(76, 200, 110), Enum.Material.LeafyGrass)
-	blk(m, "B2", V(3.2, 2, 3), CF(0.3, 3.5, 0.1), rgb(92, 214, 124), Enum.Material.LeafyGrass)
-	blk(m, "B3", V(2.2, 1.6, 2.2), CF(-1.9, 0.8, 2.2), rgb(64, 184, 98), Enum.Material.LeafyGrass)
-	blk(m, "B4", V(1.6, 1.4, 1.6), CF(2.1, 2.9, -1.2), rgb(64, 184, 98), Enum.Material.LeafyGrass)
+	-- round toy bush: balls in three greens + berries (same layout as assets/bush_round.blend; ~6.2 wide, 4.6 tall). Interim until the mesh can be uploaded.
+	local GREEN = { mid = rgb(80, 198, 98), dark = rgb(44, 160, 82), light = rgb(150, 226, 96) }
+	local blobs = {   -- x, z, height, radius, squash, tone
+		{ 0, 0, 2.2, 1.9, 0.95, "mid" }, { 1.6, 0.3, 1.2, 1.5, 0.92, "dark" }, { -1.6, 0.2, 1.2, 1.5, 0.92, "dark" },
+		{ 0.2, -1.6, 1.2, 1.5, 0.92, "dark" }, { -0.2, 1.6, 1.2, 1.4, 0.92, "dark" },
+		{ 1.0, -0.6, 3.1, 1.25, 0.95, "light" }, { -0.9, 0.5, 3.3, 1.3, 0.95, "light" }, { 0.1, 0.1, 3.85, 0.85, 0.95, "light" },
+	}
+	for i, b in blobs do
+		local tone = GREEN[b[6]]
+		part(m, "Leaf" .. i, V(b[4] * 2, b[4] * 2 * b[5], b[4] * 2), CF(b[1], b[3], b[2]), tone, Enum.Material.SmoothPlastic, BALL)
+	end
+	for i, p in { { 2.35, 1.75, -0.7 }, { -0.9, 2.1, -2.25 }, { 1.2, 3.0, -1.55 }, { -2.3, 2.0, 0 }, { 0.8, 2.4, 1.95 } } do
+		part(m, "Berry" .. i, V(0.84, 0.84, 0.84), CF(p[1], p[2], p[3]), rgb(230, 60, 70), Enum.Material.SmoothPlastic, BALL)
+	end
 end
 B.FlowerPatch = function(m)
 	blk(m, "Bed", V(5.6, 0.5, 5.6), CF(0, 0.25, 0), rgb(86, 190, 104), Enum.Material.LeafyGrass)
@@ -63,12 +73,13 @@ B.Mushrooms = function(m)
 	end
 end
 B.Tree = function(m)
-	part(m, "Trunk", V(1.8, 5.6, 1.8), CF(0, 2.8, 0), rgb(130, 90, 56), Enum.Material.Wood)
-	blk(m, "C1", V(8.4, 3.2, 8.4), CF(0, 6.6, 0), rgb(76, 188, 96), Enum.Material.LeafyGrass)
-	blk(m, "C1a", V(3.4, 3, 3.4), CF(4.6, 6.2, 2.6), rgb(64, 172, 84), Enum.Material.LeafyGrass)
-	blk(m, "C1b", V(3, 2.8, 3), CF(-4.4, 7, -2.8), rgb(92, 204, 112), Enum.Material.LeafyGrass)
-	blk(m, "C2", V(6, 3.2, 6), CF(0, 9.8, 0), rgb(92, 204, 112), Enum.Material.LeafyGrass)
-	blk(m, "C3", V(3.6, 2.8, 3.6), CF(0, 12.4, 0), rgb(110, 222, 130), Enum.Material.LeafyGrass)
+	-- round toy tree: wooden trunk + canopy of balls in three greens (same language as the round bush)
+	part(m, "Trunk", V(1.9, 5.4, 1.9), CF(0, 2.7, 0), rgb(130, 90, 56), Enum.Material.Wood)
+	local balls = {   -- x, y, z, diameter, tone
+		{ 0, 7.4, 0, 7.6, rgb(80, 198, 98) }, { 2.8, 6.1, 1.4, 4.8, rgb(44, 160, 82) }, { -2.7, 6.3, -1.2, 4.8, rgb(44, 160, 82) },
+		{ -0.6, 6.0, 3.0, 4.2, rgb(44, 160, 82) }, { 0.5, 10.3, 0.2, 4.8, rgb(150, 226, 96) }, { -1.8, 9.3, 1.4, 3.4, rgb(150, 226, 96) },
+	}
+	for i, b in balls do part(m, "Crown" .. i, V(b[4], b[4] * 0.94, b[4]), CF(b[1], b[2], b[3]), b[5], Enum.Material.SmoothPlastic, BALL) end
 end
 B.PineTree = function(m)
 	part(m, "Trunk", V(1.6, 3.4, 1.6), CF(0, 1.7, 0), rgb(120, 84, 52), Enum.Material.Wood)
@@ -114,6 +125,12 @@ B.Archway = function(m)
 	end
 	part(m, "Beam", V(17, 2, 2.6), CF(0, 13, 0), rgb(208, 214, 230), Enum.Material.Marble)
 	part(m, "BeamTrim", V(17.2, 0.4, 2.8), CF(0, 14.1, 0), rgb(255, 196, 61), Enum.Material.SmoothPlastic)
+end
+
+-- Model:PivotTo uses the bounding-box centre, so a prop placed at ground height sinks half-way: this puts its lowest point on y
+function M.ground(m, y)
+	local cf, size = m:GetBoundingBox()
+	m:TranslateBy(V(0, y - (cf.Y - size.Y / 2), 0))
 end
 
 function M.build(id)

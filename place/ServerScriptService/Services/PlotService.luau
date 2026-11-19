@@ -205,7 +205,7 @@ PlotService.BuildSaveBoard = buildSaveBoard
 
 local function prop(model: Model, base: CFrame, id: string, x: number, z: number, yaw: number, scale: number)   -- cosmetic dressing, never collides
 	local m = DecorModels.build(id)
-	if m then m:ScaleTo(scale); m:PivotTo(base * CFrame.new(x, 0.4, z) * CFrame.Angles(0, math.rad(yaw), 0)); m.Name = "Prop_" .. id; m.Parent = model end
+	if m then m:ScaleTo(scale); m:PivotTo(base * CFrame.new(x, 0.4, z) * CFrame.Angles(0, math.rad(yaw), 0)); DecorModels.ground(m, base.Position.Y + 0.1); m.Name = "Prop_" .. id; m.Parent = model end
 end
 
 local POOL_TILE = "rbxassetid://126806655453119"   -- seamless tiled water texture (TRAP_LAB/assets/make_water_tile.py)
@@ -314,15 +314,15 @@ local function buildPlot(i: number): Plot
 	local ring = mk(model, "PlayRing", Vector3.new(0.12, 18, 18), cf * CFrame.new(0, 0.1, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 150, 72), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false })
 	local disc = mk(model, "PlayDisc", Vector3.new(0.12, 14.5, 14.5), cf * CFrame.new(0, 0.16, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(104, 226, 138), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Transparency = 0.1 })
 	for _, sx in { -1, 1 } do
-		prop(model, cf, "Bush", sx * 13, 40, 0, 2.4); prop(model, cf, "Bush", sx * 13.5, 62, 40, 2.2)
-		prop(model, cf, "FlowerPatch", sx * 14, 50, 0, 2.6); prop(model, cf, "Lantern", sx * 10, 30, 0, 2.2); prop(model, cf, "Lantern", sx * 10, 80, 0, 2.2)
+		prop(model, cf, "Bush", sx * 13, 40, 0, 1.45); prop(model, cf, "Bush", sx * 13.5, 62, 40, 1.3)
+		prop(model, cf, "FlowerPatch", sx * 14, 50, 0, 2); prop(model, cf, "Lantern", sx * 10, 30, 0, 1.15); prop(model, cf, "Lantern", sx * 10, 80, 0, 1.15)
 	end
-	prop(model, cf, "Tree", -58, 70, 0, 2.6); prop(model, cf, "Tree", 60, 76, 90, 2.6)
+	prop(model, cf, "Tree", -58, 70, 0, 1.9); prop(model, cf, "Tree", 60, 76, 90, 1.9)
 	-- plot dressing (decoration only, never collides): fences on the cell border and brick pines along the sides
 	fence(model, cf, "z", -129, 88, -330); fence(model, cf, "z", 129, 88, -330); fence(model, cf, "x", -329, -129, 129)
 	for _, sx in { -1, 1 } do
-		for zi = 0, 6 do prop(model, cf, "PineTree", sx * 124, 56 - zi * 62, (zi * 53 + sx * 20) % 360, 1.35) end
-		prop(model, cf, "Tree", sx * 98, 80, 30 * sx, 1.9)
+		for zi = 0, 6 do prop(model, cf, "PineTree", sx * 124, 56 - zi * 62, (zi * 53 + sx * 20) % 360, 0.75) end
+		prop(model, cf, "Tree", sx * 98, 80, 30 * sx, 1.5)
 	end
 	local function folder(n: string): Folder local f = Instance.new("Folder"); f.Name = n; f.Parent = model; return f end
 	local course, decor, npcs = folder("Course"), folder("Decor"), folder("Npcs")

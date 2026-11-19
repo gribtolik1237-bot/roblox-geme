@@ -6,6 +6,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local Balance = require(ReplicatedStorage.Configs.Balance)
 local Net = require(ReplicatedStorage.Shared.Net)
 local SignKit = require(ReplicatedStorage.Shared.SignKit)
+local Skin = require(ReplicatedStorage.Shared.BoardSkin)
 local Leaderboard = require(script.Parent.LeaderboardService)
 
 local Promenade = require(game:GetService("ServerStorage").WorldRecipes.LobbyPromenade)
@@ -16,12 +17,13 @@ local mk = SignKit.mk
 local INNER, ROW_A, ROW_B = Color3.fromRGB(46, 36, 42), Color3.fromRGB(82, 66, 72), Color3.fromRGB(66, 52, 58)
 local PLACE = { Color3.fromRGB(255, 196, 61), Color3.fromRGB(214, 222, 236), Color3.fromRGB(226, 140, 74) }   -- gold, silver, bronze
 
-local STANDS = {
-	{ id = "money", x = -75, title = "TOP MONEY", sub = "most Coins right now", color = Color3.fromRGB(255, 190, 48) },
-	{ id = "rebirths", x = -25, title = "TOP REBIRTHS", sub = "most Rebirths", color = Color3.fromRGB(160, 120, 255) },
-	{ id = "popular", x = 25, title = "POPULAR COURSES", sub = "online now - press E to visit", color = Color3.fromRGB(255, 120, 60) },   -- owner request: Popular lives in the Hall (no HUD tile)
-	{ id = "obby", x = 75, title = "TOP OBBY", sub = "best course creators", color = Color3.fromRGB(40, 196, 214) },
+local STANDS = {   -- title/sub/colour live in BoardSkin.INFO
+	{ id = "money", x = -75 },
+	{ id = "rebirths", x = -25 },
+	{ id = "popular", x = 25 },   -- owner request: Popular lives in the Hall (no HUD tile)
+	{ id = "obby", x = 75 },
 }
+for _, st in STANDS do for k, v in Skin.INFO[st.id] do st[k] = v end end
 
 local function text(parent, name, props)
 	props.Name = name
@@ -30,30 +32,7 @@ end
 
 local function corner(inst, r) local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = inst end
 
--- One face of a stand: heading, ranked rows and a footer.
-local function buildFace(board, face, stand)
-	local g = Instance.new("SurfaceGui"); g.Name = "Face_" .. face.Name; g.Face = face; g.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	g.PixelsPerStud = 30; g.LightInfluence = 0; g.Brightness = 1.1; g.Parent = board
-	local bg = Instance.new("Frame"); bg.Size = UDim2.fromScale(1, 1); bg.BackgroundColor3 = INNER; bg.BorderSizePixel = 0; bg.Parent = g
-	local bar = Instance.new("Frame"); bar.Name = "Bar"; bar.Size = UDim2.fromScale(1, 0.19); bar.BackgroundColor3 = stand.color; bar.BorderSizePixel = 0; bar.Parent = bg
-	text(bar, "Title", { Size = UDim2.fromScale(0.94, 0.7), Position = UDim2.fromScale(0.03, 0.03), Text = stand.title, Font = SignKit.TITLE, TextColor3 = Color3.new(1, 1, 1), strokeThickness = 5 })
-	local sub = text(bar, "Sub", { Size = UDim2.fromScale(0.94, 0.22), Position = UDim2.fromScale(0.03, 0.75), Text = stand.sub, TextColor3 = SignKit.INK, noStroke = true })
-	local refs = { sub = sub, rows = {} }
-	for i = 1, Balance.Boards.Size do
-		local row = Instance.new("Frame"); row.Size = UDim2.fromScale(0.94, 0.068); row.Position = UDim2.fromScale(0.03, 0.208 + (i - 1) * 0.0715)
-		row.BackgroundColor3 = if PLACE[i] then PLACE[i]:Lerp(INNER, 0.6) else (if i % 2 == 0 then ROW_A else ROW_B); row.BorderSizePixel = 0; row.Parent = bg
-		corner(row, 9)
-		local rank = text(row, "Rank", { Size = UDim2.fromScale(0.3, 0.86), Position = UDim2.fromScale(0.012, 0.07), Text = tostring(i), Font = SignKit.TITLE,
-			TextColor3 = if PLACE[i] then SignKit.INK else SignKit.MUTED, BackgroundTransparency = if PLACE[i] then 0 else 1, BackgroundColor3 = PLACE[i] or INNER, noStroke = PLACE[i] ~= nil, strokeThickness = 2.5 })
-		local ar = Instance.new("UIAspectRatioConstraint"); ar.AspectRatio = 1; ar.DominantAxis = Enum.DominantAxis.Height; ar.Parent = rank
-		corner(rank, 100)
-		text(row, "Name", { Size = UDim2.fromScale(0.55, 0.76), Position = UDim2.fromScale(0.1, 0.12), Text = "-", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = if PLACE[i] then Color3.new(1, 1, 1) else SignKit.CREAM, strokeThickness = 3 })
-		text(row, "Value", { Size = UDim2.fromScale(0.3, 0.76), Position = UDim2.fromScale(0.67, 0.12), Text = "", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = PLACE[i] or stand.color, strokeThickness = 3 })
-		refs.rows[i] = row
-	end
-	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.955), Text = "", TextColor3 = SignKit.MUTED, noStroke = true })
-	return refs
-end
+local buildFace = Skin.build
 
 local stands = {}    -- id -> { faces = { refs, refs } }
 
