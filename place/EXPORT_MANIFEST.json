@@ -1,7 +1,7 @@
 {
-  "exportedAt": "2026-11-18T10:03:45.479Z",
+  "exportedAt": "2026-11-19T17:42:09.826Z",
   "placeId": 135937017652181,
-  "placeVersion": 199,
+  "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
   "verification": "Inventory and Adler-32 before/after export, UTF-8 byte counts, local SHA-256",
   "scope": "LuaSourceContainer under the eight game services listed in export-place.cjs; geometry and assets are separate",

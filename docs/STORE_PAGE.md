@@ -25,7 +25,7 @@ PLAY: Hit the PLAY sign next to any course to run it yourself with your own avat
 
 REBIRTH: Grow your plot, unlock new traps and NPCs, and keep everything you built.
 
-Shops refresh every 5 minutes. Daily Challenges give 2x-3x Coin bonuses. Leaderboards and course ratings show the best builders.
+Shops refresh every 5 minutes. A daily login gift keeps rewarding you. Leaderboards and course ratings show the best builders.
 
 Build a trap. See who survives the TRAP LAB!
 ```

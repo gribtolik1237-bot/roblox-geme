@@ -13,12 +13,12 @@ ServerScriptService
   Services/  PlayerDataService, PlotService, BuildService, ObstacleShopService, NPCShopService,
              NPCInventoryService, NPCPlacementService, NPCRunService, NPCBrainService,
              ObstacleTraversalService, CourseValidationService, ManualCourseRunService,
-             RewardService, RebirthService, DailyChallengeService, LeaderboardService,
+             RewardService, RebirthService, LoginRewardService, LeaderboardService,
              RatingService, CosmeticService
   Systems/   ObstacleRuntime (анимация препятствий), Collisions, RateLimiter
 StarterPlayerScripts/Controllers      StateController, HUDController, BuildController, ShopController,
                                       InventoryController, NPCController, PlayController, ...
-Workspace  PlayerPlots, Lobby, DailyChallenges, Leaderboards, WorldAssets, Runtime
+Workspace  PlayerPlots, Lobby, Leaderboards, WorldAssets, Runtime
 ```
 
 ## Владельцы состояния и контракты (будут уточняться по мере реализации)
