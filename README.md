@@ -13,7 +13,7 @@
 
 | Папка | Что внутри |
 |---|---|
-| `docs/` | Вся документация проекта. Начинать с `HANDOFF.md` (последний раздел), затем `REPORT_AUDIT_S8.txt`, `TASKS.md`, `TESTING_REPORT.md`, `BUG_TRACKER.md`, `DECISIONS.md`, `ART_DIRECTION.md`, `BALANCE.md`, `ASSET_REGISTRY.md`. Промт для нового чата — самый свежий `NEXT_CHAT_PROMPT_S*.md`. |
+| `docs/` | Вся документация проекта. Начинать с `HANDOFF.md` (последний раздел), затем `REPORT_AUDIT_S8.txt`, `TASKS.md`, `TESTING_REPORT.md`, `BUG_TRACKER.md`, `DECISIONS.md`, `ART_DIRECTION.md`, `BALANCE.md`, `ASSET_REGISTRY.md`. Промт для нового чата — самый свежий `NEXT_CHAT_PROMPT_S*.md` (сейчас S10). |
 | `spec/` | Исходное ТЗ владельца (`промт роблокс игры.txt`) и мастер-аудит (`промт на исправления ошибок.txt`). |
 | `assets/` | Исходники ассетов: Blender-скрипты и рендеры иконок, звуки, текстуры, картинки для доната. |
 | `references/` | Эталоны дизайна владельца: `owner_examples/` (6 PNG «не нейрослоп»), `session5/` (3 референса UI). |
