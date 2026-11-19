@@ -51,7 +51,7 @@ Balance.NpcSlots = 5                    -- quick-select slots
 Balance.ServerNpcCap = 24               -- absolute simultaneous NPCs on one server
 -- Lifetime Earned Coins needed to REACH rebirth r (index = r). Coins are never deducted.
 -- audit 4.1: R6..R10 lowered (were 2.5M, 8M, 25M, 80M, 250M): each step now ~1.5-2x the previous one in play time
-Balance.RebirthThreshold = { 0, 5000, 20000, 75000, 250000, 800000, 1600000, 4000000, 8000000, 15000000, 25000000 }
+Balance.RebirthThreshold = { 0, 3000, 20000, 75000, 250000, 800000, 1600000, 4000000, 8000000, 15000000, 25000000 }
 
 -- Course geometry assumptions (player: WalkSpeed16 JumpPower50 => ~8.7 stud jump) ----
 Balance.MaxGap = 7.0                    -- max horizontal gap between exit/entry for a link

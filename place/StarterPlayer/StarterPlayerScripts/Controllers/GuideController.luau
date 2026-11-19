@@ -135,6 +135,16 @@ local STEPS = {
 			if not o then return nil end
 			return "world", o.CFrame:PointToWorldSpace(Vector3.new(22, 2, -60)), "Click here"      -- a free spot beside the starter course
 		end },
+	-- S10 playtest (owner decision): after the first four steps lead the newcomer to their first Rebirth once they can afford it. No arrow before that.
+	{ id = "rebirth", done = function(s) return (s.rebirth or 0) > 0 end,
+		point = function()
+			local s = StateController.State
+			if not s or (s.lifetime or 0) < Balance.RebirthThreshold[2] then return nil end
+			if openWindow("RebirthWindow") then return nil end
+			local btn = HUDController.Menu.rebirth
+			if not btn then return nil end
+			return "ui", btn, "Rebirth"
+		end },
 }
 
 local ui: any = {}
@@ -194,7 +204,7 @@ local function evaluate()
 	local st
 	for _, x in STEPS do if not x.done(s) then st = x break end end
 	-- NEW players only (owner bug report: a Rebirth-10 player who cleared his course got "Hammer" / "Click here" arrows again)
-	if (s.rebirth or 0) > 0 or (s.lifetime or 0) > 2500 then st = nil end
+	if (s.rebirth or 0) > 0 or (s.lifetime or 0) > Balance.RebirthThreshold[3] then st = nil end
 	local id = st and st.id or nil
 	if id ~= lastId then
 		if lastId ~= "?" and current then HUDController.Toast(if id then "Done!" else "Great start! Earn Coins, then Rebirth", "ok") end

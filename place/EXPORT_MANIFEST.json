@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T19:15:38.088Z",
+  "exportedAt": "2026-11-19T19:20:25.593Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -11,8 +11,8 @@
       "file": "ReplicatedStorage/Configs/Balance.luau",
       "class": "ModuleScript",
       "bytes": 9393,
-      "adler32": 3373004909,
-      "sha256": "de3032c44e6e446ea7bc82f34de05f888af19945bc1b3d3ab31b60e11b0714b3"
+      "adler32": 2650404971,
+      "sha256": "6b32730c02eeb330e6466eeb5a8bb74f5c8039e6b8505fc651134a0b78cad147"
     },
     {
       "studioPath": "ReplicatedStorage/Configs/Decor",
@@ -522,9 +522,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/GuideController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/GuideController.luau",
       "class": "ModuleScript",
-      "bytes": 14266,
-      "adler32": 2890967812,
-      "sha256": "1a2306641cc06f0174b18644d7f9f682a5bb33b0ceee71dc7ffc5fc724d94725"
+      "bytes": 14819,
+      "adler32": 2790810465,
+      "sha256": "3d774e126711e877eaa6a85fe4b1b08ede7ae32e54611712d27144dfd1c9f565"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/HUDController",
