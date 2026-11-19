@@ -43,3 +43,5 @@
 - Чужой ModuleScript в Edit кэшируется по экземпляру: после правки Source клонируй модуль в родителя оригинала (иначе `script.Parent` пуст) и делай require клона. Строки Lua с `]]` внутри пиши через `[=[ ]=]`.
 - Загрузка файлов через open_cloud_invoke работает только из одобренных владельцем папок (Assistant Settings → MCP Permissions); не копировать файл в другое место в обход, просить одобрить папку.
 - Если `screen_capture` отдаёт белые кадры (окно Studio свёрнуто или не рисует), разверни его сам: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/restore-studio-window.ps1`; владельца не просить (его замечание 2026-11-19). Если не помогло, тогда сообщить.
+
+Локальные инструменты (luau-analyze и др.), их пути и правила: docs/TOOLS.md. Линт: `node tools/luau-lint.cjs`. Владелец сказал: «когда напишу продолжать, продолжай» TECH-05 по docs/TOOLS.md.

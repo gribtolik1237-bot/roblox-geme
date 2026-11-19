@@ -20,3 +20,5 @@
 
 ## Git
 Репозиторий публичный: никаких ключей/токенов/личной почты. После завершённой порции — обновить `docs/DEVELOPMENT_TREE.md` и `PROJECT_GUIDE/02_STATUS.md`, осмысленный коммит, push. Force-push запрещён.
+
+Локальные инструменты, скачанные для проекта (luau-analyze 0.747 в C:/Users/yarik/tools/luau/), и порядок работы с ними описаны в docs/TOOLS.md. Линт: `node tools/luau-lint.cjs`. Новое скачивать только по слову владельца и с записью в docs/TOOLS.md.
