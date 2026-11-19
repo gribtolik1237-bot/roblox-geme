@@ -434,9 +434,9 @@ function PlotService.BuildCliffs(wa: Instance)
 			local t = -length / 2 + length * (k - 0.5) / n + rng:NextNumber(-25, 25)
 			local m = DecorModels.build(if k % 3 == 0 then "Tree" else "PineTree")
 			if m then
-				m:ScaleTo(rng:NextNumber(2.4, 3.2))
+				m:ScaleTo(rng:NextNumber(1.1, 1.5))
 				local p = if alongX then Vector3.new(cx + t, ROW * 2 + 8, cz) else Vector3.new(cx, ROW * 2 + 8, cz + t)
-				m:PivotTo(CFrame.new(p) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)); m.Name = "CliffTree"; m.Parent = f
+				m:PivotTo(CFrame.new(p) * CFrame.Angles(0, rng:NextNumber(0, 6.28), 0)); DecorModels.ground(m, ROW * 2 + 8); m.Name = "CliffTree"; m.Parent = f
 			end
 		end
 	end

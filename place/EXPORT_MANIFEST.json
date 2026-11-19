@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T19:24:37.250Z",
+  "exportedAt": "2026-11-19T19:27:29.526Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -290,9 +290,9 @@
       "studioPath": "ServerScriptService/Services/PlotService",
       "file": "ServerScriptService/Services/PlotService.luau",
       "class": "ModuleScript",
-      "bytes": 31538,
-      "adler32": 29436405,
-      "sha256": "2b9c7bee7bba5a91b2d98260e5b55cc4e55e2f8da4074484f0ae46c6287c603f"
+      "bytes": 31574,
+      "adler32": 3555734684,
+      "sha256": "fbd7c6b1f93eaf01e8857c439fdc81fe7bd68a872ae8e694ed560c4f099bbaa6"
     },
     {
       "studioPath": "ServerScriptService/Services/RatingService",
