@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T18:43:12.048Z",
+  "exportedAt": "2026-11-19T19:09:16.552Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -546,9 +546,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau",
       "class": "ModuleScript",
-      "bytes": 6307,
-      "adler32": 1314380788,
-      "sha256": "f9a88c6aa6f2ef4576bb59399562c2a34a3c5918b144b18e33ed960bfa49a4a0"
+      "bytes": 6563,
+      "adler32": 3774820326,
+      "sha256": "a3fe43ca55d358e49564e8f18ae0d830844ce92f513b8afb09c522a78921cca5"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/MetaController",
@@ -602,9 +602,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau",
       "class": "ModuleScript",
-      "bytes": 18028,
-      "adler32": 1758876961,
-      "sha256": "6e38fbe5f8ab1ace3f1014b85f8b57654ed5c7cc0eaad9b2682b2a063cdc831a"
+      "bytes": 18317,
+      "adler32": 342209397,
+      "sha256": "247e78bf4c4ce35745b1f3290013a7aad7d2f4dfed3efad011b7a7d048cef606"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/StateController",

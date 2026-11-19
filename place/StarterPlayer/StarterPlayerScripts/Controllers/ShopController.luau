@@ -170,7 +170,7 @@ end
 
 local function makeView(kind, title, accent, icon)
 	local win = UIKit.window(HUDController.Gui, title, UDim2.fromOffset(920, 620), accent, icon)
-	local timer = UIKit.label(win.body, { Text = "", TextSize = 24, Size = UDim2.new(0.6, 0, 0, 34), TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
+	local timer = UIKit.label(win.body, { Text = "", TextSize = 24, Size = UDim2.new(0.68, 0, 0, 34), TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
 	local goButton = UIKit.button(win.body, { name = "GoToShop", text = "Go to shop", color = C.yellow, size = UDim2.fromOffset(170, 38), pos = UDim2.new(1, -170, 0, -2), textSize = 20, onClick = function() ShopController.Teleport(kind) end })
 	local scroll = UIKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -44), Position = UDim2.fromOffset(0, 44), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 10, ScrollBarImageColor3 = C.muted, BorderSizePixel = 0 }, win.body)
 	UIKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(CARD_W, CARD_H[kind]), CellPadding = UDim2.fromOffset(12, 14), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center }, scroll)
@@ -194,6 +194,8 @@ local function makeView(kind, title, accent, icon)
 			while win.isOpen() do
 				local left = math.max(0, shelf.nextRefresh - workspace:GetServerTimeNow())
 				timer.Text = ("New items in %d:%02d"):format(math.floor(left / 60), math.floor(left % 60))
+					local npcState = StateController.State and StateController.State.npc
+					if kind == "npc" and npcState and npcState.limit then timer.Text ..= ("     Runners at once: %d%s"):format(npcState.limit, if npcState.limit < (npcState.padCount or 10) then " (Rebirth for more)" else "") end
 				if left <= 0 and shelf.nextRefresh - workspace:GetServerTimeNow() < -3 and os.clock() - asked > 5 then
 					asked = os.clock()
 					local rr = Net.invoke("GetShops")

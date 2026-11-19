@@ -39,6 +39,10 @@ local function render(info: any)
 	if coin then (coin :: GuiObject).Visible = info.canClaim end
 end
 
+local function ready(s)   -- S10 playtest: no pop-up over the first NPC run; veterans and anyone who has PLAYed already see it as before
+	return s and ((s.stats and (s.stats.manualRuns or 0) > 0) or (s.lifetime or 0) > 1500)
+end
+
 local function build()
 	local compact = HUDController.Compact
 	local TW, TH = if compact then 74 else 96, if compact then 100 else 128
@@ -100,7 +104,7 @@ function Controller.Start()
 	build()
 	StateController.Changed.Event:Connect(function(s)
 		if win.isOpen() then render(s and s.login) end
-		if not shownThisSession and s and s.login and s.login.canClaim and not HUDController.RunMode then
+		if not shownThisSession and s and s.login and s.login.canClaim and ready(s) and not HUDController.RunMode then
 			shownThisSession = true
 			task.delay(3, function()
 				if not HUDController.RunMode then win.open() end
@@ -108,7 +112,7 @@ function Controller.Start()
 		end
 	end)
 	local s = StateController.State
-	if s and s.login and s.login.canClaim then
+	if s and s.login and s.login.canClaim and ready(s) then
 		shownThisSession = true
 		task.delay(3, function() if not HUDController.RunMode then win.open() end end)
 	end
