@@ -8,6 +8,7 @@
 | [02_STATUS.md](02_STATUS.md) | Что сделано, что частично, что не сделано и не проверено; приоритеты |
 | [03_CODE_MAP.md](03_CODE_MAP.md) | Где лежит код, архитектура, remotes, данные, как править и выгружать |
 | [04_WORKFLOW_AND_STANDARDS.md](04_WORKFLOW_AND_STANDARDS.md) | Порядок работы, контроль качества (начальник), 10 стандартов, Blender, уроки |
+| [../docs/MASTER_PROMPT.md](../docs/MASTER_PROMPT.md) | Исходный master prompt владельца (полный текст) и таблица «что новее промта» |
 
 ## Быстрый старт (любой ИИ)
 1. `git pull` в `C:/Users/yarik/AppData/Local/Roblox/roblox-geme`.
