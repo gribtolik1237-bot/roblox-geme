@@ -9,3 +9,4 @@
 - [Build snapping bug](feedback-build-snapping.md) — TRAP LAB: pieces could not be joined - FIXED s7 with a magnet; re-test after build changes
 - [GitHub repo](reference-github-repo.md) — TRAP LAB home repo roblox-geme: pull at start, docs+memory+place scripts, commit+push at end
 - [Master prompt](reference-master-prompt.md) — owner original prompt saved in docs/MASTER_PROMPT.md; read its override table
+- [Restore Studio window](feedback-restore-studio-window.md) — white screenshots: run tools/restore-studio-window.ps1 myself, do not ask the owner
