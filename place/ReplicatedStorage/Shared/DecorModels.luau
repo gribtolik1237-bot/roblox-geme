@@ -62,7 +62,7 @@ B.FlowerPatch = function(m)
 		local a = i * 2.4
 		local x, z = math.cos(a) * (0.6 + i * 0.22), math.sin(a) * (0.6 + i * 0.22)
 		part(m, "Stem" .. i, V(0.2, 1.2, 0.2), CF(x, 1.1, z), rgb(60, 150, 80))
-		part(m, "Bloom" .. i, V(1, 1, 1), CF(x, 1.9, z) * ANG(0, a, 0), cols[i % #cols + 1], Enum.Material.Plastic)
+		part(m, "Bloom" .. i, V(1.3, 1.3, 1.3), CF(x, 1.95, z), cols[i % #cols + 1], Enum.Material.SmoothPlastic, BALL)
 	end
 end
 B.Mushrooms = function(m)

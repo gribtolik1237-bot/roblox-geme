@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T18:13:46.318Z",
+  "exportedAt": "2026-11-19T18:15:34.413Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -98,9 +98,9 @@
       "studioPath": "ReplicatedStorage/Shared/DecorModels",
       "file": "ReplicatedStorage/Shared/DecorModels.luau",
       "class": "ModuleScript",
-      "bytes": 8715,
-      "adler32": 3455535214,
-      "sha256": "831063d7cce830b7b3251a32fb59c99ec17e47e48ceee85f0abb8f29486fc926"
+      "bytes": 8719,
+      "adler32": 3400092349,
+      "sha256": "9ae277780fec25b9ec3aa1491e43ee75344f41f9ed1d261377da7713d6e9560a"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/NPCRig",
