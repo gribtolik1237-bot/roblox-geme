@@ -142,7 +142,17 @@ local function render(kind)
 	local v = views[kind]
 	for _, c in v.cards do c.card:Destroy() end
 	v.cards = {}
-	for _, id in shelf[kind] do
+	local ids = table.clone(shelf[kind])
+	local function priceOf(id)
+		local def = if kind == "obstacle" then Obstacles.ById[id] else NPCs.ById[id]
+		return def and def.price or math.huge
+	end
+	table.sort(ids, function(a, b)
+		local pa, pb = priceOf(a), priceOf(b)
+		if pa ~= pb then return pa < pb end
+		return a < b
+	end)
+	for _, id in ids do
 		local ok, c = pcall(buildCard, kind, id, v.grid)
 		if ok then v.cards[#v.cards + 1] = c else warn("[Shop] card " .. id .. ": " .. tostring(c)) end
 	end
@@ -161,7 +171,7 @@ end
 local function makeView(kind, title, accent, icon)
 	local win = UIKit.window(HUDController.Gui, title, UDim2.fromOffset(920, 620), accent, icon)
 	local timer = UIKit.label(win.body, { Text = "", TextSize = 24, Size = UDim2.new(0.6, 0, 0, 34), TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
-	UIKit.button(win.body, { name = "GoToShop", text = "Go to shop", color = C.yellow, size = UDim2.fromOffset(170, 38), pos = UDim2.new(1, -170, 0, -2), textSize = 20, onClick = function() ShopController.Teleport(kind) end })
+	local goButton = UIKit.button(win.body, { name = "GoToShop", text = "Go to shop", color = C.yellow, size = UDim2.fromOffset(170, 38), pos = UDim2.new(1, -170, 0, -2), textSize = 20, onClick = function() ShopController.Teleport(kind) end })
 	local scroll = UIKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -44), Position = UDim2.fromOffset(0, 44), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 10, ScrollBarImageColor3 = C.muted, BorderSizePixel = 0 }, win.body)
 	UIKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(CARD_W, CARD_H[kind]), CellPadding = UDim2.fromOffset(12, 14), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center }, scroll)
 	UIKit.new("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8) }, scroll)
@@ -170,6 +180,11 @@ local function makeView(kind, title, accent, icon)
 	-- if the refresh moment passed and no event came within 3 s, ask once (covers a dropped event).
 	local ticking = false
 	win.onOpen = function()
+		local worldShops = workspace:FindFirstChild("WorldAssets") and workspace.WorldAssets:FindFirstChild("Shops")
+		local shopModel = worldShops and worldShops:FindFirstChild("Shop_" .. kind)
+		local char = game:GetService("Players").LocalPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		goButton.Visible = not (shopModel and hrp and (hrp.Position - shopModel:GetPivot().Position).Magnitude < 45)
 		local r = Net.invoke("GetShops")
 		if r.ok then apply(r) end
 		if ticking then return end

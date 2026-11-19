@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-19T18:15:34.413Z",
+  "exportedAt": "2026-11-19T18:43:12.048Z",
   "placeId": 135937017652181,
   "placeVersion": 217,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -98,9 +98,9 @@
       "studioPath": "ReplicatedStorage/Shared/DecorModels",
       "file": "ReplicatedStorage/Shared/DecorModels.luau",
       "class": "ModuleScript",
-      "bytes": 8719,
-      "adler32": 3400092349,
-      "sha256": "9ae277780fec25b9ec3aa1491e43ee75344f41f9ed1d261377da7713d6e9560a"
+      "bytes": 9118,
+      "adler32": 2526204217,
+      "sha256": "2ebd9de7c7f59716123ff06f79a143be226cd0cebf9ce17caa564ce6125339fd"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/NPCRig",
@@ -602,9 +602,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau",
       "class": "ModuleScript",
-      "bytes": 17271,
-      "adler32": 1292982186,
-      "sha256": "17b5742b87b32f8f3e4d069f4188f8aba68b26d6abd65a7f572ba2c8f495bcdf"
+      "bytes": 18028,
+      "adler32": 1758876961,
+      "sha256": "6e38fbe5f8ab1ace3f1014b85f8b57654ed5c7cc0eaad9b2682b2a063cdc831a"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/StateController",

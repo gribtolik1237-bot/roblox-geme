@@ -40,6 +40,13 @@ B.BigRock = function(m)
 	blk(m, "R3", V(2.8, 2, 2.4), CF(3.4, 1, -1.4) * ANG(0, 0.3, 0), rgb(124, 130, 146), Enum.Material.Slate)
 end
 B.Bush = function(m)
+	-- Blender mesh (assets/bush_round.blend, asset 93309155255799): template model in ReplicatedStorage.Assets.RoundBush, base centre at the origin
+	local assets = script.Parent.Parent:FindFirstChild("Assets")
+	local template = assets and assets:FindFirstChild("RoundBush")
+	if template then
+		for _, c in template:GetChildren() do if c:IsA("BasePart") then c:Clone().Parent = m end end
+		return
+	end
 	-- round toy bush: balls in three greens + berries (same layout as assets/bush_round.blend; ~6.2 wide, 4.6 tall). Interim until the mesh can be uploaded.
 	local GREEN = { mid = rgb(80, 198, 98), dark = rgb(44, 160, 82), light = rgb(150, 226, 96) }
 	local blobs = {   -- x, z, height, radius, squash, tone
