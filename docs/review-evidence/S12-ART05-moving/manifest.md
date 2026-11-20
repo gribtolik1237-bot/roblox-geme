@@ -48,3 +48,15 @@ TeleportPlatform, RotatingPlatform, SlidingBlock, MovingWall, SwingingHammer, Mo
 
 ## Раунд 2: ACCEPT chief (RampUp)
 P3 (поправлено): кромки красит `roleAccents` по РОЛИ поведения (безопасное — зелёный, движущееся — синий), не по редкости. P3 на потом: `Hazard1` у RampUp (y 2.05, z 4.6) спрятан внутри клина — убрать или положить на склон при следующей правке RampUp. Приём «плита Plastic+Studs без коллизии поверх склона» — для всех клиновых препятствий.
+
+## Раунд 3: серия тем же приёмом (`speed_bounce.diff`, `speed_bounce_after.jpg`; «до» — `lineup_overview.jpg`/`before_lineup_moving_center.jpg`, где Speed — тёмная гладкая плита)
+- SpeedPlatform: Deck — Plastic+Studs, трение 0.2 (CustomPhysicalProperties), цвет тот же; добавлены DeckTrim x2 вдоль краёв без коллизии (цвет роли). Шевроны не тронуты.
+- BouncePad: HighDeck — Plastic+Studs, трение 0.2; размеры не менялись.
+- Ленты Conveyor оставлены гладкими (резина; цветные неоновые бортики Guard уже есть).
+- Проверки: 27/27 моделей; ObstacleRuntime.Register(SpeedPlatform) — при ходьбе по настилу WalkSpeed поднимается до 28 (= boost в конфиге), трение настила 0.20; выгрузка 74/74, Studio = локальная правка.
+- NOT TESTED: прыжок с BouncePad на HighDeck глазами (коллизия не менялась), NPC по Speed/Bounce.
+
+## Раунд 3: ACCEPT chief. P3 на следующий проход
+- Studs на тёмном настиле SpeedPlatform (rgb 66,48,44) почти не читаются — кадр вплотную с высоты глаза; если не видно, поднять яркость настила на 10–15 % (физику не трогать).
+- HighDeck BouncePad: кадр с верхней точки прыжка (studs сверху).
+- HighTrimL/HighTrimR остаются неоновыми зелёными: имя содержит Trim, но roleAccents перекрашивает их по роли — проверить на кадре и записать решение.

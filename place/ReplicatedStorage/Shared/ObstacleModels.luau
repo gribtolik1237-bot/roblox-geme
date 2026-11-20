@@ -142,7 +142,9 @@ end
 
 B.SpeedPlatform = function(m)
 	part(m, "DeckBase", V(8, 1.2, 16), CF(0, 0.6, 0), C.wood2, Enum.Material.Plastic)
-	local d = part(m, "Deck", V(8, 0.8, 16), CF(0, 1.6, 0), rgb(66, 48, 44))
+	-- S12 art series: studded track + role trims like every other deck (was flat SmoothPlastic); friction kept at SmoothPlastic 0.2
+	local d = part(m, "Deck", V(8, 0.8, 16), CF(0, 1.6, 0), rgb(66, 48, 44), Enum.Material.Plastic, { TopSurface = Enum.SurfaceType.Studs, CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.2, 0.5, 1, 1) })
+	for _, s in { -1, 1 } do part(m, "DeckTrim", V(0.8, 0.3, 16), CF(s * 3.6, 2.15, 0), C.teal, Enum.Material.SmoothPlastic, { CanCollide = false, CanQuery = false, CanTouch = false }) end
 	d:SetAttribute("Speed", true)
 	for i = 0, 3 do
 		local z = 5.4 - i * 3.4
@@ -316,7 +318,7 @@ B.BouncePad = function(m)
 	for i, y in { 2.2, 4.2, 6.2 } do      -- yellow 'spring' bands on the face the runner sees: reads as a launcher, not a crate (visual only)
 		part(m, "SpringBand" .. i, V(8.1, 0.7, 0.2), CF(0, y, -3.95), C.yellow, Enum.Material.SmoothPlastic, { CanCollide = false, CanQuery = false })
 	end
-	part(m, "HighDeck", V(8, 0.8, 6), CF(0, 9.6, -7), C.deck)
+	part(m, "HighDeck", V(8, 0.8, 6), CF(0, 9.6, -7), C.deck, Enum.Material.Plastic, { TopSurface = Enum.SurfaceType.Studs, CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.2, 0.5, 1, 1) })   -- S12: studded landing deck
 	part(m, "HighTrimL", V(0.35, 0.1, 6), CF(-3.8, 10.02, -7), C.green, Enum.Material.Neon, { CanCollide = false })
 	part(m, "HighTrimR", V(0.35, 0.1, 6), CF(3.8, 10.02, -7), C.green, Enum.Material.Neon, { CanCollide = false })
 end
