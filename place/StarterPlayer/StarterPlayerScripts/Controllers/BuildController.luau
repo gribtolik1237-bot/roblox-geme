@@ -287,7 +287,7 @@ local function doClick()
 		if r.ok then flash("Removed - back in your slots", C.teal) else flash(UIKit.err(r.err), C.red) end
 	elseif mode == "move" then
 		if moveUid and ghost then
-			if not valid then flash("Can't put it here: " .. UIKit.err(reason), C.red, 1) return end
+			if not valid then flash("Can't put it here: " .. UIKit.err(reason), C.red, 1); return end
 			busy = true
 			local r = Net.invoke("BuildMove", { uid = moveUid, x = gx, y = level, z = gz, r = ghostR })
 			busy = false
@@ -346,7 +346,7 @@ local function magnet(def, cx: number, cz: number): (number?, number?, number?, 
 			local s = StateController.State
 			local box = PlotMath.box(def.size, nx, y, nz, useR)
 			local free = s and s.plot and PlotMath.inZone(box, s.plot.width, s.plot.length)
-			if free then for _, b in existingBoxes(moveUid) do if PlotMath.overlap(box, b) then free = false break end end end
+			if free then for _, b in existingBoxes(moveUid) do if PlotMath.overlap(box, b) then free = false; break end end end
 			if free then best, bx, bz, by, br = d, nx, nz, y, useR; turnJoin = useR ~= r end
 		end
 	end
@@ -498,7 +498,7 @@ function BuildController.SetActive(on)
 	if on and HUDController.RunMode then return end      -- no hammer while running a course
 	if on then
 		plot = findPlot()
-		if not plot then HUDController.Toast("Your plot is not ready yet", "err") return end
+		if not plot then HUDController.Toast("Your plot is not ready yet", "err"); return end
 		originCF = plot.Origin.CFrame
 	end
 	active = on

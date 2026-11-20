@@ -47,7 +47,7 @@ end
 local function startPlace(id)
 	stop()
 	local plot = myPlot()
-	if not plot then HUDController.Toast("Your plot isn't ready yet", "err") return end
+	if not plot then HUDController.Toast("Your plot isn't ready yet", "err"); return end
 	local ghost = DecorModels.build(id)
 	for _, d in ghost:GetDescendants() do if d:IsA("BasePart") then d.Transparency = math.max(d.Transparency, 0.45) end end
 	ghost.Parent = workspace

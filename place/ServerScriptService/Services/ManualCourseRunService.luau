@@ -115,24 +115,24 @@ local function fell(player: Player, run: any, why: string)
 end
 
 function Service.Start(player: Player, plot: any)
-	if runs[player] then notify(player, "You are already running a course", "err") return end
+	if runs[player] then notify(player, "You are already running a course", "err"); return end
 	if os.clock() - (lastStart[player] or -10) < Balance.RateLimits.Run then return end
 	lastStart[player] = os.clock()
 	local char = player.Character
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	if not char or not hum or hum.Health <= 0 then return end
-	if not plot or plot.ownerId == 0 or not plot.owner then notify(player, "This plot has no owner", "err") return end
+	if not plot or plot.ownerId == 0 or not plot.owner then notify(player, "This plot has no owner", "err"); return end
 	local owner: Player = plot.owner
 	local res = CourseValidationService.Analyze(owner)
 	local ownerProfile = PlayerDataService.Get(owner)
-	if not res or not ownerProfile or not res.playerPlayable then notify(player, "This course isn't finished yet", "err") return end
+	if not res or not ownerProfile or not res.playerPlayable then notify(player, "This course isn't finished yet", "err"); return end
 	local cps: { Vector3 } = {}
 	for _, st in res.stages do cps[#cps + 1] = plot.cf:PointToWorldSpace(st.exit) + Vector3.new(0, 3, 0) end
 	local goal: BasePart? = nil
 	for _, m in plot.course:GetChildren() do
 		if m:GetAttribute("ObstacleId") == "FinishPad" then goal = m:FindFirstChild("Goal") :: BasePart? end
 	end
-	if not goal then notify(player, "This course has no finish", "err") return end
+	if not goal then notify(player, "This course has no finish", "err"); return end
 	local run = { id = HttpService:GenerateGUID(false), player = player, plot = plot, ownerId = plot.ownerId, ownerPlayer = owner, version = res.version,
 		stagesCount = #res.stages, difficulty = res.difficulty, lowQuality = res.lowQuality, checkpoints = cps, next = 1, finishPos = goal.Position,
 		startedAt = os.clock(), serverStart = workspace:GetServerTimeNow(), lastSafe = nil, falls = 0, strikes = 0, done = false, isSelf = plot.ownerId == player.UserId }
@@ -157,14 +157,14 @@ function Service.Start(player: Player, plot: any)
 end
 
 local function step(player: Player, run: any)
-	if BuildService.IsRebuilding(run.ownerPlayer) then finish(player, run, "changed") return end
+	if BuildService.IsRebuilding(run.ownerPlayer) then finish(player, run, "changed"); return end
 	local char = player.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 	local hum = char and char:FindFirstChildOfClass("Humanoid")
 	if not hrp or not hum or hum.Health <= 0 then return end
 	local m = Balance.Manual
 	local now = os.clock()
-	if now - run.startedAt > m.MaxRunSeconds then finish(player, run, "timeout") return end
+	if now - run.startedAt > m.MaxRunSeconds then finish(player, run, "timeout"); return end
 	-- speed sanity (ignored right after a server teleport / respawn)
 	local tp = char:GetAttribute("ServerTeleportAt")
 	local dt = now - run.lastT
@@ -172,12 +172,12 @@ local function step(player: Player, run: any)
 	run.lastPos, run.lastT = hrp.Position, now
 	if not (tp and now - tp < 1.5) and dt > 0 and dt < 1 and flat / dt > Balance.Run.SpeedLimit then   -- audit 2.3 (170)
 		run.strikes += 1
-		if run.strikes >= 3 then notify(player, "Run cancelled: suspicious movement", "err"); finish(player, run, "cheat", { reason = "suspicious" }) return end
+		if run.strikes >= 3 then notify(player, "Run cancelled: suspicious movement", "err"); finish(player, run, "cheat", { reason = "suspicious" }); return end
 	end
 	-- fell off the course (touching the pit/ground or dropping far below)
 	if not (tp and now - tp < 1) then
 		if GroundCheck.overGround(hrp, { char }) then run.groundHits = (run.groundHits or 0) + 1 else run.groundHits = 0 end
-		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 25 then run.groundHits = 0; fell(player, run, "fall") return end
+		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 25 then run.groundHits = 0; fell(player, run, "fall"); return end
 	end
 	local cp = run.checkpoints[run.next]
 	if cp then

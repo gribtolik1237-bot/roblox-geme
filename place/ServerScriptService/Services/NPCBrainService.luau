@@ -65,23 +65,23 @@ local function periodicControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vecto
 			if ahead > -(half + reach) and (not nearest or ahead < nearest.ahead) then nearest = { h = h, half = half, ahead = ahead, reach = reach } end
 		end
 	end
-	if not nearest then b.pHold = nil return "go", nil end
+	if not nearest then b.pHold = nil; return "go", nil end
 	local reach = nearest.reach
 	local top = math.min(speed, nearest.h.slow or speed)                          -- gauntlet pace
 	local capTop = if top < speed then top else nil
 	local dn, df = nearest.ahead - nearest.half, nearest.ahead + nearest.half     -- distance to the near / far edge of the zone
-	if dn < reach - 0.1 then b.pHold = nil return "go", capTop end              -- body already touches the zone: too late to stop, get through
+	if dn < reach - 0.1 then b.pHold = nil; return "go", capTop end              -- body already touches the zone: too late to stop, get through
 	local toStage = dn - (reach + GAP)                                            -- distance still to walk to the staging point
-	if toStage > APPROACH then b.pHold = nil return "go", nil end                -- far away: walk up
+	if toStage > APPROACH then b.pHold = nil; return "go", nil end                -- far away: walk up
 	if toStage > 0.3 then return "go", math.clamp(3 + 3.5 * toStage, 4, top) end   -- approach slowly so that we stop AT the staging point
 	local vEff = 0.8 * math.max(top, 4)                                           -- allow for acceleration from standstill
 	local tIn = math.max(0, (dn - reach) / vEff)
 	local tOut = (df + reach) / vEff
 	local unsafe = false
 	for tau = math.max(0, tIn - LEAD_MARGIN), tOut + TAIL_MARGIN, 0.05 do
-		if nearest.h.active(nowT + tau) then unsafe = true break end
+		if nearest.h.active(nowT + tau) then unsafe = true; break end
 	end
-	if not unsafe then b.pHold = nil return "go", capTop end
+	if not unsafe then b.pHold = nil; return "go", capTop end
 	b.pHold = b.pHold or now
 	if now - b.pHold > MAX_PERIODIC_HOLD then return "go", capTop end         -- never wait forever (an NPC too slow for this zone takes the risk and fails honestly)
 	return "hold", nil
@@ -117,9 +117,9 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 	b.mCross = nil
 	local reach, half = nearest.reach, nearest.half
 	local dn, df = nearest.ahead - half, nearest.ahead + half
-	if dn < reach - 0.1 then b.mHold = nil return "go", nil end                  -- already touching its reach: keep going in the chosen lane
+	if dn < reach - 0.1 then b.mHold = nil; return "go", nil end                  -- already touching its reach: keep going in the chosen lane
 	local toStage = dn - (reach + GAP + (if isWall then 0.35 else 0))
-	if toStage > APPROACH then b.mHold = nil return "go", nil end
+	if toStage > APPROACH then b.mHold = nil; return "go", nil end
 	if toStage > 0.3 then return "go", math.clamp(3 + 3.5 * toStage, 4, speed) end
 	-- Two phases at the staging point: (1) shift sideways into the lane while standing at this distance, (2) cross STRAIGHT.
 	-- Lane coordinates are relative to the brain's path line (that is what b.lane steers by): lane = centre lane - c0.
@@ -143,7 +143,7 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
 				if tau <= ts then lateral = cl + (lane - cl) * (tau / math.max(ts, 1e-3)); fwd = 0 end
 				local p = hrp.Position + dir * fwd + lat * (lateral - cl)
 				-- the brain decides every 0.1 s and the body lags the decision by 0.05-0.15 s: check the hazard now AND a bit later
-				if hazardHit(nearest.h, p, nowT + tau + 0.05, radius) or hazardHit(nearest.h, p, nowT + tau + late, radius) then clear = false break end
+				if hazardHit(nearest.h, p, nowT + tau + 0.05, radius) or hazardHit(nearest.h, p, nowT + tau + late, radius) then clear = false; break end
 			end
 			if clear then best, bestTs = lane, ts end
 		end
@@ -198,16 +198,16 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
 			local p = hrp.Position + dir * v * tau
 			if tau >= pre - 0.02 then        -- low beams pass UNDER the take-off leap
 				for _, h in hz do
-					if h.jumpable and not h.periodic and not h.overhead and hazardHit(h, p, nowT + d + tau, 0.9) then hits[#hits + 1] = tau break end
+					if h.jumpable and not h.periodic and not h.overhead and hazardHit(h, p, nowT + d + tau, 0.9) then hits[#hits + 1] = tau; break end
 				end
 			end
 		end
 		local jumps, ok, i, lastLand = {}, true, 1, (if pre > 0 then pre + 0.13 else -1)   -- no new jump before the leap has landed (+settle)
 		while i <= #hits do
 			local jt = hits[i] - 0.2
-			if jt < 0.05 or jt < lastLand + 0.12 then ok = false break end
+			if jt < 0.05 or jt < lastLand + 0.12 then ok = false; break end
 			while i <= #hits and hits[i] <= jt + air - 0.12 do i += 1 end
-			if i <= #hits and hits[i] < jt + air + 0.12 then ok = false break end
+			if i <= #hits and hits[i] < jt + air + 0.12 then ok = false; break end
 			jumps[#jumps + 1] = jt
 			lastLand = jt + air
 		end
@@ -217,7 +217,7 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
 			for _, jt in airborne do
 				for tau = jt, jt + air, DT do
 					local p = hrp.Position + dir * v * tau
-					for _, h in hz do if h.overhead and overheadHit(h, p, nowT + d + tau, 1.1) then ok = false break end end
+					for _, h in hz do if h.overhead and overheadHit(h, p, nowT + d + tau, 1.1) then ok = false; break end end
 					if not ok then break end
 				end
 				if not ok then break end
@@ -260,7 +260,7 @@ end
 -- returns "go" | "hold" | "retreat" (and may trigger a jump over a low hazard)
 local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, now: number): (string, number?)
 	local hz = validHazards(Runtime.Hazards(step.hazardModel))
-	if #hz == 0 then b.lane = nil return "go" end
+	if #hz == 0 then b.lane = nil; return "go" end
 	if not step.p then return "go" end
 	local hrp = run.hrp
 	local nowT = workspace:GetServerTimeNow()
@@ -286,7 +286,7 @@ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, no
 			for tau = 0, horizon, 0.1 do
 				for _, h in hz do if hazardHit(h, pathPoint(tau, off), nowT + tau, 0.9) then safe = false end end
 			end
-			if safe then b.lane = off return "go" end
+			if safe then b.lane = off; return "go" end
 		end
 		b.lane = nil
 		return "hold"
@@ -323,7 +323,7 @@ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, no
 			-- low hazard (bar / beam): jump so that it passes UNDER us at the top of the jump (about 0.25 s after take-off)
 			local hitAt = nil
 			for tau = 0.04, 0.7, 0.04 do
-				if hazardHit(h, pathPoint(tau), nowT + tau, 0.9) then hitAt = tau break end
+				if hazardHit(h, pathPoint(tau), nowT + tau, 0.9) then hitAt = tau; break end
 			end
 			if hitAt and hitAt <= 0.36 and grounded and now - b.lastJump > 0.6 then run.hum.Jump = true; b.lastJump = now end
 		-- non-jumpable moving hazards: planned by movingControl above
@@ -360,9 +360,9 @@ function Brain.Step(run: Run, dt: number)
 	if not hum or not hrp or not hum.Parent or not hrp.Parent or hum.Health <= 0 then return end
 	local now = os.clock()
 	local step = run.route.steps[b.i]
-	if not step then hum:MoveTo(run.route.goal or hrp.Position) return end
+	if not step then hum:MoveTo(run.route.goal or hrp.Position); return end
 	if (step.kind == "walk" and not step.p) or (step.kind == "leap" and (not step.p or not step.from or not step.dir)) then
-		b.i += 1 return                -- audit 4.2: a malformed step is skipped instead of erroring every tick
+		b.i += 1; return                -- audit 4.2: a malformed step is skipped instead of erroring every tick
 	end
 	if b.lastI ~= b.i then
 		b.lastI = b.i; b.segFrom = hrp.Position; b.bestD = math.huge; b.stuckAt = now; b.leap = nil; b.ferry = nil; b.retries = 0; b.lane = nil; b.mCross = nil
@@ -476,7 +476,7 @@ function Brain.Step(run: Run, dt: number)
 		local F = b.ferry
 		if not F then F = { phase = "wait" }; b.ferry = F end
 		local pose = Runtime.PoseAt(step.model, workspace:GetServerTimeNow())
-		if not pose then b.i += 1 return end
+		if not pose then b.i += 1; return end
 		local fz = step.baseCF:PointToObjectSpace(pose.Position).Z
 		if F.phase == "wait" then
 			waiting = true

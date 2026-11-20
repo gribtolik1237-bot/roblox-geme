@@ -36,7 +36,7 @@ function Service.Teleport(player, req)
 	if Manual.Active(player) then return { ok = false, err = "InRun" } end       -- a run is in progress: the teleport would break it
 	if req.shop == "home" then      -- top-bar "Home": the server puts the player on THEIR OWN plot (found by OwnerId; the client sends no position)
 		local plot
-		for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == player.UserId then plot = m break end end
+		for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == player.UserId then plot = m; break end end
 		local sp, origin = plot and plot:FindFirstChild("Spawn"), plot and plot:FindFirstChild("Origin")
 		if not (sp and origin) then return { ok = false, err = "NoPlot" } end
 		local hpos = sp.Position + V(0, 8, 0)

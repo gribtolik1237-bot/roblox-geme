@@ -40,7 +40,7 @@ local function render()
 				if m then pcall(UIKit.preview, k.pv, m) end
 				UIKit.label(k.card, { Text = if def.free then "always available" else (if left > 0 then ("Free x%d   (placed %d / %d)"):format(left, placed, owned) else ("All %d placed"):format(owned)), Font = UIKit.BODY, TextSize = 15, Size = UDim2.new(1, -16, 0, 20), Position = UDim2.fromOffset(8, k.y), TextColor3 = if left > 0 then C.yellow else C.red, stroke = 2 })
 				UIKit.button(k.card, { text = "Use in building", color = if left > 0 then C.green else C.panel2, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
-					if left <= 0 then HUDController.Toast("All copies are already placed - buy more or remove one", "err") return end
+					if left <= 0 then HUDController.Toast("All copies are already placed - buy more or remove one", "err"); return end
 					win.close()
 					local ok, BuildController = pcall(require, script.Parent.BuildController)
 					if ok and BuildController.Select(def.id) then HUDController.Toast("Selected: " .. def.name .. " - click on your plot to place it", "ok") end
@@ -60,9 +60,9 @@ local function render()
 				UIKit.statBars(k.card, def.stats, k.y)
 				local slot = table.find(s.slots, id)
 				UIKit.button(k.card, { text = if slot then ("In slot " .. slot) else "Equip in a slot", color = if slot then C.panel2 else C.purple, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
-					if slot then HUDController.Toast(id .. " is already in slot " .. slot, "info") return end
+					if slot then HUDController.Toast(id .. " is already in slot " .. slot, "info"); return end
 					local target
-					for i = 1, 5 do if not s.slots[i] then target = i break end end      -- the first free quick slot, else slot 1
+					for i = 1, 5 do if not s.slots[i] then target = i; break end end      -- the first free quick slot, else slot 1
 					local r = Net.invoke("SetSlot", { slot = target or 1, id = id })
 					if r.ok then HUDController.Toast(("%s equipped in slot %d - open NPCs to place it"):format(id, target or 1), "ok") else HUDController.Toast("Couldn't equip (" .. tostring(r.err) .. ")", "err") end
 				end })

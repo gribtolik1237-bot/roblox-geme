@@ -1,0 +1,37 @@
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
+index 7fa4f1a..08cdcb8 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
+@@ -79,7 +79,7 @@ end
+ function HUDController.Start()
+ 	-- audit 2.5: bounded wait; PlayerGui practically always exists, but never hang the whole client start-up on it
+ 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui", 15)
+-	if not pg then warn("[HUD] PlayerGui did not appear in 15 s - HUD not built") return end
++	if not pg then warn("[HUD] PlayerGui did not appear in 15 s - HUD not built"); return end
+ 	local gui = UIKit.new("ScreenGui", { Name = "TrapLabHUD", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 5 }, pg)
+ 	HUDController.Gui = gui
+ 	UIKit.autoScale(gui)
+@@ -110,12 +110,23 @@ function HUDController.Start()
+ 		AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(16, top) }, gui)
+ 	UIKit.new("UIListLayout", { FillDirection = Enum.FillDirection.Vertical, Padding = UDim.new(0, MENU_GAP),
+ 		SortOrder = Enum.SortOrder.LayoutOrder }, col)
++	-- S11 (iPhone 17 Pro check): on touch screens the column must end above the move thumbstick (it rests ~100 px above the
++	-- bottom-left corner); 3 full tiles reached it and the Donate tile sat on the thumb. Shrink the column (never below 0.72).
++	local fit = UIKit.new("UIScale", { Name = "FitAboveThumb" }, col)
+ 	local function placeActions()
+ 		local v = workspace.CurrentCamera.ViewportSize
+ 		col.Position = UDim2.fromOffset(16, top + (if v.X < 480 and v.X < v.Y then 78 else 0))
++		local s = 1
++		if game:GetService("UserInputService").TouchEnabled then
++			local natural = col.AbsoluteSize.Y / math.max(fit.Scale, 0.01)
++			local room = gui.AbsoluteSize.Y - 100 - col.AbsolutePosition.Y
++			if natural > 0 and room < natural then s = math.clamp(room / natural, 0.72, 1) end
++		end
++		if math.abs(fit.Scale - s) > 0.005 then fit.Scale = s end
+ 	end
+ 	placeActions()
+ 	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeActions)
++	col:GetPropertyChangedSignal("AbsoluteSize"):Connect(placeActions)      -- tiles are added later (AutomaticSize Y)
+ 
+ 	-- Storage-mode banner (honest indicator when progress cannot be saved)
+ 	local banner = UIKit.label(gui, { Name = "MockBanner", Text = "Studio test: data is NOT saved", TextSize = 16, Size = UDim2.fromOffset(300, 24), Position = UDim2.new(1, -10, 1, -6), AnchorPoint = Vector2.new(1, 1), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = C.orange, Visible = false })   -- corner: never behind the hotbar

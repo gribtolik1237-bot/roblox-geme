@@ -121,7 +121,7 @@ local function buildCard(kind, id, grid)
 	buy.Activated:Connect(function()
 		local s = StateController.State
 		if not s then return end
-		if def.rebirth > s.rebirth then HUDController.Toast(UIKit.rebirthText(def.rebirth), "err") SfxController.Play("deny") return end
+		if def.rebirth > s.rebirth then HUDController.Toast(UIKit.rebirthText(def.rebirth), "err"); SfxController.Play("deny"); return end
 		local r = Net.invoke("Buy", { shop = kind, id = id })
 		if r.ok then
 			SfxController.Play("buy")
@@ -310,7 +310,7 @@ function ShopController.Start()
 	task.spawn(function()
 		for _ = 1, 10 do
 			local r = Net.invoke("GetShops")
-			if r.ok then apply(r) break end
+			if r.ok then apply(r); break end
 			task.wait(1)
 		end
 		-- audit 2 fix: no eternal background poll - the server pushes ShopSync on every rotation,

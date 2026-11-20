@@ -1,0 +1,534 @@
+diff --git a/place/ReplicatedStorage/Shared/NPCRig.luau b/place/ReplicatedStorage/Shared/NPCRig.luau
+index b04ed2f..7e9c8b8 100644
+--- a/place/ReplicatedStorage/Shared/NPCRig.luau
++++ b/place/ReplicatedStorage/Shared/NPCRig.luau
+@@ -16,7 +16,7 @@ local function wearAccessory(m: Model, acc: Accessory, scale: number?)
+ 	local target: Attachment? = nil
+ 	if att then
+ 		for _, d in m:GetDescendants() do
+-			if d:IsA("Attachment") and d.Name == att.Name and d.Parent ~= handle then target = d break end
++			if d:IsA("Attachment") and d.Name == att.Name and d.Parent ~= handle then target = d; break end
+ 		end
+ 	end
+ 	if not target then
+diff --git a/place/ServerScriptService/Services/CourseValidationService.luau b/place/ServerScriptService/Services/CourseValidationService.luau
+index 39cc1e4..92db5d4 100644
+--- a/place/ServerScriptService/Services/CourseValidationService.luau
++++ b/place/ServerScriptService/Services/CourseValidationService.luau
+@@ -106,7 +106,7 @@ function Service.Compute(profile: any): any
+ 				any = true
+ 				local leads = false
+ 				for _, m in list do
+-					if m ~= n and (linked(n, m)) then leads = true break end
++					if m ~= n and (linked(n, m)) then leads = true; break end
+ 				end
+ 				if not leads then add(n.exit, "end") end
+ 			end
+diff --git a/place/ServerScriptService/Services/ManualCourseRunService.luau b/place/ServerScriptService/Services/ManualCourseRunService.luau
+index 8c6b296..90aca9f 100644
+--- a/place/ServerScriptService/Services/ManualCourseRunService.luau
++++ b/place/ServerScriptService/Services/ManualCourseRunService.luau
+@@ -115,24 +115,24 @@ local function fell(player: Player, run: any, why: string)
+ end
+ 
+ function Service.Start(player: Player, plot: any)
+-	if runs[player] then notify(player, "You are already running a course", "err") return end
++	if runs[player] then notify(player, "You are already running a course", "err"); return end
+ 	if os.clock() - (lastStart[player] or -10) < Balance.RateLimits.Run then return end
+ 	lastStart[player] = os.clock()
+ 	local char = player.Character
+ 	local hum = char and char:FindFirstChildOfClass("Humanoid")
+ 	if not char or not hum or hum.Health <= 0 then return end
+-	if not plot or plot.ownerId == 0 or not plot.owner then notify(player, "This plot has no owner", "err") return end
++	if not plot or plot.ownerId == 0 or not plot.owner then notify(player, "This plot has no owner", "err"); return end
+ 	local owner: Player = plot.owner
+ 	local res = CourseValidationService.Analyze(owner)
+ 	local ownerProfile = PlayerDataService.Get(owner)
+-	if not res or not ownerProfile or not res.playerPlayable then notify(player, "This course isn't finished yet", "err") return end
++	if not res or not ownerProfile or not res.playerPlayable then notify(player, "This course isn't finished yet", "err"); return end
+ 	local cps: { Vector3 } = {}
+ 	for _, st in res.stages do cps[#cps + 1] = plot.cf:PointToWorldSpace(st.exit) + Vector3.new(0, 3, 0) end
+ 	local goal: BasePart? = nil
+ 	for _, m in plot.course:GetChildren() do
+ 		if m:GetAttribute("ObstacleId") == "FinishPad" then goal = m:FindFirstChild("Goal") :: BasePart? end
+ 	end
+-	if not goal then notify(player, "This course has no finish", "err") return end
++	if not goal then notify(player, "This course has no finish", "err"); return end
+ 	local run = { id = HttpService:GenerateGUID(false), player = player, plot = plot, ownerId = plot.ownerId, ownerPlayer = owner, version = res.version,
+ 		stagesCount = #res.stages, difficulty = res.difficulty, lowQuality = res.lowQuality, checkpoints = cps, next = 1, finishPos = goal.Position,
+ 		startedAt = os.clock(), serverStart = workspace:GetServerTimeNow(), lastSafe = nil, falls = 0, strikes = 0, done = false, isSelf = plot.ownerId == player.UserId }
+@@ -157,14 +157,14 @@ function Service.Start(player: Player, plot: any)
+ end
+ 
+ local function step(player: Player, run: any)
+-	if BuildService.IsRebuilding(run.ownerPlayer) then finish(player, run, "changed") return end
++	if BuildService.IsRebuilding(run.ownerPlayer) then finish(player, run, "changed"); return end
+ 	local char = player.Character
+ 	local hrp = char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
+ 	local hum = char and char:FindFirstChildOfClass("Humanoid")
+ 	if not hrp or not hum or hum.Health <= 0 then return end
+ 	local m = Balance.Manual
+ 	local now = os.clock()
+-	if now - run.startedAt > m.MaxRunSeconds then finish(player, run, "timeout") return end
++	if now - run.startedAt > m.MaxRunSeconds then finish(player, run, "timeout"); return end
+ 	-- speed sanity (ignored right after a server teleport / respawn)
+ 	local tp = char:GetAttribute("ServerTeleportAt")
+ 	local dt = now - run.lastT
+@@ -172,12 +172,12 @@ local function step(player: Player, run: any)
+ 	run.lastPos, run.lastT = hrp.Position, now
+ 	if not (tp and now - tp < 1.5) and dt > 0 and dt < 1 and flat / dt > Balance.Run.SpeedLimit then   -- audit 2.3 (170)
+ 		run.strikes += 1
+-		if run.strikes >= 3 then notify(player, "Run cancelled: suspicious movement", "err"); finish(player, run, "cheat", { reason = "suspicious" }) return end
++		if run.strikes >= 3 then notify(player, "Run cancelled: suspicious movement", "err"); finish(player, run, "cheat", { reason = "suspicious" }); return end
+ 	end
+ 	-- fell off the course (touching the pit/ground or dropping far below)
+ 	if not (tp and now - tp < 1) then
+ 		if GroundCheck.overGround(hrp, { char }) then run.groundHits = (run.groundHits or 0) + 1 else run.groundHits = 0 end
+-		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 25 then run.groundHits = 0; fell(player, run, "fall") return end
++		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 25 then run.groundHits = 0; fell(player, run, "fall"); return end
+ 	end
+ 	local cp = run.checkpoints[run.next]
+ 	if cp then
+diff --git a/place/ServerScriptService/Services/NPCBrainService.luau b/place/ServerScriptService/Services/NPCBrainService.luau
+index ccc5c03..e443f02 100644
+--- a/place/ServerScriptService/Services/NPCBrainService.luau
++++ b/place/ServerScriptService/Services/NPCBrainService.luau
+@@ -65,23 +65,23 @@ local function periodicControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vecto
+ 			if ahead > -(half + reach) and (not nearest or ahead < nearest.ahead) then nearest = { h = h, half = half, ahead = ahead, reach = reach } end
+ 		end
+ 	end
+-	if not nearest then b.pHold = nil return "go", nil end
++	if not nearest then b.pHold = nil; return "go", nil end
+ 	local reach = nearest.reach
+ 	local top = math.min(speed, nearest.h.slow or speed)                          -- gauntlet pace
+ 	local capTop = if top < speed then top else nil
+ 	local dn, df = nearest.ahead - nearest.half, nearest.ahead + nearest.half     -- distance to the near / far edge of the zone
+-	if dn < reach - 0.1 then b.pHold = nil return "go", capTop end              -- body already touches the zone: too late to stop, get through
++	if dn < reach - 0.1 then b.pHold = nil; return "go", capTop end              -- body already touches the zone: too late to stop, get through
+ 	local toStage = dn - (reach + GAP)                                            -- distance still to walk to the staging point
+-	if toStage > APPROACH then b.pHold = nil return "go", nil end                -- far away: walk up
++	if toStage > APPROACH then b.pHold = nil; return "go", nil end                -- far away: walk up
+ 	if toStage > 0.3 then return "go", math.clamp(3 + 3.5 * toStage, 4, top) end   -- approach slowly so that we stop AT the staging point
+ 	local vEff = 0.8 * math.max(top, 4)                                           -- allow for acceleration from standstill
+ 	local tIn = math.max(0, (dn - reach) / vEff)
+ 	local tOut = (df + reach) / vEff
+ 	local unsafe = false
+ 	for tau = math.max(0, tIn - LEAD_MARGIN), tOut + TAIL_MARGIN, 0.05 do
+-		if nearest.h.active(nowT + tau) then unsafe = true break end
++		if nearest.h.active(nowT + tau) then unsafe = true; break end
+ 	end
+-	if not unsafe then b.pHold = nil return "go", capTop end
++	if not unsafe then b.pHold = nil; return "go", capTop end
+ 	b.pHold = b.pHold or now
+ 	if now - b.pHold > MAX_PERIODIC_HOLD then return "go", capTop end         -- never wait forever (an NPC too slow for this zone takes the risk and fails honestly)
+ 	return "hold", nil
+@@ -117,9 +117,9 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
+ 	b.mCross = nil
+ 	local reach, half = nearest.reach, nearest.half
+ 	local dn, df = nearest.ahead - half, nearest.ahead + half
+-	if dn < reach - 0.1 then b.mHold = nil return "go", nil end                  -- already touching its reach: keep going in the chosen lane
++	if dn < reach - 0.1 then b.mHold = nil; return "go", nil end                  -- already touching its reach: keep going in the chosen lane
+ 	local toStage = dn - (reach + GAP + (if isWall then 0.35 else 0))
+-	if toStage > APPROACH then b.mHold = nil return "go", nil end
++	if toStage > APPROACH then b.mHold = nil; return "go", nil end
+ 	if toStage > 0.3 then return "go", math.clamp(3 + 3.5 * toStage, 4, speed) end
+ 	-- Two phases at the staging point: (1) shift sideways into the lane while standing at this distance, (2) cross STRAIGHT.
+ 	-- Lane coordinates are relative to the brain's path line (that is what b.lane steers by): lane = centre lane - c0.
+@@ -143,7 +143,7 @@ local function movingControl(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3
+ 				if tau <= ts then lateral = cl + (lane - cl) * (tau / math.max(ts, 1e-3)); fwd = 0 end
+ 				local p = hrp.Position + dir * fwd + lat * (lateral - cl)
+ 				-- the brain decides every 0.1 s and the body lags the decision by 0.05-0.15 s: check the hazard now AND a bit later
+-				if hazardHit(nearest.h, p, nowT + tau + 0.05, radius) or hazardHit(nearest.h, p, nowT + tau + late, radius) then clear = false break end
++				if hazardHit(nearest.h, p, nowT + tau + 0.05, radius) or hazardHit(nearest.h, p, nowT + tau + late, radius) then clear = false; break end
+ 			end
+ 			if clear then best, bestTs = lane, ts end
+ 		end
+@@ -198,16 +198,16 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
+ 			local p = hrp.Position + dir * v * tau
+ 			if tau >= pre - 0.02 then        -- low beams pass UNDER the take-off leap
+ 				for _, h in hz do
+-					if h.jumpable and not h.periodic and not h.overhead and hazardHit(h, p, nowT + d + tau, 0.9) then hits[#hits + 1] = tau break end
++					if h.jumpable and not h.periodic and not h.overhead and hazardHit(h, p, nowT + d + tau, 0.9) then hits[#hits + 1] = tau; break end
+ 				end
+ 			end
+ 		end
+ 		local jumps, ok, i, lastLand = {}, true, 1, (if pre > 0 then pre + 0.13 else -1)   -- no new jump before the leap has landed (+settle)
+ 		while i <= #hits do
+ 			local jt = hits[i] - 0.2
+-			if jt < 0.05 or jt < lastLand + 0.12 then ok = false break end
++			if jt < 0.05 or jt < lastLand + 0.12 then ok = false; break end
+ 			while i <= #hits and hits[i] <= jt + air - 0.12 do i += 1 end
+-			if i <= #hits and hits[i] < jt + air + 0.12 then ok = false break end
++			if i <= #hits and hits[i] < jt + air + 0.12 then ok = false; break end
+ 			jumps[#jumps + 1] = jt
+ 			lastLand = jt + air
+ 		end
+@@ -217,7 +217,7 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
+ 			for _, jt in airborne do
+ 				for tau = jt, jt + air, DT do
+ 					local p = hrp.Position + dir * v * tau
+-					for _, h in hz do if h.overhead and overheadHit(h, p, nowT + d + tau, 1.1) then ok = false break end end
++					for _, h in hz do if h.overhead and overheadHit(h, p, nowT + d + tau, 1.1) then ok = false; break end end
+ 					if not ok then break end
+ 				end
+ 				if not ok then break end
+@@ -260,7 +260,7 @@ end
+ -- returns "go" | "hold" | "retreat" (and may trigger a jump over a low hazard)
+ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, now: number): (string, number?)
+ 	local hz = validHazards(Runtime.Hazards(step.hazardModel))
+-	if #hz == 0 then b.lane = nil return "go" end
++	if #hz == 0 then b.lane = nil; return "go" end
+ 	if not step.p then return "go" end
+ 	local hrp = run.hrp
+ 	local nowT = workspace:GetServerTimeNow()
+@@ -286,7 +286,7 @@ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, no
+ 			for tau = 0, horizon, 0.1 do
+ 				for _, h in hz do if hazardHit(h, pathPoint(tau, off), nowT + tau, 0.9) then safe = false end end
+ 			end
+-			if safe then b.lane = off return "go" end
++			if safe then b.lane = off; return "go" end
+ 		end
+ 		b.lane = nil
+ 		return "hold"
+@@ -323,7 +323,7 @@ local function hazardControl(run: Run, b: any, step: Step, grounded: boolean, no
+ 			-- low hazard (bar / beam): jump so that it passes UNDER us at the top of the jump (about 0.25 s after take-off)
+ 			local hitAt = nil
+ 			for tau = 0.04, 0.7, 0.04 do
+-				if hazardHit(h, pathPoint(tau), nowT + tau, 0.9) then hitAt = tau break end
++				if hazardHit(h, pathPoint(tau), nowT + tau, 0.9) then hitAt = tau; break end
+ 			end
+ 			if hitAt and hitAt <= 0.36 and grounded and now - b.lastJump > 0.6 then run.hum.Jump = true; b.lastJump = now end
+ 		-- non-jumpable moving hazards: planned by movingControl above
+@@ -360,9 +360,9 @@ function Brain.Step(run: Run, dt: number)
+ 	if not hum or not hrp or not hum.Parent or not hrp.Parent or hum.Health <= 0 then return end
+ 	local now = os.clock()
+ 	local step = run.route.steps[b.i]
+-	if not step then hum:MoveTo(run.route.goal or hrp.Position) return end
++	if not step then hum:MoveTo(run.route.goal or hrp.Position); return end
+ 	if (step.kind == "walk" and not step.p) or (step.kind == "leap" and (not step.p or not step.from or not step.dir)) then
+-		b.i += 1 return                -- audit 4.2: a malformed step is skipped instead of erroring every tick
++		b.i += 1; return                -- audit 4.2: a malformed step is skipped instead of erroring every tick
+ 	end
+ 	if b.lastI ~= b.i then
+ 		b.lastI = b.i; b.segFrom = hrp.Position; b.bestD = math.huge; b.stuckAt = now; b.leap = nil; b.ferry = nil; b.retries = 0; b.lane = nil; b.mCross = nil
+@@ -476,7 +476,7 @@ function Brain.Step(run: Run, dt: number)
+ 		local F = b.ferry
+ 		if not F then F = { phase = "wait" }; b.ferry = F end
+ 		local pose = Runtime.PoseAt(step.model, workspace:GetServerTimeNow())
+-		if not pose then b.i += 1 return end
++		if not pose then b.i += 1; return end
+ 		local fz = step.baseCF:PointToObjectSpace(pose.Position).Z
+ 		if F.phase == "wait" then
+ 			waiting = true
+diff --git a/place/ServerScriptService/Services/NPCPlacementService.luau b/place/ServerScriptService/Services/NPCPlacementService.luau
+index 80aa723..ba6557c 100644
+--- a/place/ServerScriptService/Services/NPCPlacementService.luau
++++ b/place/ServerScriptService/Services/NPCPlacementService.luau
+@@ -28,8 +28,8 @@ type PadEntry = NpcTypes.PadEntry
+ 
+ local pads: { [Player]: { [number]: PadEntry } } = {}   -- [player] = { [padIndex] = { npcId, status = "placed"|"running", model, stage, total } }
+ 
+-local function active(player: Player): number local n = 0 for _ in pads[player] or {} do n += 1 end return n end
+-local function serverTotal(): number local n = 0 for _, t in pads do for _ in t do n += 1 end end return n end
++local function active(player: Player): number local n = 0; for _ in pads[player] or {} do n += 1 end; return n end
++local function serverTotal(): number local n = 0; for _, t in pads do for _ in t do n += 1 end end; return n end
+ function Service.Active(player: Player): number return active(player) end
+ function Service.Entry(player: Player, pad: number): PadEntry? return pads[player] and pads[player][pad] end
+ function Service.All(player: Player): { [number]: PadEntry } return pads[player] or {} end
+@@ -104,7 +104,7 @@ function Service.Recall(player: Player, req: any): any
+ 	if type(req) ~= "table" or not Net.isInt(req.pad, 1, Balance.NpcPads) then return { ok = false, err = "Invalid" } end
+ 	local e = pads[player] and pads[player][req.pad]
+ 	if not e then return { ok = false, err = "NotFound" } end
+-	if e.status == "running" then Service.RecallRequested:Fire(player, req.pad) return { ok = true } end
++	if e.status == "running" then Service.RecallRequested:Fire(player, req.pad); return { ok = true } end
+ 	Service.Free(player, req.pad)
+ 	return { ok = true }
+ end
+diff --git a/place/ServerScriptService/Services/NPCRunService.luau b/place/ServerScriptService/Services/NPCRunService.luau
+index c1460f1..4edc996 100644
+--- a/place/ServerScriptService/Services/NPCRunService.luau
++++ b/place/ServerScriptService/Services/NPCRunService.luau
+@@ -157,16 +157,16 @@ end
+ 
+ local function step(run: Run, dt: number)
+ 	if run.ended then return end
+-	if BuildService.IsRebuilding(run.player) then endRun(run, "cancelled", "changed") return end
++	if BuildService.IsRebuilding(run.player) then endRun(run, "cancelled", "changed"); return end
+ 	local hum, hrp = run.hum, run.hrp
+-	if not hrp.Parent or not hum.Parent then endRun(run, "failed", "lost") return end
+-	if os.clock() - run.startedAt > Balance.Npc.AttemptTimeout then endRun(run, "failed", "timeout") return end
++	if not hrp.Parent or not hum.Parent then endRun(run, "failed", "lost"); return end
++	if os.clock() - run.startedAt > Balance.Npc.AttemptTimeout then endRun(run, "failed", "timeout"); return end
+ 	Brain.Step(run, dt)
+ 	if run.ended then return end
+ 	checkProgress(run)
+ 	-- finish is checked BEFORE the fall test so a finish and a fall in the same window end the attempt once, as a finish
+ 	local goal = run.route.goal
+-	if goal and (hrp.Position - goal).Magnitude <= 5.2 and math.abs(hrp.Position.Y - goal.Y) <= 6 then endRun(run, "finished") return end
++	if goal and (hrp.Position - goal).Magnitude <= 5.2 and math.abs(hrp.Position.Y - goal.Y) <= 6 then endRun(run, "finished"); return end
+ 	if os.clock() > run.groundSince then
+ 		if GroundCheck.overGround(hrp, { run.model }) then run.groundHits = (run.groundHits or 0) + 1 else run.groundHits = 0 end
+ 		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 20 then endRun(run, "failed", "fell") end   -- 2 consecutive checks: no flicker
+@@ -209,7 +209,7 @@ function Service.Start()
+ 	game:BindToClose(function() for _, run in runs do endRun(run, "cancelled", "shutdown") end end)
+ end
+ 
+-function Service.Count() local n = 0 for _ in runs do n += 1 end return n end
++function Service.Count() local n = 0; for _ in runs do n += 1 end; return n end
+ function Service.All() return runs end   -- diagnostics / tests
+ 
+ return Service
+diff --git a/place/ServerScriptService/Services/ShopWorldService.luau b/place/ServerScriptService/Services/ShopWorldService.luau
+index b87ca84..2e2e9bd 100644
+--- a/place/ServerScriptService/Services/ShopWorldService.luau
++++ b/place/ServerScriptService/Services/ShopWorldService.luau
+@@ -36,7 +36,7 @@ function Service.Teleport(player, req)
+ 	if Manual.Active(player) then return { ok = false, err = "InRun" } end       -- a run is in progress: the teleport would break it
+ 	if req.shop == "home" then      -- top-bar "Home": the server puts the player on THEIR OWN plot (found by OwnerId; the client sends no position)
+ 		local plot
+-		for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == player.UserId then plot = m break end end
++		for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == player.UserId then plot = m; break end end
+ 		local sp, origin = plot and plot:FindFirstChild("Spawn"), plot and plot:FindFirstChild("Origin")
+ 		if not (sp and origin) then return { ok = false, err = "NoPlot" } end
+ 		local hpos = sp.Position + V(0, 8, 0)
+diff --git a/place/ServerScriptService/Systems/ObstacleRuntime.luau b/place/ServerScriptService/Systems/ObstacleRuntime.luau
+index 3f75ac5..101a7c6 100644
+--- a/place/ServerScriptService/Systems/ObstacleRuntime.luau
++++ b/place/ServerScriptService/Systems/ObstacleRuntime.luau
+@@ -91,7 +91,7 @@ local function stepMovers()
+ 	for _, e in movers do
+ 		local b = e.def.behavior
+ 		local st = e.state
+-		if e.update then e.update(e, now, dt) continue end
++		if e.update then e.update(e, now, dt); continue end
+ 		if b.kind == "ferry" then
+ 			local pose = Runtime.PoseAt(e.model, now)
+ 			local nxt = Runtime.PoseAt(e.model, now + 0.05)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
+index 77c20e1..bdd0501 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
+@@ -287,7 +287,7 @@ local function doClick()
+ 		if r.ok then flash("Removed - back in your slots", C.teal) else flash(UIKit.err(r.err), C.red) end
+ 	elseif mode == "move" then
+ 		if moveUid and ghost then
+-			if not valid then flash("Can't put it here: " .. UIKit.err(reason), C.red, 1) return end
++			if not valid then flash("Can't put it here: " .. UIKit.err(reason), C.red, 1); return end
+ 			busy = true
+ 			local r = Net.invoke("BuildMove", { uid = moveUid, x = gx, y = level, z = gz, r = ghostR })
+ 			busy = false
+@@ -346,7 +346,7 @@ local function magnet(def, cx: number, cz: number): (number?, number?, number?,
+ 			local s = StateController.State
+ 			local box = PlotMath.box(def.size, nx, y, nz, useR)
+ 			local free = s and s.plot and PlotMath.inZone(box, s.plot.width, s.plot.length)
+-			if free then for _, b in existingBoxes(moveUid) do if PlotMath.overlap(box, b) then free = false break end end end
++			if free then for _, b in existingBoxes(moveUid) do if PlotMath.overlap(box, b) then free = false; break end end end
+ 			if free then best, bx, bz, by, br = d, nx, nz, y, useR; turnJoin = useR ~= r end
+ 		end
+ 	end
+@@ -498,7 +498,7 @@ function BuildController.SetActive(on)
+ 	if on and HUDController.RunMode then return end      -- no hammer while running a course
+ 	if on then
+ 		plot = findPlot()
+-		if not plot then HUDController.Toast("Your plot is not ready yet", "err") return end
++		if not plot then HUDController.Toast("Your plot is not ready yet", "err"); return end
+ 		originCF = plot.Origin.CFrame
+ 	end
+ 	active = on
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/CourseSlotsController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/CourseSlotsController.luau
+index 2c73140..9d3f748 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/CourseSlotsController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/CourseSlotsController.luau
+@@ -132,7 +132,7 @@ function CourseSlots.Start()
+ 		local board = findBoard()
+ 		local t0 = os.clock()
+ 		while not board and os.clock() - t0 < 120 do task.wait(1); board = findBoard() end
+-		if not board then warn("[CourseSlots] SaveBoard not found in 120 s - save slots board not built") return end
++		if not board then warn("[CourseSlots] SaveBoard not found in 120 s - save slots board not built"); return end
+ 		buildFace(board, Enum.NormalId.Back)
+ 		buildFace(board, Enum.NormalId.Front)
+ 		refresh()
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
+index ca3485b..51df19e 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
+@@ -47,7 +47,7 @@ end
+ local function startPlace(id)
+ 	stop()
+ 	local plot = myPlot()
+-	if not plot then HUDController.Toast("Your plot isn't ready yet", "err") return end
++	if not plot then HUDController.Toast("Your plot isn't ready yet", "err"); return end
+ 	local ghost = DecorModels.build(id)
+ 	for _, d in ghost:GetDescendants() do if d:IsA("BasePart") then d.Transparency = math.max(d.Transparency, 0.45) end end
+ 	ghost.Parent = workspace
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/DonateController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/DonateController.luau
+index 70c6edf..d4ab786 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/DonateController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/DonateController.luau
+@@ -21,7 +21,7 @@ local priceCache = {} -- assetId -> "R$ 25" | false
+ 
+ local function fetchPrice(item, label)
+ 	if item.assetId <= 0 then return end
+-	if priceCache[item.assetId] ~= nil then label.Text = priceCache[item.assetId] or "price unavailable" return end
++	if priceCache[item.assetId] ~= nil then label.Text = priceCache[item.assetId] or "price unavailable"; return end
+ 	task.spawn(function()
+ 		local ok, info = pcall(function()
+ 			return MarketplaceService:GetProductInfo(item.assetId, if item.kind == "GamePass" then Enum.InfoType.GamePass else Enum.InfoType.Product)
+@@ -33,7 +33,7 @@ local function fetchPrice(item, label)
+ end
+ 
+ local function buy(item)
+-	if item.assetId <= 0 then HUDController.Toast("This item is not available yet", "info") return end
++	if item.assetId <= 0 then HUDController.Toast("This item is not available yet", "info"); return end
+ 	local ok = pcall(function()
+ 		if item.kind == "GamePass" then MarketplaceService:PromptGamePassPurchase(Players.LocalPlayer, item.assetId)
+ 		else MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.assetId) end
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/GuideController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/GuideController.luau
+index a90f3ce..985b73a 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/GuideController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/GuideController.luau
+@@ -53,6 +53,17 @@ local function openWindow(name: string): GuiObject?
+ 	return if w and (w :: GuiObject).Visible then w :: GuiObject else nil
+ end
+ 
++-- S11: a button counts as shown only when it AND every parent frame are visible. While a modal window is open the HUD hides
++-- MenuColumn (the button itself stays Visible), and the arrow used to keep pointing at the empty spot over the world.
++local function shownOnScreen(o: GuiObject): boolean
++	local x: Instance? = o
++	while x and x:IsA("GuiObject") do
++		if not (x :: GuiObject).Visible then return false end
++		x = x.Parent
++	end
++	return not (x and x:IsA("LayerCollector") and not (x :: LayerCollector).Enabled)
++end
++
+ -- Each step: done(state) and point() -> kind ("ui"|"world"|nil), target (GuiObject | Vector3), label
+ local STEPS = {
+ 	{ id = "npc", done = function(s) return (s.stats and s.stats.npcRuns or 0) > 0 end,
+@@ -159,7 +170,7 @@ end
+ local function build(): boolean
+ 	-- audit 2.5: bounded wait for PlayerGui; without it the guide simply does not start (graceful, warned)
+ 	local pg = player:WaitForChild("PlayerGui", 15)
+-	if not pg then warn("[Guide] PlayerGui did not appear in 15 s - guide arrows disabled") return false end
++	if not pg then warn("[Guide] PlayerGui did not appear in 15 s - guide arrows disabled"); return false end
+ 	-- screen arrow (own ScreenGui above every window; same inset as the HUD so AbsolutePosition matches)
+ 	local sg = UIKit.new("ScreenGui", { Name = "GuideArrows", ResetOnSpawn = false, IgnoreGuiInset = false, DisplayOrder = 30, ZIndexBehavior = Enum.ZIndexBehavior.Sibling }, pg)
+ 	ui.sArrow = arrowImage(sg, "Arrow")
+@@ -202,7 +213,7 @@ local function evaluate()
+ 	local s = StateController.State
+ 	if not s or not s.stats then return end
+ 	local st
+-	for _, x in STEPS do if not x.done(s) then st = x break end end
++	for _, x in STEPS do if not x.done(s) then st = x; break end end
+ 	-- NEW players only (owner bug report: a Rebirth-10 player who cleared his course got "Hammer" / "Click here" arrows again)
+ 	if (s.rebirth or 0) > 0 or (s.lifetime or 0) > Balance.RebirthThreshold[3] then st = nil end
+ 	local id = st and st.id or nil
+@@ -215,9 +226,9 @@ local function evaluate()
+ end
+ 
+ local function onStep()
+-	if not current or HUDController.RunMode == true then hideAll() return end
++	if not current or HUDController.RunMode == true then hideAll(); return end
+ 	local ok, kind, target, label, noBeam = pcall(current.point)
+-	if not ok or not kind or not target then hideAll() return end
++	if not ok or not kind or not target then hideAll(); return end
+ 	local t = os.clock()
+ 	local bob = math.sin(t * 6) * 8
+ 	if kind == "world" then
+@@ -243,7 +254,7 @@ local function onStep()
+ 	else
+ 		ui.beam.Enabled = false; ui.marker.Enabled = false
+ 		local b = target :: GuiObject
+-		if not b:IsA("GuiObject") or not b.Visible or b.AbsoluteSize.X < 2 then hideAll() return end
++		if not b:IsA("GuiObject") or not shownOnScreen(b) or b.AbsoluteSize.X < 2 then hideAll(); return end
+ 		local vs = ui.sg.AbsoluteSize
+ 		local ap, as = b.AbsolutePosition, b.AbsoluteSize
+ 		local c = ap + as / 2
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
+index 7fa4f1a..ad5aded 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.luau
+@@ -79,7 +79,7 @@ end
+ function HUDController.Start()
+ 	-- audit 2.5: bounded wait; PlayerGui practically always exists, but never hang the whole client start-up on it
+ 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui", 15)
+-	if not pg then warn("[HUD] PlayerGui did not appear in 15 s - HUD not built") return end
++	if not pg then warn("[HUD] PlayerGui did not appear in 15 s - HUD not built"); return end
+ 	local gui = UIKit.new("ScreenGui", { Name = "TrapLabHUD", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 5 }, pg)
+ 	HUDController.Gui = gui
+ 	UIKit.autoScale(gui)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau
+index de168f8..388df8e 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau
+@@ -40,7 +40,7 @@ local function render()
+ 				if m then pcall(UIKit.preview, k.pv, m) end
+ 				UIKit.label(k.card, { Text = if def.free then "always available" else (if left > 0 then ("Free x%d   (placed %d / %d)"):format(left, placed, owned) else ("All %d placed"):format(owned)), Font = UIKit.BODY, TextSize = 15, Size = UDim2.new(1, -16, 0, 20), Position = UDim2.fromOffset(8, k.y), TextColor3 = if left > 0 then C.yellow else C.red, stroke = 2 })
+ 				UIKit.button(k.card, { text = "Use in building", color = if left > 0 then C.green else C.panel2, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
+-					if left <= 0 then HUDController.Toast("All copies are already placed - buy more or remove one", "err") return end
++					if left <= 0 then HUDController.Toast("All copies are already placed - buy more or remove one", "err"); return end
+ 					win.close()
+ 					local ok, BuildController = pcall(require, script.Parent.BuildController)
+ 					if ok and BuildController.Select(def.id) then HUDController.Toast("Selected: " .. def.name .. " - click on your plot to place it", "ok") end
+@@ -60,9 +60,9 @@ local function render()
+ 				UIKit.statBars(k.card, def.stats, k.y)
+ 				local slot = table.find(s.slots, id)
+ 				UIKit.button(k.card, { text = if slot then ("In slot " .. slot) else "Equip in a slot", color = if slot then C.panel2 else C.purple, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
+-					if slot then HUDController.Toast(id .. " is already in slot " .. slot, "info") return end
++					if slot then HUDController.Toast(id .. " is already in slot " .. slot, "info"); return end
+ 					local target
+-					for i = 1, 5 do if not s.slots[i] then target = i break end end      -- the first free quick slot, else slot 1
++					for i = 1, 5 do if not s.slots[i] then target = i; break end end      -- the first free quick slot, else slot 1
+ 					local r = Net.invoke("SetSlot", { slot = target or 1, id = id })
+ 					if r.ok then HUDController.Toast(("%s equipped in slot %d - open NPCs to place it"):format(id, target or 1), "ok") else HUDController.Toast("Couldn't equip (" .. tostring(r.err) .. ")", "err") end
+ 				end })
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+index c8fb395..81eb533 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+@@ -127,7 +127,7 @@ end
+ 
+ local function setProgress(pad, text)
+ 	local l = runLines[pad]
+-	if not text then if l then l:Destroy(); runLines[pad] = nil end return end
++	if not text then if l then l:Destroy(); runLines[pad] = nil end; return end
+ 	if not l then
+ 		l = UIKit.label(progress, { Text = "", TextSize = 24, Size = UDim2.new(1, 0, 0, 30), TextXAlignment = Enum.TextXAlignment.Right, LayoutOrder = pad, TextColor3 = C.yellow, stroke = 4 })
+ 		runLines[pad] = l
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/RebirthController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/RebirthController.luau
+index 1141c1c..99cbc69 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/RebirthController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/RebirthController.luau
+@@ -115,8 +115,8 @@ function RebirthController.Start()
+ 		local s = StateController.State
+ 		if not s then return end
+ 		local nextT = Progression.nextThreshold(s.rebirth)
+-		if not nextT or s.lifetime < nextT then HUDController.Toast(UIKit.err(if nextT then "NotEnough" else "MaxRebirth"), "err") return end
+-		if os.clock() > confirmUntil then confirmUntil = os.clock() + 3; refresh() return end
++		if not nextT or s.lifetime < nextT then HUDController.Toast(UIKit.err(if nextT then "NotEnough" else "MaxRebirth"), "err"); return end
++		if os.clock() > confirmUntil then confirmUntil = os.clock() + 3; refresh(); return end
+ 		confirmUntil = 0
+ 		local r = Net.invoke("Rebirth", { expect = s.rebirth + 1 })
+ 		if not r.ok then HUDController.Toast(UIKit.err(r.err), "err") end
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
+index 7e7be60..ed4e184 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
+@@ -121,7 +121,7 @@ local function buildCard(kind, id, grid)
+ 	buy.Activated:Connect(function()
+ 		local s = StateController.State
+ 		if not s then return end
+-		if def.rebirth > s.rebirth then HUDController.Toast(UIKit.rebirthText(def.rebirth), "err") SfxController.Play("deny") return end
++		if def.rebirth > s.rebirth then HUDController.Toast(UIKit.rebirthText(def.rebirth), "err"); SfxController.Play("deny"); return end
+ 		local r = Net.invoke("Buy", { shop = kind, id = id })
+ 		if r.ok then
+ 			SfxController.Play("buy")
+@@ -310,7 +310,7 @@ function ShopController.Start()
+ 	task.spawn(function()
+ 		for _ = 1, 10 do
+ 			local r = Net.invoke("GetShops")
+-			if r.ok then apply(r) break end
++			if r.ok then apply(r); break end
+ 			task.wait(1)
+ 		end
+ 		-- audit 2 fix: no eternal background poll - the server pushes ShopSync on every rotation,

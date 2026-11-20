@@ -53,6 +53,17 @@ local function openWindow(name: string): GuiObject?
 	return if w and (w :: GuiObject).Visible then w :: GuiObject else nil
 end
 
+-- S11: a button counts as shown only when it AND every parent frame are visible. While a modal window is open the HUD hides
+-- MenuColumn (the button itself stays Visible), and the arrow used to keep pointing at the empty spot over the world.
+local function shownOnScreen(o: GuiObject): boolean
+	local x: Instance? = o
+	while x and x:IsA("GuiObject") do
+		if not (x :: GuiObject).Visible then return false end
+		x = x.Parent
+	end
+	return not (x and x:IsA("LayerCollector") and not (x :: LayerCollector).Enabled)
+end
+
 -- Each step: done(state) and point() -> kind ("ui"|"world"|nil), target (GuiObject | Vector3), label
 local STEPS = {
 	{ id = "npc", done = function(s) return (s.stats and s.stats.npcRuns or 0) > 0 end,
@@ -159,7 +170,7 @@ end
 local function build(): boolean
 	-- audit 2.5: bounded wait for PlayerGui; without it the guide simply does not start (graceful, warned)
 	local pg = player:WaitForChild("PlayerGui", 15)
-	if not pg then warn("[Guide] PlayerGui did not appear in 15 s - guide arrows disabled") return false end
+	if not pg then warn("[Guide] PlayerGui did not appear in 15 s - guide arrows disabled"); return false end
 	-- screen arrow (own ScreenGui above every window; same inset as the HUD so AbsolutePosition matches)
 	local sg = UIKit.new("ScreenGui", { Name = "GuideArrows", ResetOnSpawn = false, IgnoreGuiInset = false, DisplayOrder = 30, ZIndexBehavior = Enum.ZIndexBehavior.Sibling }, pg)
 	ui.sArrow = arrowImage(sg, "Arrow")
@@ -202,7 +213,7 @@ local function evaluate()
 	local s = StateController.State
 	if not s or not s.stats then return end
 	local st
-	for _, x in STEPS do if not x.done(s) then st = x break end end
+	for _, x in STEPS do if not x.done(s) then st = x; break end end
 	-- NEW players only (owner bug report: a Rebirth-10 player who cleared his course got "Hammer" / "Click here" arrows again)
 	if (s.rebirth or 0) > 0 or (s.lifetime or 0) > Balance.RebirthThreshold[3] then st = nil end
 	local id = st and st.id or nil
@@ -215,9 +226,9 @@ local function evaluate()
 end
 
 local function onStep()
-	if not current or HUDController.RunMode == true then hideAll() return end
+	if not current or HUDController.RunMode == true then hideAll(); return end
 	local ok, kind, target, label, noBeam = pcall(current.point)
-	if not ok or not kind or not target then hideAll() return end
+	if not ok or not kind or not target then hideAll(); return end
 	local t = os.clock()
 	local bob = math.sin(t * 6) * 8
 	if kind == "world" then
@@ -243,7 +254,7 @@ local function onStep()
 	else
 		ui.beam.Enabled = false; ui.marker.Enabled = false
 		local b = target :: GuiObject
-		if not b:IsA("GuiObject") or not b.Visible or b.AbsoluteSize.X < 2 then hideAll() return end
+		if not b:IsA("GuiObject") or not shownOnScreen(b) or b.AbsoluteSize.X < 2 then hideAll(); return end
 		local vs = ui.sg.AbsoluteSize
 		local ap, as = b.AbsolutePosition, b.AbsoluteSize
 		local c = ap + as / 2

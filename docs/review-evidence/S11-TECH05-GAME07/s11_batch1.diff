@@ -1,0 +1,205 @@
+commit 859f5482d91a4b239760d6ef6a6b93e8faacd5ea
+Author: gribtolik1237-bot <301790371+gribtolik1237-bot@users.noreply.github.com>
+Date:   Fri Nov 20 10:34:05 2026 +0300
+
+    TECH-05 batch 1: remove unused locals, imports and functions (lint 79 -> 61)
+    
+    Edited in Studio (Team Create v236), re-exported and verified 76/76.
+    Play: server starts clean, 8 plots with PLAY ring/disc, client GUIs load.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+diff --git a/place/EXPORT_STATUS.md b/place/EXPORT_STATUS.md
+index 3e8ea1b..4f0e6c4 100644
+--- a/place/EXPORT_STATUS.md
++++ b/place/EXPORT_STATUS.md
+@@ -1,6 +1,6 @@
+ # Экспорт скриптов TRAP LAB
+ 
+-2026-11-19. Выгружены и сверены 76 из 76 скриптов открытого места 135937017652181 из Studio (сохранение Team Create 223; свойство PlaceVersion в редакторе показывает 217). Исходники скриптов версии 217 совпали с экспортом версии 215 побайтно; изменения 215→217 лежат в геометрии и других данных места, не в скриптах. Версия 217 записана в [EXPORT_MANIFEST.json](EXPORT_MANIFEST.json), где также указаны пути, размеры и контрольные суммы текущих исходников.
++2026-11-20 (S11). Выгружены и сверены 76 из 76 скриптов открытого места 135937017652181 из Studio (Team Create, версия 236). TECH-05 пакет 1: в 12 модулях убраны неиспользуемые переменные, импорты и функции, добавлены явные `return nil` (линт 79 → 61). Правки сделаны в Studio, повторная выгрузка совпала с локальной правкой побайтно. Контрольные суммы в [EXPORT_MANIFEST.json](EXPORT_MANIFEST.json).
+ 
+ Добавлены `BoardSkin` (оформление досок лидеров) и рецепт `MarketDress` (оформление торговой площади). Добавлен `PromenadeController`. Обновлены физические ленты и разметка, геометрия участков, щиты, HUD, мобильная стройка, планирование NPC и защита при загрузке трассы и сохранении профиля. Геометрия сохранена в месте Roblox. Проверки выполнены отдельно в Play и описаны в [TESTING_REPORT.md](../docs/TESTING_REPORT.md).
+ 
+diff --git a/place/ReplicatedStorage/Shared/ObstacleModels.luau b/place/ReplicatedStorage/Shared/ObstacleModels.luau
+index 3c4f28f..df03290 100644
+--- a/place/ReplicatedStorage/Shared/ObstacleModels.luau
++++ b/place/ReplicatedStorage/Shared/ObstacleModels.luau
+@@ -4,7 +4,6 @@
+ local Obstacles = require(script.Parent.Parent.Configs.Obstacles)
+ local Rarities = require(script.Parent.Parent.Configs.Rarities)
+ 
+-local M = {}
+ local V, CF = Vector3.new, CFrame.new
+ local function rgb(r: number, g: number, b: number): Color3 return Color3.fromRGB(r, g, b) end
+ 
+@@ -266,7 +265,7 @@ B.SpikePlatform = function(m)
+ 	for ix = 0, 4 do for iz = 0, 6 do
+ 		-- chunky steel spike (wide foot, narrower body, red hot tip): reads as DANGER, not as matchsticks (session 6 review)
+ 		part(sm, "SpikeFoot", V(1.4, 0.6, 1.4), CF(-4 + ix * 2, 2 + 0.3, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(150, 156, 172), Enum.Material.Metal, { CanCollide = false })
+-		local sp = part(sm, "Spike", V(1.0, 2.4, 1.0), CF(-4 + ix * 2, 2 + 1.5, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(196, 202, 216), Enum.Material.Metal, { CanCollide = false })
++		part(sm, "Spike", V(1.0, 2.4, 1.0), CF(-4 + ix * 2, 2 + 1.5, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(196, 202, 216), Enum.Material.Metal, { CanCollide = false })
+ 		part(sm, "Tip", V(0.6, 0.8, 0.6), CF(-4 + ix * 2, 2 + 3.0, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), C.red, Enum.Material.Neon, { CanCollide = false })
+ 	end end
+ 	sm.PrimaryPart = root
+diff --git a/place/ReplicatedStorage/Shared/UIKit.luau b/place/ReplicatedStorage/Shared/UIKit.luau
+index f256f3b..4906845 100644
+--- a/place/ReplicatedStorage/Shared/UIKit.luau
++++ b/place/ReplicatedStorage/Shared/UIKit.luau
+@@ -3,7 +3,6 @@
+ -- outlines, white text with a heavy dark stroke (Fredoka), big 3D icons that overhang their plates, a red square close button on the window corner.
+ -- One visual language for every window, button and toast.
+ local TweenService = game:GetService("TweenService")
+-local Players = game:GetService("Players")
+ local UserInputService = game:GetService("UserInputService")
+ local Rarities = require(script.Parent.Parent.Configs.Rarities)
+ local Icons = require(script.Parent.Parent.Configs.Icons)
+diff --git a/place/ServerScriptService/Services/HallService.luau b/place/ServerScriptService/Services/HallService.luau
+index 482c584..cea53b6 100644
+--- a/place/ServerScriptService/Services/HallService.luau
++++ b/place/ServerScriptService/Services/HallService.luau
+@@ -3,7 +3,6 @@
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ local CollectionService = game:GetService("CollectionService")
+ local ProximityPromptService = game:GetService("ProximityPromptService")
+-local Balance = require(ReplicatedStorage.Configs.Balance)
+ local Net = require(ReplicatedStorage.Shared.Net)
+ local SignKit = require(ReplicatedStorage.Shared.SignKit)
+ local Skin = require(ReplicatedStorage.Shared.BoardSkin)
+diff --git a/place/ServerScriptService/Services/ManualCourseRunService.luau b/place/ServerScriptService/Services/ManualCourseRunService.luau
+index c485246..8c6b296 100644
+--- a/place/ServerScriptService/Services/ManualCourseRunService.luau
++++ b/place/ServerScriptService/Services/ManualCourseRunService.luau
+@@ -14,7 +14,6 @@ local PlayerDataService = require(script.Parent.PlayerDataService)
+ local PlotService = require(script.Parent.PlotService)
+ local CourseValidationService = require(script.Parent.CourseValidationService)
+ local RewardService = require(script.Parent.RewardService)
+-local StateSync = require(script.Parent.StateSync)
+ local SessionService = require(script.Parent.SessionService)
+ local BuildService = require(script.Parent.BuildService)
+ local Runtime = require(script.Parent.Parent.Systems.ObstacleRuntime)
+diff --git a/place/ServerScriptService/Services/NPCBrainService.luau b/place/ServerScriptService/Services/NPCBrainService.luau
+index 521a289..ccc5c03 100644
+--- a/place/ServerScriptService/Services/NPCBrainService.luau
++++ b/place/ServerScriptService/Services/NPCBrainService.luau
+@@ -34,13 +34,6 @@ local function validHazards(list: { any }?): { Hazard }
+ 	return out
+ end
+ 
+-local function segDist(p: Vector3, a: Vector3, b: Vector3): number
+-	local ab = b - a
+-	local l2 = ab:Dot(ab)
+-	local t = if l2 < 1e-6 then 0 else math.clamp(ab:Dot(p - a) / l2, 0, 1)
+-	return (p - (a + ab * t)).Magnitude
+-end
+-
+ -- Hazard prediction (spec 10.6: account for the TIMING of moving platforms / hazards, not just static geometry).
+ -- Every hazard descriptor is a pure function of server time, so the brain can ask "will I be hit if I keep walking?"
+ local function hazardHit(h: Hazard, p: Vector3, t: number, radius: number): boolean
+diff --git a/place/ServerScriptService/Services/NPCRunService.luau b/place/ServerScriptService/Services/NPCRunService.luau
+index 1979c7b..c1460f1 100644
+--- a/place/ServerScriptService/Services/NPCRunService.luau
++++ b/place/ServerScriptService/Services/NPCRunService.luau
+@@ -2,10 +2,8 @@
+ -- NPC attempts (spec 10.5, 11, 12.2). One attempt = one server run id. Stages are paid ONCE each on server-confirmed progress,
+ -- the attempt ends exactly once (fall / finish / cancel / owner leaves), coins are granted ONCE via RewardService,
+ -- then the NPC disappears with an effect, the pad/active slot is freed and the NPC stays in the collection.
+-local Players = game:GetService("Players")
+ local RunService = game:GetService("RunService")
+ local HttpService = game:GetService("HttpService")
+-local CollectionService = game:GetService("CollectionService")
+ local TweenService = game:GetService("TweenService")
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ 
+@@ -39,7 +37,6 @@ local lastLaunch: { [Player]: { [number]: number } } = {} -- [player] = { [pad]
+ 
+ -- (audit 2.4: the unused local isGround copy was removed - ground tests go through Systems.GroundCheck -> Shared.Util.isGround)
+ 
+-local function notify(player: Player, text: string, kind: string?) Net.fire("Notify", player, text, kind or "info") end
+ local function event(run: Run, p: { [string]: any }) p.pad = run.pad; p.npc = run.def.name; p.total = #run.analysis.stages; Net.fire("NpcState", run.player, p) end
+ 
+ local function despawn(run: Run)
+diff --git a/place/ServerScriptService/Services/PlotService.luau b/place/ServerScriptService/Services/PlotService.luau
+index 547d758..790cb3d 100644
+--- a/place/ServerScriptService/Services/PlotService.luau
++++ b/place/ServerScriptService/Services/PlotService.luau
+@@ -1,7 +1,6 @@
+ --!strict
+ -- Owns the physical plots: ground, build zone, start area, NPC pads, PLAY sign. Assigns plots to players.
+ -- BuildWorld() is idempotent and can also be run in Edit mode to bake the world for inspection.
+-local Players = game:GetService("Players")
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ local CollectionService = game:GetService("CollectionService")
+ 
+@@ -309,10 +308,9 @@ local function buildPlot(i: number): Plot
+ 	local sign = buildSign(model, cf, i)
+ 	buildSaveBoard(model, cf, i)
+ 	-- entrance: studded paving from the lobby aisle to the PLAY sign, a two-ring green "stand here" disc in front of it, bushes/lamps along the way
+-	local inert = { CanCollide = false, CanQuery = false, CanTouch = false }
+ 	mk(model, "Path", Vector3.new(14, 0.3, 62), cf * CFrame.new(0, 0.15, 58), SignKit.SAND, nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
+-	local ring = mk(model, "PlayRing", Vector3.new(0.12, 18, 18), cf * CFrame.new(0, 0.1, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 150, 72), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false })
+-	local disc = mk(model, "PlayDisc", Vector3.new(0.12, 14.5, 14.5), cf * CFrame.new(0, 0.16, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(104, 226, 138), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Transparency = 0.1 })
++	mk(model, "PlayRing", Vector3.new(0.12, 18, 18), cf * CFrame.new(0, 0.1, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 150, 72), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false })
++	mk(model, "PlayDisc", Vector3.new(0.12, 14.5, 14.5), cf * CFrame.new(0, 0.16, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(104, 226, 138), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Transparency = 0.1 })
+ 	for _, sx in { -1, 1 } do
+ 		prop(model, cf, "Bush", sx * 13, 40, 0, 1.45); prop(model, cf, "Bush", sx * 13.5, 62, 40, 1.3)
+ 		prop(model, cf, "FlowerPatch", sx * 14, 50, 0, 2); prop(model, cf, "Lantern", sx * 10, 30, 0, 1.15); prop(model, cf, "Lantern", sx * 10, 80, 0, 1.15)
+diff --git a/place/ServerScriptService/Services/RebirthService.luau b/place/ServerScriptService/Services/RebirthService.luau
+index c3821c0..3da530b 100644
+--- a/place/ServerScriptService/Services/RebirthService.luau
++++ b/place/ServerScriptService/Services/RebirthService.luau
+@@ -11,7 +11,6 @@ local Net = require(ReplicatedStorage.Shared.Net)
+ local PlayerDataService = require(script.Parent.PlayerDataService)
+ local PlotService = require(script.Parent.PlotService)
+ local StateSync = require(script.Parent.StateSync)
+-local CourseValidationService = require(script.Parent.CourseValidationService)
+ 
+ local Service = {}
+ Service.Rebirthed = Instance.new("BindableEvent")   -- (player, newRebirth)
+diff --git a/place/ServerStorage/WorldRecipes/MarketDress.luau b/place/ServerStorage/WorldRecipes/MarketDress.luau
+index 6e708ad..54bf8d7 100644
+--- a/place/ServerStorage/WorldRecipes/MarketDress.luau
++++ b/place/ServerStorage/WorldRecipes/MarketDress.luau
+@@ -13,7 +13,6 @@ local COLS, ROWS = 10, 16
+ local CREAM, PEACH = rgb(250, 232, 186), rgb(241, 196, 128)
+ local TEAL, MINT = rgb(24, 170, 176), rgb(124, 232, 226)
+ local NAVY = SignKit.WOOD_DARK
+-local INERT = { CanCollide = false, CanQuery = false, CanTouch = false }
+ Dress.KioskZ = 58                                   -- side stalls face the plaza centre: seen edge-on from the aisle they never hide the boards behind them
+ Dress.DiscX = -586
+ Dress.DiscDist = 17.5                               -- from the kiosk centre to the disc centre (Landing is 12.3 in front of the counter line)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
+index 489b4b6..77c20e1 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau
+@@ -46,6 +46,7 @@ local function findPlot()
+ 	for _, m in workspace.PlayerPlots:GetChildren() do
+ 		if m:GetAttribute("OwnerId") == player.UserId then return m end
+ 	end
++	return nil
+ end
+ 
+ local function existingBoxes(ignoreUid)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
+index 5f0e380..ca3485b 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
+@@ -22,6 +22,7 @@ local ERRORS = require(game:GetService("ReplicatedStorage").Configs.Strings).Dec
+ 
+ local function myPlot()
+ 	for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == Players.LocalPlayer.UserId then return m end end
++	return nil
+ end
+ 
+ -- plot-local (x, z) under the mouse (ray vs the ground plane of the plot)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau
+index 5455be9..de37497 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau
+@@ -1,6 +1,5 @@
+ -- Daily login gift window (LoginRewardService). Opens by itself once per session, a few seconds after joining, only when the server
+ -- says a claim is possible (after the tutorial's first NPC run). 7 day tiles, today's tile highlighted, one big green Claim button.
+-local Players = game:GetService("Players")
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ local TweenService = game:GetService("TweenService")
+ 

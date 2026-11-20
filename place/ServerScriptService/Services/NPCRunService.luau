@@ -157,16 +157,16 @@ end
 
 local function step(run: Run, dt: number)
 	if run.ended then return end
-	if BuildService.IsRebuilding(run.player) then endRun(run, "cancelled", "changed") return end
+	if BuildService.IsRebuilding(run.player) then endRun(run, "cancelled", "changed"); return end
 	local hum, hrp = run.hum, run.hrp
-	if not hrp.Parent or not hum.Parent then endRun(run, "failed", "lost") return end
-	if os.clock() - run.startedAt > Balance.Npc.AttemptTimeout then endRun(run, "failed", "timeout") return end
+	if not hrp.Parent or not hum.Parent then endRun(run, "failed", "lost"); return end
+	if os.clock() - run.startedAt > Balance.Npc.AttemptTimeout then endRun(run, "failed", "timeout"); return end
 	Brain.Step(run, dt)
 	if run.ended then return end
 	checkProgress(run)
 	-- finish is checked BEFORE the fall test so a finish and a fall in the same window end the attempt once, as a finish
 	local goal = run.route.goal
-	if goal and (hrp.Position - goal).Magnitude <= 5.2 and math.abs(hrp.Position.Y - goal.Y) <= 6 then endRun(run, "finished") return end
+	if goal and (hrp.Position - goal).Magnitude <= 5.2 and math.abs(hrp.Position.Y - goal.Y) <= 6 then endRun(run, "finished"); return end
 	if os.clock() > run.groundSince then
 		if GroundCheck.overGround(hrp, { run.model }) then run.groundHits = (run.groundHits or 0) + 1 else run.groundHits = 0 end
 		if run.groundHits >= 2 or hrp.Position.Y < run.plot.cf.Position.Y - 20 then endRun(run, "failed", "fell") end   -- 2 consecutive checks: no flicker
@@ -209,7 +209,7 @@ function Service.Start()
 	game:BindToClose(function() for _, run in runs do endRun(run, "cancelled", "shutdown") end end)
 end
 
-function Service.Count() local n = 0 for _ in runs do n += 1 end return n end
+function Service.Count() local n = 0; for _ in runs do n += 1 end; return n end
 function Service.All() return runs end   -- diagnostics / tests
 
 return Service

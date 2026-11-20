@@ -106,7 +106,7 @@ function Service.Compute(profile: any): any
 				any = true
 				local leads = false
 				for _, m in list do
-					if m ~= n and (linked(n, m)) then leads = true break end
+					if m ~= n and (linked(n, m)) then leads = true; break end
 				end
 				if not leads then add(n.exit, "end") end
 			end

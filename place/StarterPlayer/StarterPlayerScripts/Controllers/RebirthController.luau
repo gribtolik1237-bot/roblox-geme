@@ -115,8 +115,8 @@ function RebirthController.Start()
 		local s = StateController.State
 		if not s then return end
 		local nextT = Progression.nextThreshold(s.rebirth)
-		if not nextT or s.lifetime < nextT then HUDController.Toast(UIKit.err(if nextT then "NotEnough" else "MaxRebirth"), "err") return end
-		if os.clock() > confirmUntil then confirmUntil = os.clock() + 3; refresh() return end
+		if not nextT or s.lifetime < nextT then HUDController.Toast(UIKit.err(if nextT then "NotEnough" else "MaxRebirth"), "err"); return end
+		if os.clock() > confirmUntil then confirmUntil = os.clock() + 3; refresh(); return end
 		confirmUntil = 0
 		local r = Net.invoke("Rebirth", { expect = s.rebirth + 1 })
 		if not r.ok then HUDController.Toast(UIKit.err(r.err), "err") end

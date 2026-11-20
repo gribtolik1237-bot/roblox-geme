@@ -127,7 +127,7 @@ end
 
 local function setProgress(pad, text)
 	local l = runLines[pad]
-	if not text then if l then l:Destroy(); runLines[pad] = nil end return end
+	if not text then if l then l:Destroy(); runLines[pad] = nil end; return end
 	if not l then
 		l = UIKit.label(progress, { Text = "", TextSize = 24, Size = UDim2.new(1, 0, 0, 30), TextXAlignment = Enum.TextXAlignment.Right, LayoutOrder = pad, TextColor3 = C.yellow, stroke = 4 })
 		runLines[pad] = l

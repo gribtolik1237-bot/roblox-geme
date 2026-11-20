@@ -91,7 +91,7 @@ local function stepMovers()
 	for _, e in movers do
 		local b = e.def.behavior
 		local st = e.state
-		if e.update then e.update(e, now, dt) continue end
+		if e.update then e.update(e, now, dt); continue end
 		if b.kind == "ferry" then
 			local pose = Runtime.PoseAt(e.model, now)
 			local nxt = Runtime.PoseAt(e.model, now + 0.05)

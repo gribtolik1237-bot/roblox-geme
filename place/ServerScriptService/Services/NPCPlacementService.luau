@@ -28,8 +28,8 @@ type PadEntry = NpcTypes.PadEntry
 
 local pads: { [Player]: { [number]: PadEntry } } = {}   -- [player] = { [padIndex] = { npcId, status = "placed"|"running", model, stage, total } }
 
-local function active(player: Player): number local n = 0 for _ in pads[player] or {} do n += 1 end return n end
-local function serverTotal(): number local n = 0 for _, t in pads do for _ in t do n += 1 end end return n end
+local function active(player: Player): number local n = 0; for _ in pads[player] or {} do n += 1 end; return n end
+local function serverTotal(): number local n = 0; for _, t in pads do for _ in t do n += 1 end end; return n end
 function Service.Active(player: Player): number return active(player) end
 function Service.Entry(player: Player, pad: number): PadEntry? return pads[player] and pads[player][pad] end
 function Service.All(player: Player): { [number]: PadEntry } return pads[player] or {} end
@@ -104,7 +104,7 @@ function Service.Recall(player: Player, req: any): any
 	if type(req) ~= "table" or not Net.isInt(req.pad, 1, Balance.NpcPads) then return { ok = false, err = "Invalid" } end
 	local e = pads[player] and pads[player][req.pad]
 	if not e then return { ok = false, err = "NotFound" } end
-	if e.status == "running" then Service.RecallRequested:Fire(player, req.pad) return { ok = true } end
+	if e.status == "running" then Service.RecallRequested:Fire(player, req.pad); return { ok = true } end
 	Service.Free(player, req.pad)
 	return { ok = true }
 end

@@ -16,7 +16,7 @@ local function wearAccessory(m: Model, acc: Accessory, scale: number?)
 	local target: Attachment? = nil
 	if att then
 		for _, d in m:GetDescendants() do
-			if d:IsA("Attachment") and d.Name == att.Name and d.Parent ~= handle then target = d break end
+			if d:IsA("Attachment") and d.Name == att.Name and d.Parent ~= handle then target = d; break end
 		end
 	end
 	if not target then

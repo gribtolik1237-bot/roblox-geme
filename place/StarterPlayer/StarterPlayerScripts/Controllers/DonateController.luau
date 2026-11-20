@@ -21,7 +21,7 @@ local priceCache = {} -- assetId -> "R$ 25" | false
 
 local function fetchPrice(item, label)
 	if item.assetId <= 0 then return end
-	if priceCache[item.assetId] ~= nil then label.Text = priceCache[item.assetId] or "price unavailable" return end
+	if priceCache[item.assetId] ~= nil then label.Text = priceCache[item.assetId] or "price unavailable"; return end
 	task.spawn(function()
 		local ok, info = pcall(function()
 			return MarketplaceService:GetProductInfo(item.assetId, if item.kind == "GamePass" then Enum.InfoType.GamePass else Enum.InfoType.Product)
@@ -33,7 +33,7 @@ local function fetchPrice(item, label)
 end
 
 local function buy(item)
-	if item.assetId <= 0 then HUDController.Toast("This item is not available yet", "info") return end
+	if item.assetId <= 0 then HUDController.Toast("This item is not available yet", "info"); return end
 	local ok = pcall(function()
 		if item.kind == "GamePass" then MarketplaceService:PromptGamePassPurchase(Players.LocalPlayer, item.assetId)
 		else MarketplaceService:PromptProductPurchase(Players.LocalPlayer, item.assetId) end

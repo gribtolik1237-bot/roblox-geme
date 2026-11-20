@@ -132,7 +132,7 @@ function CourseSlots.Start()
 		local board = findBoard()
 		local t0 = os.clock()
 		while not board and os.clock() - t0 < 120 do task.wait(1); board = findBoard() end
-		if not board then warn("[CourseSlots] SaveBoard not found in 120 s - save slots board not built") return end
+		if not board then warn("[CourseSlots] SaveBoard not found in 120 s - save slots board not built"); return end
 		buildFace(board, Enum.NormalId.Back)
 		buildFace(board, Enum.NormalId.Front)
 		refresh()
