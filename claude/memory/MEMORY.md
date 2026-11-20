@@ -1,6 +1,6 @@
 - [Work non-stop](feedback-work-nonstop.md) — do EVERYTHING in the session prompt without pausing; rely on the prompts; stop only at 95-97 %
 - [Russian only](feedback-language-russian.md) — ALWAYS reply to the user in Russian, from the first message
-- [TRAP LAB project](project-trap-lab.md) — Roblox game: facts, state; s11: lint 79->2, touch HUD fit, light accepted, prompt S12
+- [TRAP LAB project](project-trap-lab.md) — Roblox game: facts, state; s12: junk removed, obstacle series started, prompt S13
 - [Art quality rule](feedback-art-quality.md) — NO AI-slop: read game-art-direction + references, check real screenshots; user allowed full autonomy; do not use the old Crystal Rush game as a reference
 
 - [Wood rule](feedback-no-wood.md) — TRAP LAB: wood ALLOWED where it fits (2026-11-18); default style is colored studded plastic

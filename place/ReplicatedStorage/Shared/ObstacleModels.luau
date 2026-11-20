@@ -75,6 +75,12 @@ B.RampUp = function(m)
 	w.CFrame = CF(0, 4, 0) * CFrame.Angles(0, math.rad(180), 0)
 	w.Color = C.deck; w.Material = Enum.Material.SmoothPlastic; w.Anchored = true; w.TopSurface = Enum.SurfaceType.Smooth; w.Parent = m
 	part(m, "Hazard1", V(8, 0.1, 0.8), CF(0, 2.05, 4.6), C.yellow, Enum.Material.Neon, { CanCollide = false })
+	-- S12 art pass (chief recipe): a studded deck plate laid ON the slope + rarity trims, all decorative (no collision/query/touch);
+	-- the wedge underneath keeps the physics untouched. Slope = atan(4/12) ~ 18.4 deg, its plane passes through the wedge centre.
+	local slopeCF = CF(0, 4, 0) * CFrame.Angles(math.atan2(4, 12), 0, 0)
+	local len = math.sqrt(12 * 12 + 4 * 4)
+	part(m, "SlopeDeck", V(8, 0.2, len), slopeCF * CF(0, 0.13, 0), C.deck, Enum.Material.Plastic, { CanCollide = false, CanQuery = false, CanTouch = false, TopSurface = Enum.SurfaceType.Studs })
+	for _, s in { -1, 1 } do part(m, "SlopeTrim", V(0.8, 0.3, len), slopeCF * CF(s * 3.6, 0.38, 0), C.teal, Enum.Material.SmoothPlastic, { CanCollide = false, CanQuery = false, CanTouch = false }) end
 end
 
 B.MovingPlatform = function(m)

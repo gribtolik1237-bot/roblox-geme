@@ -39,3 +39,12 @@ InvisiblePlatform|Special|Epic|—|0|(невидимая — нарочно)
 TeleportPlatform, RotatingPlatform, SlidingBlock, MovingWall, SwingingHammer, MovingLaser, SpikePlatform, ElectricFloor, FireTrap, HammerGauntlet, LaserLabyrinth, PrismSpinner — настил studded, 2–4 кромки.
 ```
 Порядок серии: RampUp (накладки со studs поверх клина без коллизии, угол atan(4/12)≈18.4°) → SpeedPlatform → BouncePad HighDeck → кромки редкости на Conveyor/Speed/SmallJump/NarrowBridge/Falling. P3 chief: свести EndPad к общей функции с deckSlab при следующей правке серии.
+
+## Раунд 2: RampUp по рецепту chief (`ramp.diff`, `ramp_after.jpg`; «до» — `after_close.jpg`, слева)
+- Клин `Slope` не тронут (размер, материал, коллизия). Поверх склона: `SlopeDeck` 8x0.2x12.65 Plastic+Studs и `SlopeTrim` x2 (0.8x0.3) вдоль склона, угол atan2(4,12)=18.4°, плита на 0.03 над гранью; все CanCollide/CanQuery/CanTouch=false (лучи NPC и касания не видят).
+- Цвет кромок — тот же, что у кромок основания рампы (общая система roleAccents/редкости), так у всей модели одна кромка.
+- Проверки: 27/27 моделей собираются; аватар (x2 в лобби) прошёл подъём MoveTo от низа до верха за 1.0 с; выгрузка 74/74, Studio = локальная правка; линт 2.
+- NOT TESTED: NPC по рампе (в стартовой трассе рампы нет; коллизия и лучи не менялись).
+
+## Раунд 2: ACCEPT chief (RampUp)
+P3 (поправлено): кромки красит `roleAccents` по РОЛИ поведения (безопасное — зелёный, движущееся — синий), не по редкости. P3 на потом: `Hazard1` у RampUp (y 2.05, z 4.6) спрятан внутри клина — убрать или положить на склон при следующей правке RampUp. Приём «плита Plastic+Studs без коллизии поверх склона» — для всех клиновых препятствий.
