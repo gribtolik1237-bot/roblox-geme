@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-20T08:00:39.383Z",
+  "exportedAt": "2026-11-20T08:25:13.608Z",
   "placeId": 135937017652181,
   "placeVersion": 236,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -82,9 +82,9 @@
       "studioPath": "ReplicatedStorage/Configs/Strings",
       "file": "ReplicatedStorage/Configs/Strings.luau",
       "class": "ModuleScript",
-      "bytes": 1374,
-      "adler32": 2597376045,
-      "sha256": "8c9c34f637d164510a4b7a40ea61e15e7e9aeae7faa88f9ad7c3bda6f8d4d2b1"
+      "bytes": 1090,
+      "adler32": 640118967,
+      "sha256": "f3f58e966eeed0276420259dcf1a176857151cf115eb5f479193b8f587a6969d"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/BoardSkin",
@@ -466,17 +466,17 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Client",
       "file": "StarterPlayer/StarterPlayerScripts/Client.client.luau",
       "class": "LocalScript",
-      "bytes": 962,
-      "adler32": 2222999175,
-      "sha256": "4dab34a0c3a5fbf702e03e6b244c59658caae86ef8170423f649dd48d4012c60"
+      "bytes": 920,
+      "adler32": 1164523364,
+      "sha256": "5fd2418bec88a106ee323eb5b47ef635170f774a6db1565991a4100ddea9c1cb"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau",
       "class": "ModuleScript",
-      "bytes": 34718,
-      "adler32": 3954248812,
-      "sha256": "1d1246ebf94ca3f37534c4929dbe8f4d28ba011915c86fa53cefb2cd40ebb54f"
+      "bytes": 34747,
+      "adler32": 4178712305,
+      "sha256": "d0df44e51bf59c3e1bb8cea84ebfcdb3447051dfc4d4dd1a8bb136ef704aabd8"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/CameraController",
@@ -493,14 +493,6 @@
       "bytes": 7503,
       "adler32": 1331911498,
       "sha256": "521c3ed7cc7f8b2c3799e5f2d52edcf6d4ebc9f72f1319d514d41f03e0cda2c5"
-    },
-    {
-      "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/DecorController",
-      "file": "StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau",
-      "class": "ModuleScript",
-      "bytes": 6267,
-      "adler32": 3855682008,
-      "sha256": "0390fb9ad55dbe1f2b49eb7da49167192cd770cd57ba8ad2a8b597c1e0cd0357"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/DonateController",
@@ -533,14 +525,6 @@
       "bytes": 10355,
       "adler32": 1576867513,
       "sha256": "d1639f846d75c6aaa45cd89f4a9ae8bbcd6f122171568292973f2fb022691143"
-    },
-    {
-      "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/InventoryController",
-      "file": "StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau",
-      "class": "ModuleScript",
-      "bytes": 6427,
-      "adler32": 2491875001,
-      "sha256": "75ac4af559186006af8801a86c3ae4d11044eb78bc1bb6f0790bbc645146f4cf"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController",
@@ -578,9 +562,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/RebirthController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/RebirthController.luau",
       "class": "ModuleScript",
-      "bytes": 8173,
-      "adler32": 2624268576,
-      "sha256": "2df43884a7d55ad0167a3f546b0fcdabcf47223ff1b24073ef0d158d5c66f877"
+      "bytes": 8058,
+      "adler32": 2465070582,
+      "sha256": "04d9f777128ba40da95accecad3579561014f6798474eb4656c7db6c0f6519ad"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/RunController",

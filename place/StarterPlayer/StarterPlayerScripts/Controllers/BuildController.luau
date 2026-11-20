@@ -483,7 +483,7 @@ end
 function BuildController.IsActive() return active end
 function BuildController.Selected() return selectedId end   -- GuideController: is an item in hand?
 
--- Used by the Inventory window: switch build mode on and pick this item (false if it is not available)
+-- Used by the hotbar slots, number keys and GuideController: switch build mode on and pick this item (false if it is not available)
 function BuildController.Select(id)
 	BuildController.SetActive(true)
 	local def = Obstacles.ById[id]

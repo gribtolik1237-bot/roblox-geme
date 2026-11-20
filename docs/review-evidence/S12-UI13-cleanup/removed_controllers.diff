@@ -1,0 +1,252 @@
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
+deleted file mode 100644
+index 51df19e..0000000
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau
++++ /dev/null
+@@ -1,117 +0,0 @@
+---!nonstrict
+--- Decor window + placement: pick an item -> a ghost follows the mouse over your land -> click to buy & place (R rotates, X / Esc cancels).
+--- "Remove" mode: click a decoration to take it away (50% refund). The server decides everything; the ghost is only a preview.
+-local Players = game:GetService("Players")
+-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-local RunService = game:GetService("RunService")
+-local UserInputService = game:GetService("UserInputService")
+-local UIKit = require(ReplicatedStorage.Shared.UIKit)
+-local Net = require(ReplicatedStorage.Shared.Net)
+-local Util = require(ReplicatedStorage.Shared.Util)
+-local Decor = require(ReplicatedStorage.Configs.Decor)
+-local DecorModels = require(ReplicatedStorage.Shared.DecorModels)
+-local Icons = require(ReplicatedStorage.Configs.Icons)
+-local HUDController = require(script.Parent.HUDController)
+-local StateController = require(script.Parent.StateController)
+-
+-local C = UIKit.C
+-local Ctl = {}
+-local win, infoLabel
+-local mode = nil           -- nil | { kind = "place", id, ghost, yaw } | { kind = "remove" }
+-local ERRORS = require(game:GetService("ReplicatedStorage").Configs.Strings).Decor   -- audit 2.4
+-
+-local function myPlot()
+-	for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == Players.LocalPlayer.UserId then return m end end
+-	return nil
+-end
+-
+--- plot-local (x, z) under the mouse (ray vs the ground plane of the plot)
+-local function mousePoint(plot)
+-	local cam = workspace.CurrentCamera
+-	local m = UserInputService:GetMouseLocation()
+-	local ray = cam:ViewportPointToRay(m.X, m.Y)
+-	local origin = plot.Origin.CFrame
+-	if math.abs(ray.Direction.Y) < 1e-4 then return nil end
+-	local t = (origin.Position.Y - ray.Origin.Y) / ray.Direction.Y
+-	if t < 0 then return nil end
+-	local lp = origin:PointToObjectSpace(ray.Origin + ray.Direction * t)
+-	return lp.X, lp.Z, origin
+-end
+-
+-local function stop()
+-	if mode and mode.ghost then mode.ghost:Destroy() end
+-	mode = nil
+-	pcall(function() RunService:UnbindFromRenderStep("TL_DecorGhost") end)
+-end
+-
+-local function startPlace(id)
+-	stop()
+-	local plot = myPlot()
+-	if not plot then HUDController.Toast("Your plot isn't ready yet", "err"); return end
+-	local ghost = DecorModels.build(id)
+-	for _, d in ghost:GetDescendants() do if d:IsA("BasePart") then d.Transparency = math.max(d.Transparency, 0.45) end end
+-	ghost.Parent = workspace
+-	mode = { kind = "place", id = id, ghost = ghost, yaw = 0 }
+-	win.close()
+-	RunService:BindToRenderStep("TL_DecorGhost", Enum.RenderPriority.Camera.Value + 2, function()
+-		local x, z, origin = mousePoint(plot)
+-		if x then ghost:PivotTo(origin * CFrame.new(math.floor(x + 0.5), 0, math.floor(z + 0.5)) * CFrame.Angles(0, math.rad(mode.yaw), 0)) end
+-	end)
+-	HUDController.Toast("Click to place - R rotate - X cancel", "info")
+-end
+-
+-local function startRemove()
+-	stop()
+-	mode = { kind = "remove" }
+-	win.close()
+-	HUDController.Toast("Click a decoration to remove it (50% back) - X to stop", "info")
+-end
+-
+-local function onClick()
+-	if not mode then return end
+-	local plot = myPlot()
+-	local x, z = mousePoint(plot)
+-	if not x then return end
+-	if mode.kind == "place" then
+-		local r = Net.invoke("PlaceDecor", { id = mode.id, x = x, z = z, r = mode.yaw })
+-		if r.ok then HUDController.Toast("Placed!", "ok") else HUDController.Toast(ERRORS[r.err] or "Can't place here", "err") end
+-	else
+-		local best, bd = nil, math.huge
+-		for _, m in plot.Decor:GetChildren() do
+-			local def = Decor.ById[m:GetAttribute("DecorId")]
+-			local lp = plot.Origin.CFrame:PointToObjectSpace(m:GetPivot().Position)
+-			local d = math.sqrt((lp.X - x) ^ 2 + (lp.Z - z) ^ 2)
+-			if def and d <= def.r + 1 and d < bd then best, bd = m, d end
+-		end
+-		if best then
+-			local r = Net.invoke("RemoveDecor", { uid = best:GetAttribute("Uid") })
+-			if r.ok then HUDController.Toast(("Removed (+%d Coins)"):format(r.refund or 0), "ok") end
+-		end
+-	end
+-end
+-
+-function Ctl.Start()
+-	win = UIKit.window(HUDController.Gui, "Decorations", UDim2.fromOffset(920, 620), C.green, Icons.decor)
+-	infoLabel = UIKit.label(win.body, { Text = "", TextSize = 24, Size = UDim2.new(1, -200, 0, 36), TextColor3 = C.yellow, TextXAlignment = Enum.TextXAlignment.Left, stroke = 3.5 })
+-	UIKit.button(win.body, { name = "RemoveMode", text = "Remove mode", color = C.red, size = UDim2.fromOffset(180, 38), pos = UDim2.new(1, -180, 0, -2), textSize = 20, onClick = startRemove })
+-	local scroll = UIKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -46), Position = UDim2.fromOffset(0, 46), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 10, ScrollBarImageColor3 = C.muted, BorderSizePixel = 0 }, win.body)
+-	UIKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(204, 250), CellPadding = UDim2.fromOffset(12, 14), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center }, scroll)
+-	UIKit.new("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8) }, scroll)
+-	for i, def in Decor.List do
+-		local k = UIKit.itemCard(scroll, { w = 204, h = 250, rarity = C.green, name = def.name, pvH = 140, order = i })
+-		local ok, m = pcall(DecorModels.build, def.id)
+-		if ok and m then pcall(UIKit.preview, k.pv, m, { zoom = 0.95 }) end
+-		UIKit.priceButton(k.card, { text = Util.fmt(def.price), size = UDim2.new(1, -20, 0, 46), pos = UDim2.new(0, 10, 1, -56), textSize = 26, onClick = function() startPlace(def.id) end })
+-	end
+-	win.onOpen = function() stop(); local s = StateController.State; if s and s.decor then infoLabel.Text = ("Decorations %d/%d"):format(s.decor.count, s.decor.limit) end end
+-	StateController.Changed.Event:Connect(function(s) if s and s.decor then infoLabel.Text = ("Decorations %d/%d"):format(s.decor.count, s.decor.limit) end end)
+-	UserInputService.InputBegan:Connect(function(input, processed)
+-		if not mode then return end
+-		if input.KeyCode == Enum.KeyCode.X or input.KeyCode == Enum.KeyCode.Escape then stop(); return end
+-		if processed then return end
+-		if input.KeyCode == Enum.KeyCode.R and mode.kind == "place" then mode.yaw = (mode.yaw + 45) % 360
+-		elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then onClick() end
+-	end)
+-end
+-
+-return Ctl
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau
+deleted file mode 100644
+index 388df8e..0000000
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/InventoryController.luau
++++ /dev/null
+@@ -1,98 +0,0 @@
+---!nonstrict
+--- Inventory (spec 9, v2 look): tab 1 = obstacles you own (preview, name, rarity, free copies, search, "Use in building"), tab 2 = your NPC collection
+--- (preview, rarity, stats, equip into a quick slot). Display only; purchases/slots are enforced by the server.
+-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-local UIKit = require(ReplicatedStorage.Shared.UIKit)
+-local Net = require(ReplicatedStorage.Shared.Net)
+-local NPCRig = require(ReplicatedStorage.Shared.NPCRig)
+-local ObstacleModels = require(ReplicatedStorage.Shared.ObstacleModels)
+-local Obstacles = require(ReplicatedStorage.Configs.Obstacles)
+-local NPCs = require(ReplicatedStorage.Configs.NPCs)
+-local Icons = require(ReplicatedStorage.Configs.Icons)
+-local HUDController = require(script.Parent.HUDController)
+-local StateController = require(script.Parent.StateController)
+-
+-local C = UIKit.C
+-local Inv = {}
+-local win, tabBtns, scroll, grid, search, count
+-local tab = "obstacles"
+-local CARD_W = 204
+-local CARD_H = { obstacles = 266, npcs = 306 }
+-
+-local function render()
+-	local s = StateController.State
+-	if not s or not scroll then return end
+-	for _, c in scroll:GetChildren() do if c:IsA("GuiObject") then c:Destroy() end end
+-	grid.CellSize = UDim2.fromOffset(CARD_W, CARD_H[tab])
+-	local q = string.lower(search.Text or "")
+-	local shown = 0
+-	if tab == "obstacles" then
+-		for _, def in Obstacles.List do
+-			local owned = if def.free then math.huge else (s.inv[def.id] or 0)
+-			local placed = (s.plot and s.plot.placed and s.plot.placed[def.id]) or 0
+-			local left = if def.free then math.huge else owned - placed
+-			local match = q == "" or string.find(string.lower(def.name), q, 1, true) or string.find(string.lower(def.rarity), q, 1, true) or string.find(string.lower(def.category), q, 1, true)
+-			if owned > 0 and match then
+-				shown += 1
+-				local rc = UIKit.rarityColor(def.rarity)
+-				local k = UIKit.itemCard(scroll, { w = CARD_W, h = CARD_H.obstacles, rarity = rc, name = def.name, tag = def.rarity, order = shown })
+-				local m = ObstacleModels.build(def.id)
+-				if m then pcall(UIKit.preview, k.pv, m) end
+-				UIKit.label(k.card, { Text = if def.free then "always available" else (if left > 0 then ("Free x%d   (placed %d / %d)"):format(left, placed, owned) else ("All %d placed"):format(owned)), Font = UIKit.BODY, TextSize = 15, Size = UDim2.new(1, -16, 0, 20), Position = UDim2.fromOffset(8, k.y), TextColor3 = if left > 0 then C.yellow else C.red, stroke = 2 })
+-				UIKit.button(k.card, { text = "Use in building", color = if left > 0 then C.green else C.panel2, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
+-					if left <= 0 then HUDController.Toast("All copies are already placed - buy more or remove one", "err"); return end
+-					win.close()
+-					local ok, BuildController = pcall(require, script.Parent.BuildController)
+-					if ok and BuildController.Select(def.id) then HUDController.Toast("Selected: " .. def.name .. " - click on your plot to place it", "ok") end
+-				end })
+-			end
+-		end
+-	else
+-		for _, id in s.npcs do
+-			local def = NPCs.ById[id]
+-			local match = q == "" or (def and (string.find(string.lower(def.name), q, 1, true) or string.find(string.lower(def.rarity), q, 1, true)))
+-			if def and match then
+-				shown += 1
+-				local rc = UIKit.rarityColor(def.rarity)
+-				local k = UIKit.itemCard(scroll, { w = CARD_W, h = CARD_H.npcs, rarity = rc, name = def.name, tag = def.rarity, order = shown })
+-				local ok, m = pcall(NPCRig.build, id)
+-				if ok and m then pcall(UIKit.preview, k.pv, m, { zoom = 1.1, dir = Vector3.new(0.55, 0.3, -1) }) end
+-				UIKit.statBars(k.card, def.stats, k.y)
+-				local slot = table.find(s.slots, id)
+-				UIKit.button(k.card, { text = if slot then ("In slot " .. slot) else "Equip in a slot", color = if slot then C.panel2 else C.purple, size = UDim2.new(1, -20, 0, 44), pos = UDim2.new(0, 10, 1, -54), textSize = 20, onClick = function()
+-					if slot then HUDController.Toast(id .. " is already in slot " .. slot, "info"); return end
+-					local target
+-					for i = 1, 5 do if not s.slots[i] then target = i; break end end      -- the first free quick slot, else slot 1
+-					local r = Net.invoke("SetSlot", { slot = target or 1, id = id })
+-					if r.ok then HUDController.Toast(("%s equipped in slot %d - open NPCs to place it"):format(id, target or 1), "ok") else HUDController.Toast("Couldn't equip (" .. tostring(r.err) .. ")", "err") end
+-				end })
+-			end
+-		end
+-	end
+-	count.Text = ("%d shown"):format(shown)
+-end
+-
+-local function setTab(name)
+-	tab = name
+-	for n, b in tabBtns do UIKit.setTab(b, n == name) end
+-	render()
+-end
+-
+-function Inv.Start()
+-	win = UIKit.window(HUDController.Gui, "Inventory", UDim2.fromOffset(920, 620), C.orange, Icons.inventory)
+-	tabBtns = {}
+-	for i, d in { { "obstacles", "Obstacles" }, { "npcs", "NPCs" } } do
+-		tabBtns[d[1]] = UIKit.button(win.body, { text = d[2], color = C.panel2, size = UDim2.fromOffset(150, 40), pos = UDim2.fromOffset((i - 1) * 160, 0), textSize = 22, onClick = function() setTab(d[1]) end })
+-	end
+-	search = UIKit.new("TextBox", { Size = UDim2.fromOffset(260, 40), Position = UDim2.new(1, -350, 0, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 38), TextColor3 = C.text, PlaceholderText = "Search name / rarity", PlaceholderColor3 = C.muted, Text = "", Font = UIKit.BODY, TextSize = 19, ClearTextOnFocus = false }, win.body)
+-	UIKit.round(search, 12); UIKit.stroke(search, UIKit.INK, 3.5)
+-	count = UIKit.label(win.body, { Text = "", TextSize = 18, TextColor3 = C.muted, Size = UDim2.fromOffset(80, 40), Position = UDim2.new(1, -80, 0, 0) })
+-	scroll = UIKit.new("ScrollingFrame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, -50), Position = UDim2.fromOffset(0, 50), CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 10, ScrollBarImageColor3 = C.muted, BorderSizePixel = 0 }, win.body)
+-	grid = UIKit.new("UIGridLayout", { CellSize = UDim2.fromOffset(CARD_W, CARD_H.obstacles), CellPadding = UDim2.fromOffset(12, 14), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center }, scroll)
+-	UIKit.new("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8) }, scroll)
+-	search:GetPropertyChangedSignal("Text"):Connect(render)
+-	win.onOpen = function() setTab(tab) end
+-	StateController.Changed.Event:Connect(function() if win.isOpen() then render() end end)
+-end
+-
+-return Inv
+diff --git a/place/ReplicatedStorage/Configs/Strings.luau b/place/ReplicatedStorage/Configs/Strings.luau
+index e5f5d01..28baa0b 100644
+--- a/place/ReplicatedStorage/Configs/Strings.luau
++++ b/place/ReplicatedStorage/Configs/Strings.luau
+@@ -1,6 +1,6 @@
+ --!strict
+ -- Player-facing error / reason texts of the client controllers in ONE place (audit 2.4, session 8). Texts unchanged - only moved.
+--- Shop teleport (ShopController), manual run result reasons (RunController), course save slots (CourseSlotsController), decorations (DecorController).
++-- Shop teleport (ShopController), manual run result reasons (RunController), course save slots (CourseSlotsController).
+ local Strings = {}
+ 
+ Strings.Teleport = {
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Client.client.luau b/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
+index 676b43b..66ee8e3 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
+@@ -2,7 +2,7 @@
+ -- TRAP LAB client bootstrap. Controllers are required in dependency order; each may yield safely.
+ local Controllers = script.Parent:WaitForChild("Controllers")
+ 
+-local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "InventoryController", "RunController", "NPCController", "RebirthController", "MetaController", "DecorController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController" }
++local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "RunController", "NPCController", "RebirthController", "MetaController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController" }
+ for _, name in order do
+ 	local inst = Controllers:FindFirstChild(name)
+ 	if inst then

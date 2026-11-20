@@ -41,8 +41,7 @@ local function refresh()
 		local cur = Progression.plotSize(r)
 		setRow(1, ("%dx%d"):format(cur.X, cur.Y))
 		setRow(2, tostring(Progression.objectLimit(r)))
-		setRow(3, tostring(Progression.cosmeticLimit(r)))
-		setRow(4, tostring(Progression.npcLimit(r)))
+		setRow(3, tostring(Progression.npcLimit(r)))
 		shopsHead.Text = "ALL UNLOCKED"
 		shopsText.Text = "Every trap and NPC is in the shops for you. Keep building and earning!"
 		fill.Size = UDim2.fromScale(1, 1); fillText.Text = ("Rebirth %d - the highest"):format(r)
@@ -53,8 +52,7 @@ local function refresh()
 	local cur, nxt = Progression.plotSize(r), Progression.plotSize(r + 1)
 	setRow(1, ("%dx%d"):format(cur.X, cur.Y), ("%dx%d"):format(nxt.X, nxt.Y))
 	setRow(2, tostring(Progression.objectLimit(r)), tostring(Progression.objectLimit(r + 1)))
-	setRow(3, tostring(Progression.cosmeticLimit(r)), tostring(Progression.cosmeticLimit(r + 1)))
-	setRow(4, tostring(Progression.npcLimit(r)), tostring(Progression.npcLimit(r + 1)))
+	setRow(3, tostring(Progression.npcLimit(r)), tostring(Progression.npcLimit(r + 1)))
 	local un = unlocks(r + 1)
 	shopsText.Text = if #un > 0 then table.concat(un, "  -  ") else "More rare items"
 	local frac = math.clamp(s.lifetime / nextT, 0, 1)
@@ -83,7 +81,7 @@ local function celebrate(n)
 end
 
 function RebirthController.Start()
-	win = UIKit.window(HUDController.Gui, "Rebirth", UDim2.fromOffset(660, 540), C.purple, Icons.rebirth)
+	win = UIKit.window(HUDController.Gui, "Rebirth", UDim2.fromOffset(660, 486), C.purple, Icons.rebirth)
 	local body = win.body
 	-- progress bar
 	local bar = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = Color3.fromRGB(26, 24, 40) }, body)
@@ -92,7 +90,7 @@ function RebirthController.Start()
 	UIKit.round(fill, 20); UIKit.gloss(fill, C.pink:Lerp(WHITE, 0.3), C.purple:Lerp(BLACK, 0.1))
 	fillText = UIKit.label(bar, { Text = "", TextSize = 21, Size = UDim2.fromScale(1, 1), ZIndex = 3, stroke = 3 })
 	-- "now > next" rows
-	local names = { "Plot size", "Obstacle limit", "Decoration limit", "Active NPCs at once" }
+	local names = { "Plot size", "Obstacle limit", "Active NPCs at once" }   -- S12: decorations removed (D-031), no "Decoration limit" row
 	for i, nm in names do
 		local row = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 48), Position = UDim2.fromOffset(0, 52 + (i - 1) * 54), BackgroundColor3 = WHITE }, body)
 		UIKit.round(row, 14); UIKit.stroke(row, UIKit.INK, 3)
@@ -101,16 +99,16 @@ function RebirthController.Start()
 		rows[i] = UIKit.label(row, { Text = "", RichText = true, TextSize = 24, Size = UDim2.new(0.5, -16, 1, 0), Position = UDim2.new(0.5, 0, 0, 0), TextXAlignment = Enum.TextXAlignment.Right, stroke = 3 })
 	end
 	-- new in the shops
-	local sb = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 72), Position = UDim2.fromOffset(0, 272), BackgroundColor3 = WHITE }, body)
+	local sb = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 72), Position = UDim2.fromOffset(0, 218), BackgroundColor3 = WHITE }, body)
 	UIKit.round(sb, 14); UIKit.stroke(sb, UIKit.INK, 3)
 	UIKit.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(88, 62, 128), Color3.fromRGB(56, 40, 90)), Rotation = 90 }, sb)
 	shopsHead = UIKit.label(sb, { Text = "NEW IN THE SHOPS", TextSize = 16, Size = UDim2.new(1, -24, 0, 22), Position = UDim2.fromOffset(14, 6), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = C.yellow, stroke = 2.5 })
 	shopsText = UIKit.label(sb, { Text = "", Font = UIKit.BODY, TextSize = 19, TextWrapped = true, Size = UDim2.new(1, -28, 0, 40), Position = UDim2.fromOffset(14, 28), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, stroke = 2 })
 	-- what is kept
-	local kb = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, 352), BackgroundColor3 = WHITE }, body)
+	local kb = UIKit.new("Frame", { Size = UDim2.new(1, 0, 0, 40), Position = UDim2.fromOffset(0, 298), BackgroundColor3 = WHITE }, body)
 	UIKit.round(kb, 14); UIKit.stroke(kb, UIKit.INK, 3)
 	UIKit.gloss(kb, C.green:Lerp(WHITE, 0.15), C.green:Lerp(BLACK, 0.3))
-	UIKit.label(kb, { Text = "You KEEP all Coins, buildings, items, NPCs and decorations", Font = UIKit.BODY, TextSize = 18, TextScaled = true, Size = UDim2.new(1, -20, 1, -6), Position = UDim2.fromOffset(10, 3), stroke = 2.5 })
+	UIKit.label(kb, { Text = "You KEEP all Coins, buildings, items and NPCs", Font = UIKit.BODY, TextSize = 18, TextScaled = true, Size = UDim2.new(1, -20, 1, -6), Position = UDim2.fromOffset(10, 3), stroke = 2.5 })
 	button = UIKit.button(body, { name = "Go", text = "REBIRTH", color = C.panel2, size = UDim2.new(1, 0, 0, 62), pos = UDim2.new(0, 0, 1, -62), textSize = 32, icon = Icons.rebirth, iconSize = 70, onClick = function()
 		local s = StateController.State
 		if not s then return end
