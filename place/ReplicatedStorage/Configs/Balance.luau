@@ -114,7 +114,7 @@ Balance.Rating = { Criteria = { "Interest", "Build quality", "Difficulty", "Vari
 
 -- Leaderboards (spec 15). TOP OBBY = 10000 * sum(weight_i * norm_i): no criterion may exceed 25% (the largest weight is 0.20).
 Balance.Boards = {
-	Size = 10, ReadEvery = 60, WriteEvery = 90,
+	Size = 100, ReadEvery = 60, WriteEvery = 90,   -- D-039: top 100, boards scroll (GetSortedAsync page max = 100)
 	ObbyWeights = { Quality = 0.20, Clears = 0.20, Popularity = 0.15, Ratings = 0.20, Difficulty = 0.10, Activity = 0.15 },
 	Caps = { Clears = 50, Plays = 100, Visitors = 20, Stages = 8, Types = 5 },
 	VisitorWindowDays = 7,

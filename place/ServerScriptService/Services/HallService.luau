@@ -2,6 +2,7 @@
 -- Four two-sided leaderboard stands in the market courtyard.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
+local HttpService = game:GetService("HttpService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Net = require(ReplicatedStorage.Shared.Net)
 local SignKit = require(ReplicatedStorage.Shared.SignKit)
@@ -32,29 +33,29 @@ local function short(n)
 	return tostring(n)
 end
 
+-- D-039: the boards are TOP 100 and scroll, so clients draw them (BoardController, SurfaceGui in PlayerGui). The server only publishes the
+-- rows on the board part: attribute "Rows" = JSON { {n = name, v = shown value, u = userId}, ... } in rank order, "Footer" = status line.
+local function publish(id: string, rows: { any }, footer: string)
+	local board = stands[id] and stands[id].board
+	if not board then return end
+	local ok, json = pcall(HttpService.JSONEncode, HttpService, rows)
+	if ok then board:SetAttribute("Rows", json) end
+	board:SetAttribute("Footer", footer)
+end
+
 local function renderBoard(id)
 	local res = Leaderboard.Fetch(id)
-	for _, refs in stands[id].faces do
-		for i, row in refs.rows do
-			local r = res.rows[i]
-			row:FindFirstChild("Name").Text = if r then r.name else "-"      -- (row.Name would be the Instance name, not the label)
-			row:FindFirstChild("Value").Text = if r then short(r.value) else ""
-		end
-		refs.footer.Text = if res.source == "global" then "worldwide - updates every minute" else "this server only (global list unavailable)"
-	end
+	local rows = {}
+	for i, r in res.rows do rows[i] = { n = r.name, v = short(r.value), u = r.userId } end
+	publish(id, rows, if res.source == "global" then "worldwide - updates every minute - scroll for the top 100" else "this server only (global list unavailable)")
 end
 
 -- POPULAR: courses of the players online now (Leaderboard.Popular, same score as TOP OBBY): name, owner, shown rating
 local function renderPopular()
 	local list = Leaderboard.Popular()
-	for _, refs in stands.popular.faces do
-		for i, row in refs.rows do
-			local c = list[i]
-			row:FindFirstChild("Name").Text = if c then (c.name .. "  -  " .. c.owner) else "-"
-			row:FindFirstChild("Value").Text = if c then (if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new") else ""
-		end
-		refs.footer.Text = if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!"
-	end
+	local rows = {}
+	for i, c in list do rows[i] = { n = c.name .. "  -  " .. c.owner, v = if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new", u = c.ownerId } end
+	publish("popular", rows, if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!")
 end
 
 -- a two-tone studded paved plaza (8x8 tiles) under the whole hall, with a darker curb
@@ -118,16 +119,11 @@ function Hall.Start()
 	local model = Hall.Build(false)
 	for _, st in STANDS do
 		local board = model:FindFirstChild("Board_" .. st.id)
-		stands[st.id] = { faces = {} }
-		-- bound faces: the GUIs are already in the baked model; rebind their labels
+		stands[st.id] = { board = board }
+		-- D-039: the baked 10-row faces are replaced at runtime by the clients' scrolling top-100 faces (BoardController)
 		for _, face in { "Front", "Back" } do
 			local g = board:FindFirstChild("Face_" .. face)
-			local refs = { rows = {}, footer = g.Frame:FindFirstChild("Footer") }
-			for _, c in g.Frame:GetChildren() do
-				if c:IsA("Frame") and c:FindFirstChild("Rank") then refs.rows[#refs.rows + 1] = c end
-			end
-			table.sort(refs.rows, function(a, b) return a.Position.Y.Scale < b.Position.Y.Scale end)
-			table.insert(stands[st.id].faces, refs)
+			if g then g:Destroy() end
 		end
 	end
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)

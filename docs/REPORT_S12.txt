@@ -32,3 +32,5 @@ TRAP LAB, отчёт S12 (2026-11-20, Claude, продолжение того ж
 
 ДЛЯ СЛЕДУЮЩЕГО ЧАТА
 - Промт: docs/NEXT_CHAT_PROMPT_S13.md (вставить весь текст в новый чат в папке C:\Users\yarik\AppData\Local\Roblox). Первым пунктом идёт продолжение серии препятствий по таблице.
+
+- S12 (поздно): D-039 сделано — доски лидеров топ-100 с прокруткой (BoardController, BoardSkin.buildScroll, HallService публикует строки). Play: 100 строк, колесо мыши прокручивает (CanvasPosition 0->400), строка You: #N; кадр docs/review-evidence/S12-UI13-cleanup/board_top100_scrolled.jpg. Самооценка: chief НЕ проверял (лимит 99 %), тач на телефоне NOT TESTED. Первым делом в S13: chief по D-039.

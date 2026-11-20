@@ -2,7 +2,7 @@
 -- TRAP LAB client bootstrap. Controllers are required in dependency order; each may yield safely.
 local Controllers = script.Parent:WaitForChild("Controllers")
 
-local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "RunController", "NPCController", "RebirthController", "MetaController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController" }
+local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "RunController", "NPCController", "RebirthController", "MetaController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController", "BoardController" }
 for _, name in order do
 	local inst = Controllers:FindFirstChild(name)
 	if inst then
