@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-20T08:36:40.881Z",
+  "exportedAt": "2026-11-20T08:37:52.411Z",
   "placeId": 135937017652181,
   "placeVersion": 236,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -122,9 +122,9 @@
       "studioPath": "ReplicatedStorage/Shared/ObstacleModels",
       "file": "ReplicatedStorage/Shared/ObstacleModels.luau",
       "class": "ModuleScript",
-      "bytes": 29809,
-      "adler32": 2666427580,
-      "sha256": "c29ad8bec5c6543a02d2d120dec0e9b33127fdf60ee1f4dea00e1bc37f5d795c"
+      "bytes": 29701,
+      "adler32": 546199223,
+      "sha256": "cb387dcce041655178d1ef8b25dfe098d89d180f1fec883a123ff1233b47f439"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/PlotMath",

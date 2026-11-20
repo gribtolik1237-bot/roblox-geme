@@ -1,6 +1,6 @@
 # Экспорт скриптов TRAP LAB
 
-2026-11-20 (S12). Выгружены и сверены 74 из 74 скриптов открытого места 135937017652181 из Studio (сохранение Team Create 250; PlaceVersion в редакторе 236). Удалены InventoryController и DecorController (окна-сироты после D-031). Окно Rebirth без строки декора, Strings.Decor удалён. ObstacleModels: MovingPlatform, RampUp, SpeedPlatform, BouncePad HighDeck studded (серия ART-05). Каждая правка сделана в Studio, повторная выгрузка совпала с локальной побайтно. Контрольные суммы в [EXPORT_MANIFEST.json](EXPORT_MANIFEST.json).
+2026-11-20 (S12). Выгружены и сверены 74 из 74 скриптов открытого места 135937017652181 из Studio (сохранение Team Create 251; PlaceVersion в редакторе 236). Удалены InventoryController и DecorController (окна-сироты после D-031). Окно Rebirth без строки декора, Strings.Decor удалён. ObstacleModels: MovingPlatform, RampUp, SpeedPlatform, BouncePad HighDeck studded (серия ART-05). Каждая правка сделана в Studio, повторная выгрузка совпала с локальной побайтно. Контрольные суммы в [EXPORT_MANIFEST.json](EXPORT_MANIFEST.json).
 
 Добавлены `BoardSkin` (оформление досок лидеров) и рецепт `MarketDress` (оформление торговой площади). Добавлен `PromenadeController`. Обновлены физические ленты и разметка, геометрия участков, щиты, HUD, мобильная стройка, планирование NPC и защита при загрузке трассы и сохранении профиля. Геометрия сохранена в месте Roblox. Проверки выполнены отдельно в Play и описаны в [TESTING_REPORT.md](../docs/TESTING_REPORT.md).
 

@@ -47,7 +47,7 @@ TeleportPlatform, RotatingPlatform, SlidingBlock, MovingWall, SwingingHammer, Mo
 - NOT TESTED: NPC по рампе (в стартовой трассе рампы нет; коллизия и лучи не менялись).
 
 ## Раунд 2: ACCEPT chief (RampUp)
-P3 (поправлено): кромки красит `roleAccents` по РОЛИ поведения (безопасное — зелёный, движущееся — синий), не по редкости. P3 на потом: `Hazard1` у RampUp (y 2.05, z 4.6) спрятан внутри клина — убрать или положить на склон при следующей правке RampUp. Приём «плита Plastic+Studs без коллизии поверх склона» — для всех клиновых препятствий.
+P3 (поправлено): кромки красит `roleAccents` по РОЛИ поведения (безопасное — зелёный, движущееся — синий), не по редкости. P3 (сделано S12, сохранение 251: удалена как мусор): `Hazard1` у RampUp (y 2.05, z 4.6) спрятан внутри клина — убрать или положить на склон при следующей правке RampUp. Приём «плита Plastic+Studs без коллизии поверх склона» — для всех клиновых препятствий.
 
 ## Раунд 3: серия тем же приёмом (`speed_bounce.diff`, `speed_bounce_after.jpg`; «до» — `lineup_overview.jpg`/`before_lineup_moving_center.jpg`, где Speed — тёмная гладкая плита)
 - SpeedPlatform: Deck — Plastic+Studs, трение 0.2 (CustomPhysicalProperties), цвет тот же; добавлены DeckTrim x2 вдоль краёв без коллизии (цвет роли). Шевроны не тронуты.

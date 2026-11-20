@@ -20,7 +20,7 @@ TRAP LAB
 │   ├── ART-03 [С] Первый киоск сверен с эталоном в Studio, второй чекпоинт в Play
 │   ├── ART-04 [П] Стиль принятого образца перенесён на второй киоск, дальше NPC и препятствия
 │   ├── ART-05 [П] 27 препятствий создаются, палитра по роли, studs, механизмы
-│   │   ├── [С] S12: MovingPlatform (торцевые площадки и верх парома studded, трение 0.2) RampUp (плита со studs и кромки поверх клина без коллизии), SpeedPlatform (studs + кромки, ускорение 28 работает) и HighDeck BouncePad — ACCEPT chief. Кромки — цвет роли (roleAccents). Таблица 27 и порядок серии: docs/review-evidence/S12-ART05-moving/manifest.md; дальше кромки SmallJump/NarrowBridge/Falling, Hazard1 у RampUp, EndPad через deckSlab. NOT TESTED: кадр на курсе игрока, NPC по рампе
+│   │   ├── [С] S12: MovingPlatform (торцевые площадки и верх парома studded, трение 0.2) RampUp (плита со studs и кромки поверх клина без коллизии), SpeedPlatform (studs + кромки, ускорение 28 работает) и HighDeck BouncePad — ACCEPT chief. Кромки — цвет роли (roleAccents). Таблица 27 и порядок серии: docs/review-evidence/S12-ART05-moving/manifest.md; дальше кромки SmallJump/NarrowBridge/Falling, EndPad через deckSlab (Hazard1 внутри клина RampUp удалён). NOT TESTED: кадр на курсе игрока, NPC по рампе
 │   │   ├── [С] Шипы, финиш, мост, молот, огонь и другие модели переработаны
 │   │   └── [С] Electric Floor, Moving Platform и Rotating Bar осмотрены на живом стенде
 │   ├── ART-06 [С] NPC и продавцы переведены на одетые Roblox-аватары

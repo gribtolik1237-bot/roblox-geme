@@ -74,7 +74,6 @@ B.RampUp = function(m)
 	-- default wedge: slope rises toward -Z? orient so the high edge is at -Z (exit)
 	w.CFrame = CF(0, 4, 0) * CFrame.Angles(0, math.rad(180), 0)
 	w.Color = C.deck; w.Material = Enum.Material.SmoothPlastic; w.Anchored = true; w.TopSurface = Enum.SurfaceType.Smooth; w.Parent = m
-	part(m, "Hazard1", V(8, 0.1, 0.8), CF(0, 2.05, 4.6), C.yellow, Enum.Material.Neon, { CanCollide = false })
 	-- S12 art pass (chief recipe): a studded deck plate laid ON the slope + rarity trims, all decorative (no collision/query/touch);
 	-- the wedge underneath keeps the physics untouched. Slope = atan(4/12) ~ 18.4 deg, its plane passes through the wedge centre.
 	local slopeCF = CF(0, 4, 0) * CFrame.Angles(math.atan2(4, 12), 0, 0)
