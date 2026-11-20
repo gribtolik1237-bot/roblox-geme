@@ -8,6 +8,7 @@
 - **Описание типов Roblox:** `C:\Users\yarik\tools\luau\0.747\globalTypes.None.d.luau` (713 040 байт, SHA-256 `8aba2dc66d16a620e5dd286129c7cbe45608a5690befa2310d0b8f5b917dc7d3`, из https://github.com/JohnnyMorganz/luau-lsp, папка scripts). Эта сборка анализатора не принимает файл определений (нет ключа `--defs`), поэтому файл пока не используется.
 - **Запуск:** `node tools/luau-lint.cjs` из корня репозитория. Скрипт гоняет анализатор по `place/**/*.luau`, отбрасывает ошибки типов и пишет список замечаний линтера в `work/luau-lint.txt` с подсчётом по правилам.
 - **Результат 2026-11-19:** 76 файлов, 79 замечаний линтера: SameLineStatement 59, LocalUnused 11, ImportUnused 3, FunctionUnused 2, ImplicitReturn 2, UnknownType 2.
+- **Результат 2026-11-20 (S11):** после двух пакетов TECH-05 — 2 замечания, оба UnknownType 'Vector3' (нет определений Roblox, не ошибка кода).
 - **Ограничение:** без определений Roblox анализатор не знает `game`, `Vector3`, `Enum`, поэтому полный счёт Studio Script Analysis (169 предупреждений на 2026-11-18) этим не воспроизвести. Для полного совпадения нужен `luau-lsp analyze --definitions=...` (не скачан, спросить владельца).
 - Studio MCP не отдаёт диагностику Script Analysis, поэтому остальные 90 предупреждений Studio берутся только с панели Studio (View → Script Analysis), которую может скопировать владелец.
 
