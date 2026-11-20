@@ -13,7 +13,6 @@ local COLS, ROWS = 10, 16
 local CREAM, PEACH = rgb(250, 232, 186), rgb(241, 196, 128)
 local TEAL, MINT = rgb(24, 170, 176), rgb(124, 232, 226)
 local NAVY = SignKit.WOOD_DARK
-local INERT = { CanCollide = false, CanQuery = false, CanTouch = false }
 Dress.KioskZ = 58                                   -- side stalls face the plaza centre: seen edge-on from the aisle they never hide the boards behind them
 Dress.DiscX = -586
 Dress.DiscDist = 17.5                               -- from the kiosk centre to the disc centre (Landing is 12.3 in front of the counter line)

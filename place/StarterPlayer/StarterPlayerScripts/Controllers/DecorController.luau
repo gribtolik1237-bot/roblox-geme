@@ -22,6 +22,7 @@ local ERRORS = require(game:GetService("ReplicatedStorage").Configs.Strings).Dec
 
 local function myPlot()
 	for _, m in workspace.PlayerPlots:GetChildren() do if m:GetAttribute("OwnerId") == Players.LocalPlayer.UserId then return m end end
+	return nil
 end
 
 -- plot-local (x, z) under the mouse (ray vs the ground plane of the plot)

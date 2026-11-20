@@ -11,7 +11,6 @@ local Net = require(ReplicatedStorage.Shared.Net)
 local PlayerDataService = require(script.Parent.PlayerDataService)
 local PlotService = require(script.Parent.PlotService)
 local StateSync = require(script.Parent.StateSync)
-local CourseValidationService = require(script.Parent.CourseValidationService)
 
 local Service = {}
 Service.Rebirthed = Instance.new("BindableEvent")   -- (player, newRebirth)

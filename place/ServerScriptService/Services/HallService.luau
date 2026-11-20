@@ -3,7 +3,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
-local Balance = require(ReplicatedStorage.Configs.Balance)
 local Net = require(ReplicatedStorage.Shared.Net)
 local SignKit = require(ReplicatedStorage.Shared.SignKit)
 local Skin = require(ReplicatedStorage.Shared.BoardSkin)

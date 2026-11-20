@@ -3,7 +3,6 @@
 -- outlines, white text with a heavy dark stroke (Fredoka), big 3D icons that overhang their plates, a red square close button on the window corner.
 -- One visual language for every window, button and toast.
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Rarities = require(script.Parent.Parent.Configs.Rarities)
 local Icons = require(script.Parent.Parent.Configs.Icons)

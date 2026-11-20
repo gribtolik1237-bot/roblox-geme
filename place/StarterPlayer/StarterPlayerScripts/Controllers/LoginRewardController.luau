@@ -1,6 +1,5 @@
 -- Daily login gift window (LoginRewardService). Opens by itself once per session, a few seconds after joining, only when the server
 -- says a claim is possible (after the tutorial's first NPC run). 7 day tiles, today's tile highlighted, one big green Claim button.
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 

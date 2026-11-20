@@ -4,7 +4,6 @@
 local Obstacles = require(script.Parent.Parent.Configs.Obstacles)
 local Rarities = require(script.Parent.Parent.Configs.Rarities)
 
-local M = {}
 local V, CF = Vector3.new, CFrame.new
 local function rgb(r: number, g: number, b: number): Color3 return Color3.fromRGB(r, g, b) end
 
@@ -266,7 +265,7 @@ B.SpikePlatform = function(m)
 	for ix = 0, 4 do for iz = 0, 6 do
 		-- chunky steel spike (wide foot, narrower body, red hot tip): reads as DANGER, not as matchsticks (session 6 review)
 		part(sm, "SpikeFoot", V(1.4, 0.6, 1.4), CF(-4 + ix * 2, 2 + 0.3, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(150, 156, 172), Enum.Material.Metal, { CanCollide = false })
-		local sp = part(sm, "Spike", V(1.0, 2.4, 1.0), CF(-4 + ix * 2, 2 + 1.5, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(196, 202, 216), Enum.Material.Metal, { CanCollide = false })
+		part(sm, "Spike", V(1.0, 2.4, 1.0), CF(-4 + ix * 2, 2 + 1.5, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), rgb(196, 202, 216), Enum.Material.Metal, { CanCollide = false })
 		part(sm, "Tip", V(0.6, 0.8, 0.6), CF(-4 + ix * 2, 2 + 3.0, -6 + iz * 2) * CFrame.Angles(0, math.rad(45), 0), C.red, Enum.Material.Neon, { CanCollide = false })
 	end end
 	sm.PrimaryPart = root

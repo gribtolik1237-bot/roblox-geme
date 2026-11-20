@@ -1,7 +1,6 @@
 --!strict
 -- Owns the physical plots: ground, build zone, start area, NPC pads, PLAY sign. Assigns plots to players.
 -- BuildWorld() is idempotent and can also be run in Edit mode to bake the world for inspection.
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 
@@ -309,10 +308,9 @@ local function buildPlot(i: number): Plot
 	local sign = buildSign(model, cf, i)
 	buildSaveBoard(model, cf, i)
 	-- entrance: studded paving from the lobby aisle to the PLAY sign, a two-ring green "stand here" disc in front of it, bushes/lamps along the way
-	local inert = { CanCollide = false, CanQuery = false, CanTouch = false }
 	mk(model, "Path", Vector3.new(14, 0.3, 62), cf * CFrame.new(0, 0.15, 58), SignKit.SAND, nil, { studs = true, CanCollide = false, CanQuery = false, CanTouch = false })
-	local ring = mk(model, "PlayRing", Vector3.new(0.12, 18, 18), cf * CFrame.new(0, 0.1, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 150, 72), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false })
-	local disc = mk(model, "PlayDisc", Vector3.new(0.12, 14.5, 14.5), cf * CFrame.new(0, 0.16, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(104, 226, 138), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Transparency = 0.1 })
+	mk(model, "PlayRing", Vector3.new(0.12, 18, 18), cf * CFrame.new(0, 0.1, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(30, 150, 72), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false })
+	mk(model, "PlayDisc", Vector3.new(0.12, 14.5, 14.5), cf * CFrame.new(0, 0.16, 19) * CFrame.Angles(0, 0, math.rad(90)), Color3.fromRGB(104, 226, 138), Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Transparency = 0.1 })
 	for _, sx in { -1, 1 } do
 		prop(model, cf, "Bush", sx * 13, 40, 0, 1.45); prop(model, cf, "Bush", sx * 13.5, 62, 40, 1.3)
 		prop(model, cf, "FlowerPatch", sx * 14, 50, 0, 2); prop(model, cf, "Lantern", sx * 10, 30, 0, 1.15); prop(model, cf, "Lantern", sx * 10, 80, 0, 1.15)

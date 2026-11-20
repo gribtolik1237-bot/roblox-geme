@@ -1,7 +1,7 @@
 {
-  "exportedAt": "2026-11-19T19:27:29.526Z",
+  "exportedAt": "2026-11-20T07:33:15.914Z",
   "placeId": 135937017652181,
-  "placeVersion": 217,
+  "placeVersion": 236,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
   "verification": "Inventory and Adler-32 before/after export, UTF-8 byte counts, local SHA-256",
   "scope": "LuaSourceContainer under the eight game services listed in export-place.cjs; geometry and assets are separate",
@@ -122,9 +122,9 @@
       "studioPath": "ReplicatedStorage/Shared/ObstacleModels",
       "file": "ReplicatedStorage/Shared/ObstacleModels.luau",
       "class": "ModuleScript",
-      "bytes": 27926,
-      "adler32": 321068510,
-      "sha256": "cee18e01f42ab590b18ba19f98645ebd4e9633e190fbf697348ccd808f6cf3bf"
+      "bytes": 27902,
+      "adler32": 2126321244,
+      "sha256": "b152b9b784875a2e909630f3565fb1d052f00c0fc2adc79d01fbf77aa5bc918a"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/PlotMath",
@@ -146,9 +146,9 @@
       "studioPath": "ReplicatedStorage/Shared/UIKit",
       "file": "ReplicatedStorage/Shared/UIKit.luau",
       "class": "ModuleScript",
-      "bytes": 24093,
-      "adler32": 3171951682,
-      "sha256": "213fbbd0d9b7dad7f06c04ce1ef1a228b4f08ef50cc3c5125051073fb883fb5c"
+      "bytes": 24050,
+      "adler32": 4184937846,
+      "sha256": "6a6364f3817ef1e87efdbbce23a83b7613689e8088b02b9ea819c217ecef55b3"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/Util",
@@ -202,9 +202,9 @@
       "studioPath": "ServerScriptService/Services/HallService",
       "file": "ServerScriptService/Services/HallService.luau",
       "class": "ModuleScript",
-      "bytes": 7059,
-      "adler32": 2521796264,
-      "sha256": "eb4504e3e49595d96dbd86ae5d70ceb0d1ba1afdaf9efeb7441195801d17f0be"
+      "bytes": 7000,
+      "adler32": 1684109669,
+      "sha256": "286490b2924ff78a788bfe43f4024cb71c39ca15c4ed39a7fd3c37557a0a3c01"
     },
     {
       "studioPath": "ServerScriptService/Services/LeaderboardService",
@@ -226,17 +226,17 @@
       "studioPath": "ServerScriptService/Services/ManualCourseRunService",
       "file": "ServerScriptService/Services/ManualCourseRunService.luau",
       "class": "ModuleScript",
-      "bytes": 13429,
-      "adler32": 2474490791,
-      "sha256": "da5e1bd7d8a7fd91446e33cf2db927f593dd3d1a997ecd1b176ee41e8053f549"
+      "bytes": 13378,
+      "adler32": 2045159696,
+      "sha256": "2e41979fa7162d6e4cd99419c73defba771f84f657b40bfe4c247b3ee2bfb032"
     },
     {
       "studioPath": "ServerScriptService/Services/NPCBrainService",
       "file": "ServerScriptService/Services/NPCBrainService.luau",
       "class": "ModuleScript",
-      "bytes": 27672,
-      "adler32": 1092118385,
-      "sha256": "9b1fca74be47a05c85206387fe407fc0fb796cc46196b73c6f072e70606d9173"
+      "bytes": 27449,
+      "adler32": 262022567,
+      "sha256": "ead32260dc3bf84432fa8ae608440d910e2f48aa5e5e7d8a1137d5b7400e0ca2"
     },
     {
       "studioPath": "ServerScriptService/Services/NPCPlacementService",
@@ -250,9 +250,9 @@
       "studioPath": "ServerScriptService/Services/NPCRunService",
       "file": "ServerScriptService/Services/NPCRunService.luau",
       "class": "ModuleScript",
-      "bytes": 12098,
-      "adler32": 192603616,
-      "sha256": "d562f25caa15fa406aa830ca025e5a6e30bb80193ce155d1fb6a71876c4431b1"
+      "bytes": 11872,
+      "adler32": 608605892,
+      "sha256": "88436f7aed2fefb5fe2a85bc14c657548bfb839f87d5d1dcb6c07bf45da0d27f"
     },
     {
       "studioPath": "ServerScriptService/Services/NPCShopService",
@@ -290,9 +290,9 @@
       "studioPath": "ServerScriptService/Services/PlotService",
       "file": "ServerScriptService/Services/PlotService.luau",
       "class": "ModuleScript",
-      "bytes": 31574,
-      "adler32": 3555734684,
-      "sha256": "fbd7c6b1f93eaf01e8857c439fdc81fe7bd68a872ae8e694ed560c4f099bbaa6"
+      "bytes": 31431,
+      "adler32": 3947758813,
+      "sha256": "8878de4de713d77b7f47361f0e4d7d65104ff5b8fe01a8a20ddc47f2affb56a2"
     },
     {
       "studioPath": "ServerScriptService/Services/RatingService",
@@ -306,9 +306,9 @@
       "studioPath": "ServerScriptService/Services/RebirthService",
       "file": "ServerScriptService/Services/RebirthService.luau",
       "class": "ModuleScript",
-      "bytes": 2530,
-      "adler32": 2691065536,
-      "sha256": "198c3f27148ccdec17a6e01540f40553b8f2ab874bc31c2c00325fba542e0dbb"
+      "bytes": 2451,
+      "adler32": 1348421835,
+      "sha256": "28400061d8d6e817ba32ea098ee90fee613932d73b75a22985fc8aca2b72a9ae"
     },
     {
       "studioPath": "ServerScriptService/Services/RewardService",
@@ -450,9 +450,9 @@
       "studioPath": "ServerStorage/WorldRecipes/MarketDress",
       "file": "ServerStorage/WorldRecipes/MarketDress.luau",
       "class": "ModuleScript",
-      "bytes": 5592,
-      "adler32": 1762430214,
-      "sha256": "4371443ae21c8db16ca1dafac316dbaa663b90f83c0059c6a81e75e0b0978644"
+      "bytes": 5519,
+      "adler32": 2556065119,
+      "sha256": "b43776f09231cf3f348674f8315c3bc21b8622a635dc13a495b760e1a190f833"
     },
     {
       "studioPath": "ServerStorage/WorldRecipes/ShopRestyle",
@@ -474,9 +474,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau",
       "class": "ModuleScript",
-      "bytes": 34703,
-      "adler32": 2718238629,
-      "sha256": "be58cf75a7351d448fa87eecf41c66fa00a51762bafe0cf7fa66e037543438a3"
+      "bytes": 34715,
+      "adler32": 4019981243,
+      "sha256": "605e419be2254afbd796202edaff48d6ccd381cb3498deaacc1f99034b234b29"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/CameraController",
@@ -498,9 +498,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/DecorController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/DecorController.luau",
       "class": "ModuleScript",
-      "bytes": 6254,
-      "adler32": 145884551,
-      "sha256": "96bcf1e27fc491e471ce03d2f98238bebaf195f14726b6abf122d0185f9ae836"
+      "bytes": 6266,
+      "adler32": 1250494877,
+      "sha256": "860280340caff8d56cd9db546f60738b325b2600d262b2cdf3a98f206fbe1b78"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/DonateController",
@@ -546,9 +546,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/LoginRewardController.luau",
       "class": "ModuleScript",
-      "bytes": 6563,
-      "adler32": 3774820326,
-      "sha256": "a3fe43ca55d358e49564e8f18ae0d830844ce92f513b8afb09c522a78921cca5"
+      "bytes": 6520,
+      "adler32": 1394745626,
+      "sha256": "c9fe87b0710e5b975bbe83a08ad8a1d47fe2486bc022b0940a63ee8219d802ae"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/MetaController",

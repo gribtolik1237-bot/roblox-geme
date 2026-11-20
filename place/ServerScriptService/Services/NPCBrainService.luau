@@ -34,13 +34,6 @@ local function validHazards(list: { any }?): { Hazard }
 	return out
 end
 
-local function segDist(p: Vector3, a: Vector3, b: Vector3): number
-	local ab = b - a
-	local l2 = ab:Dot(ab)
-	local t = if l2 < 1e-6 then 0 else math.clamp(ab:Dot(p - a) / l2, 0, 1)
-	return (p - (a + ab * t)).Magnitude
-end
-
 -- Hazard prediction (spec 10.6: account for the TIMING of moving platforms / hazards, not just static geometry).
 -- Every hazard descriptor is a pure function of server time, so the brain can ask "will I be hit if I keep walking?"
 local function hazardHit(h: Hazard, p: Vector3, t: number, radius: number): boolean

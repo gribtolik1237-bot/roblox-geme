@@ -46,6 +46,7 @@ local function findPlot()
 	for _, m in workspace.PlayerPlots:GetChildren() do
 		if m:GetAttribute("OwnerId") == player.UserId then return m end
 	end
+	return nil
 end
 
 local function existingBoxes(ignoreUid)

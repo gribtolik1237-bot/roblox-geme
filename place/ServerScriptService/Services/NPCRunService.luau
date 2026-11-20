@@ -2,10 +2,8 @@
 -- NPC attempts (spec 10.5, 11, 12.2). One attempt = one server run id. Stages are paid ONCE each on server-confirmed progress,
 -- the attempt ends exactly once (fall / finish / cancel / owner leaves), coins are granted ONCE via RewardService,
 -- then the NPC disappears with an effect, the pad/active slot is freed and the NPC stays in the collection.
-local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
-local CollectionService = game:GetService("CollectionService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -39,7 +37,6 @@ local lastLaunch: { [Player]: { [number]: number } } = {} -- [player] = { [pad] 
 
 -- (audit 2.4: the unused local isGround copy was removed - ground tests go through Systems.GroundCheck -> Shared.Util.isGround)
 
-local function notify(player: Player, text: string, kind: string?) Net.fire("Notify", player, text, kind or "info") end
 local function event(run: Run, p: { [string]: any }) p.pad = run.pad; p.npc = run.def.name; p.total = #run.analysis.stages; Net.fire("NpcState", run.player, p) end
 
 local function despawn(run: Run)
