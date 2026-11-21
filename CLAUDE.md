@@ -50,7 +50,7 @@
 - В сгенерированном Luau `t[[==[ключ]==]]` читается как вызов с длинной строкой: пиши `t[ [==[ключ]==] ]` с пробелами (S11/S12).
 - Если Skill-инструмент не видит `roblox-craft-studio` (Unknown skill, хотя ListSkills показывает его включённым), читать файлы навыка с диска: `%LOCALAPPDATA%/Claude-Data/claude_pzs8sxrjxfjjc/rpm/4a34f6d2/c1bd64ad/plugin_019zmHgQwxrvq8uufg7atoBD/skills/roblox-craft-studio/` (SKILL.md + references), S13.
 - `screen_capture` с camera_position не двигает `workspace.CurrentCamera`: эффекты с отсечкой по расстоянию до камеры не работают на таком кадре. Для честного кадра закреплять настоящую камеру `RunService:BindToRenderStep` (камера игры иначе возвращается в Custom). `user_mouse_input` сам прибавляет 58 px верхней панели: для точки вьюпорта y передавать y-58 (S12/S13).
-- `screen_capture` рисует Highlight, но не частицы; детали, которые клиент перекрашивает каждый кадр, на части снимков выходят серыми — проверять выборкой цвета в RenderStepped, а не по одному кадру (S13).
+- `screen_capture` рисует Highlight, но не частицы. Серые NPC на снимках S13 я списал на артефакт по выборке свойства Color в RenderStepped — это было НЕВЕРНО: настоящий экран показал их серыми (дефект, S14 п.0). Свойство не равно картинке: при расхождении снимка и свойства проверять настоящим экраном (computer-use, владелец разрешил 2026-11-21).
 
 Локальные инструменты (luau-analyze и др.), их пути и правила: docs/TOOLS.md. Линт: `node tools/luau-lint.cjs`. Владелец сказал: «когда напишу продолжать, продолжай» TECH-05 по docs/TOOLS.md.
 
