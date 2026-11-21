@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-21T13:26:05.206Z",
+  "exportedAt": "2026-11-21T13:36:50.080Z",
   "placeId": 135937017652181,
   "placeVersion": 252,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -554,9 +554,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/NPCController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau",
       "class": "ModuleScript",
-      "bytes": 19202,
-      "adler32": 3551442324,
-      "sha256": "0cfcd707e2908c79759fd8e8f7ef0a9c4d060ae1faf376222bce0640771a738f"
+      "bytes": 24288,
+      "adler32": 1641277308,
+      "sha256": "c36827a1a4a58efc3ef7dfe1e91ede1a3369441d8e002ef5d1e1d8e38da2dae3"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/PromenadeController",

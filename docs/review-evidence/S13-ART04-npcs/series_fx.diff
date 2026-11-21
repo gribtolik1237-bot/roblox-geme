@@ -1,0 +1,156 @@
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+index 0354f40..9af0db7 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+@@ -204,33 +204,124 @@ function NPCController.Start()
+ 	progress = UIKit.new("Frame", { Name = "NpcProgress", BackgroundTransparency = 1, Size = UDim2.fromOffset(340, 170), Position = UDim2.new(1, -14, 1, -86), AnchorPoint = Vector2.new(1, 1) }, HUDController.Gui)
+ 	UIKit.new("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Right }, progress)
+ 
+-	-- S13 ART-04 (chief): Spectrum's declared Rainbow look (the attribute was set but never read). ONE client Heartbeat for every
+-	-- rainbow NPC, colour only (no size, mass or collision change), each body segment with its own hue offset so the colours flow
+-	-- from the head down; NPCs farther than 80 studs from the camera are skipped, updates are capped at 30 per second.
+-	local rainbow: { [Model]: { { part: BasePart, off: number } } } = {}
+-	local RB_OFF = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
++	-- S13 ART-04 (chief): rare-NPC looks, CLIENT ONLY. One Heartbeat (<=30 Hz) drives a registry fx[model] = update(t); NPCs farther
++	-- than 80 studs from the camera are skipped and their particles switched off beyond 60 studs. Only Color / Highlight / particles /
++	-- the existing Neon parts change - never size, mass, CanCollide or material of body parts (the server-simulated body is untouched).
++	local fx: { [Model]: (number, number) -> () } = {}
++	local fxEmitters: { [Model]: { ParticleEmitter } } = {}
++	local SEGMENTS = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
+ 		LeftHand = 0.26, RightHand = 0.26, LeftUpperLeg = 0.26, RightUpperLeg = 0.26, LeftLowerLeg = 0.34, RightLowerLeg = 0.34, LeftFoot = 0.42, RightFoot = 0.42 }
+-	local function startRainbow(m: Model)
+-		if rainbow[m] then return end
++	local function segments(m: Model): { { part: BasePart, off: number } }
+ 		local list = {}
+-		for name, off in RB_OFF do
++		for name, off in SEGMENTS do
+ 			local p = m:FindFirstChild(name)
+ 			if p and p:IsA("BasePart") then list[#list + 1] = { part = p, off = off } end
+ 		end
+-		rainbow[m] = list
++		return list
+ 	end
+-	local rbAcc = 0
++	local function neonParts(m: Model): { BasePart }
++		local list = {}
++		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Material == Enum.Material.Neon then list[#list + 1] = d end end
++		return list
++	end
++	local FX = {}
++	-- Spectrum (Secret): the declared Rainbow - each segment its own hue offset, the colours flow from the head down
++	FX.Spectrum = function(m: Model)
++		local segs = segments(m)
++		return function(t)
++			for _, e in segs do e.part.Color = Color3.fromHSV((t * 0.18 + e.off) % 1, 0.7, 1) end
++		end
++	end
++	-- Shadow (Mythic): not a black hole any more - deep violet body, violet outline, slow violet smoke, pulsing neon trims
++	FX.Shadow = function(m: Model)
++		for _, e in segments(m) do e.part.Color = Color3.fromRGB(46, 40, 70) end
++		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(150, 60, 255)
++		hl.OutlineTransparency = 0.15; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
++		local torso = m:FindFirstChild("UpperTorso")
++		if torso then
++			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxSmoke"; pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
++			pe.Color = ColorSequence.new(Color3.fromRGB(120, 60, 220), Color3.fromRGB(40, 20, 80)); pe.LightEmission = 0.35
++			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1.6) })
++			pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 1) })
++			pe.Lifetime = NumberRange.new(1, 1.6); pe.Rate = 8; pe.Speed = NumberRange.new(0.4, 1); pe.SpreadAngle = Vector2.new(30, 30)
++			pe.Acceleration = Vector3.new(0, 1.2, 0); pe.Parent = torso
++			fxEmitters[m] = { pe }
++		end
++		local neon = neonParts(m)
++		return function(t)
++			local k = 0.55 + 0.45 * math.sin(t * 3)
++			for _, p in neon do p.Color = Color3.fromRGB(70, 20, 140):Lerp(Color3.fromRGB(190, 110, 255), k) end
++		end
++	end
++	-- Glitch (Secret): "unstable code" - every 0.15-0.5 s one random body segment flashes a palette colour for 1-3 frames,
++	-- tiny square "pixel" particles leak from the torso (colour only, nothing moves)
++	FX.Glitch = function(m: Model)
++		local segs = segments(m)
++		local base = {}
++		for _, e in segs do base[e.part] = e.part.Color end
++		local pal = { Color3.fromRGB(40, 255, 160), Color3.fromRGB(255, 30, 120), Color3.fromRGB(60, 200, 255), Color3.fromRGB(240, 240, 255) }
++		local torso = m:FindFirstChild("UpperTorso")
++		if torso then
++			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxPixels"; pe.Texture = ""     -- no texture = square pixels
++			pe.Color = ColorSequence.new(Color3.fromRGB(40, 255, 160), Color3.fromRGB(255, 30, 120)); pe.LightEmission = 1
++			pe.Size = NumberSequence.new(0.14); pe.Lifetime = NumberRange.new(0.3, 0.6); pe.Rate = 10
++			pe.Speed = NumberRange.new(1, 2); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
++			fxEmitters[m] = { pe }
++		end
++		local hit, untilT, nextAt = nil, 0, 0
++		return function(t)
++			if hit and t >= untilT then hit.part.Color = base[hit.part]; hit = nil end
++			if not hit and t >= nextAt and #segs > 0 then
++				hit = segs[math.random(#segs)]
++				hit.part.Color = pal[math.random(#pal)]
++				untilT = t + math.random(1, 3) / 30
++				nextAt = t + 0.15 + math.random() * 0.35
++			end
++		end
++	end
++	-- Overlord (Secret): dark-red ruler with a contrasting smoulder - red outline, pulsing horn tips and cape edge, rising embers
++	FX.Overlord = function(m: Model)
++		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(255, 60, 40)
++		hl.OutlineTransparency = 0.2; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
++		local glow = {}
++		for _, d in m:GetDescendants() do
++			if d:IsA("BasePart") and (d.Name:find("HornTip") or d.Name:find("CapeTrim")) then d.Material = Enum.Material.Neon; glow[#glow + 1] = d end
++		end
++		local torso = m:FindFirstChild("UpperTorso")
++		if torso then
++			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxEmbers"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
++			pe.Color = ColorSequence.new(Color3.fromRGB(255, 170, 60), Color3.fromRGB(255, 40, 20)); pe.LightEmission = 1
++			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.22), NumberSequenceKeypoint.new(1, 0.05) })
++			pe.Lifetime = NumberRange.new(1, 1.5); pe.Rate = 10; pe.Speed = NumberRange.new(0.6, 1.4); pe.SpreadAngle = Vector2.new(25, 25)
++			pe.Acceleration = Vector3.new(0, 2, 0); pe.Parent = torso
++			fxEmitters[m] = { pe }
++		end
++		return function(t)
++			local k = 0.5 + 0.5 * math.sin(t * 2.4)
++			for _, p in glow do p.Color = Color3.fromRGB(150, 20, 10):Lerp(Color3.fromRGB(255, 90, 40), k) end
++		end
++	end
++	local function startFx(m: Model)
++		if fx[m] then return end
++		local id = m:GetAttribute("NpcId")
++		local make = (id and FX[id]) or (m:GetAttribute("Rainbow") and FX.Spectrum)
++		if not make then return end
++		local ok, update = pcall(make, m)
++		if ok and update then fx[m] = update end
++	end
++	local fxAcc = 0
+ 	game:GetService("RunService").Heartbeat:Connect(function(dt)
+-		rbAcc += dt
+-		if rbAcc < 1 / 30 then return end
+-		rbAcc = 0
++		fxAcc += dt
++		if fxAcc < 1 / 30 then return end
++		fxAcc = 0
+ 		local cam = workspace.CurrentCamera
+-		local t = os.clock() * 0.18
+-		for m, list in rainbow do
+-			if not m.Parent then rainbow[m] = nil; continue end
++		local t = os.clock()
++		for m, update in fx do
++			if not m.Parent then fx[m] = nil; fxEmitters[m] = nil; continue end
+ 			local root = m:FindFirstChild("HumanoidRootPart") :: BasePart?
+-			if cam and root and (root.Position - cam.CFrame.Position).Magnitude > 80 then continue end
+-			for _, e in list do e.part.Color = Color3.fromHSV((t + e.off) % 1, 0.7, 1) end
++			local dist = if cam and root then (root.Position - cam.CFrame.Position).Magnitude else 0
++			for _, pe in fxEmitters[m] or {} do pe.Enabled = dist <= 60 end
++			if dist <= 80 then update(t, dt) end
+ 		end
+ 	end)
+ 
+@@ -240,7 +331,7 @@ function NPCController.Start()
+ 			task.defer(function()
+ 				m:WaitForChild("Head", 5)
+ 				pcall(NPCRig.DressLocal, m)
+-				if m:GetAttribute("Rainbow") then startRainbow(m) end
++				startFx(m)
+ 			end)
+ 		end
+ 	end
