@@ -227,6 +227,15 @@ function NPCController.Start()
 		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Material == Enum.Material.Neon then list[#list + 1] = d end end
 		return list
 	end
+	local function mountParticles(torso: BasePart, emitter: ParticleEmitter)
+		-- Slow particles spawned inside the torso are hidden by the body for most of their lifetime.
+		local origin = Instance.new("Attachment")
+		origin.Name = "FxOrigin"
+		origin.Position = Vector3.new(torso.Size.X * 0.5, torso.Size.Y * 0.33, -torso.Size.Z * 0.68)
+		origin.Parent = torso
+		emitter.Enabled = false
+		emitter.Parent = origin
+	end
 	local FX = {}
 	-- Spectrum (Secret): the declared Rainbow - each segment its own hue offset, the colours flow from the head down
 	FX.Spectrum = function(m: Model)
@@ -241,13 +250,14 @@ function NPCController.Start()
 		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(150, 60, 255)
 		hl.OutlineTransparency = 0.15; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
 		local torso = m:FindFirstChild("UpperTorso")
-		if torso then
+		if torso and torso:IsA("BasePart") then
 			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxSmoke"; pe.Texture = "rbxasset://textures/particles/smoke_main.dds"
 			pe.Color = ColorSequence.new(Color3.fromRGB(120, 60, 220), Color3.fromRGB(40, 20, 80)); pe.LightEmission = 0.35
 			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1.6) })
 			pe.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 1) })
 			pe.Lifetime = NumberRange.new(1, 1.6); pe.Rate = 8; pe.Speed = NumberRange.new(0.4, 1); pe.SpreadAngle = Vector2.new(30, 30)
-			pe.Acceleration = Vector3.new(0, 1.2, 0); pe.Parent = torso
+			pe.Acceleration = Vector3.new(0, 1.2, 0)
+			mountParticles(torso, pe)
 			fxEmitters[m] = { pe }
 		end
 		local neon = neonParts(m)
@@ -264,11 +274,12 @@ function NPCController.Start()
 		for _, e in segs do base[e.part] = e.part.Color end
 		local pal = { Color3.fromRGB(40, 255, 160), Color3.fromRGB(255, 30, 120), Color3.fromRGB(60, 200, 255), Color3.fromRGB(240, 240, 255) }
 		local torso = m:FindFirstChild("UpperTorso")
-		if torso then
-			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxPixels"; pe.Texture = ""     -- no texture = square pixels
+		if torso and torso:IsA("BasePart") then
+			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxPixels"; pe.Texture = "rbxasset://textures/particles/SquareParticle.png"
 			pe.Color = ColorSequence.new(Color3.fromRGB(40, 255, 160), Color3.fromRGB(255, 30, 120)); pe.LightEmission = 1
 			pe.Size = NumberSequence.new(0.14); pe.Lifetime = NumberRange.new(0.3, 0.6); pe.Rate = 10
-			pe.Speed = NumberRange.new(1, 2); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
+			pe.Speed = NumberRange.new(1, 2); pe.SpreadAngle = Vector2.new(180, 180)
+			mountParticles(torso, pe)
 			fxEmitters[m] = { pe }
 		end
 		local nextAt = 0
@@ -292,12 +303,13 @@ function NPCController.Start()
 			if d:IsA("BasePart") and (d.Name:find("HornTip") or d.Name:find("CapeTrim")) then d.Material = Enum.Material.Neon; glow[#glow + 1] = d end
 		end
 		local torso = m:FindFirstChild("UpperTorso")
-		if torso then
+		if torso and torso:IsA("BasePart") then
 			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxEmbers"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
 			pe.Color = ColorSequence.new(Color3.fromRGB(255, 170, 60), Color3.fromRGB(255, 40, 20)); pe.LightEmission = 1
 			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.22), NumberSequenceKeypoint.new(1, 0.05) })
 			pe.Lifetime = NumberRange.new(1, 1.5); pe.Rate = 10; pe.Speed = NumberRange.new(0.6, 1.4); pe.SpreadAngle = Vector2.new(25, 25)
-			pe.Acceleration = Vector3.new(0, 2, 0); pe.Parent = torso
+			pe.Acceleration = Vector3.new(0, 2, 0)
+			mountParticles(torso, pe)
 			fxEmitters[m] = { pe }
 		end
 		return function(t)
@@ -314,11 +326,12 @@ function NPCController.Start()
 		local shards = {}
 		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:find("Shard") then d.Material = Enum.Material.Neon; shards[#shards + 1] = d end end
 		local torso = m:FindFirstChild("UpperTorso")
-		if torso then
+		if torso and torso:IsA("BasePart") then
 			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxGlints"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
 			pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255)); pe.LightEmission = 1
 			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
-			pe.Lifetime = NumberRange.new(0.6, 1); pe.Rate = 5; pe.Speed = NumberRange.new(0.3, 0.8); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
+			pe.Lifetime = NumberRange.new(0.6, 1); pe.Rate = 5; pe.Speed = NumberRange.new(0.3, 0.8); pe.SpreadAngle = Vector2.new(180, 180)
+			mountParticles(torso, pe)
 			fxEmitters[m] = { pe }
 		end
 		return function(t)
@@ -339,11 +352,12 @@ function NPCController.Start()
 		local stars = {}
 		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:match("Star%d+$") then stars[#stars + 1] = d end end
 		local torso = m:FindFirstChild("UpperTorso")
-		if torso then
+		if torso and torso:IsA("BasePart") then
 			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxDust"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
 			pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(200, 170, 255)); pe.LightEmission = 1
 			pe.Size = NumberSequence.new(0.1); pe.Lifetime = NumberRange.new(1.5, 2.5); pe.Rate = 6
-			pe.Speed = NumberRange.new(0.2, 0.5); pe.SpreadAngle = Vector2.new(60, 60); pe.Acceleration = Vector3.new(0, 0.6, 0); pe.Parent = torso
+			pe.Speed = NumberRange.new(0.2, 0.5); pe.SpreadAngle = Vector2.new(60, 60); pe.Acceleration = Vector3.new(0, 0.6, 0)
+			mountParticles(torso, pe)
 			fxEmitters[m] = { pe }
 		end
 		return function(t)
