@@ -47,7 +47,7 @@ local function renderBoard(id)
 	local res = Leaderboard.Fetch(id)
 	local rows = {}
 	for i, r in res.rows do rows[i] = { n = r.name, v = short(r.value), u = r.userId } end
-	publish(id, rows, if res.source == "global" then "worldwide - updates every minute - scroll for the top 100" else "this server only (global list unavailable)")
+	publish(id, rows, if res.source == "global" then "top 100 worldwide - scroll" else "this server only - scroll")
 end
 
 -- POPULAR: courses of the players online now (Leaderboard.Popular, same score as TOP OBBY): name, owner, shown rating
@@ -55,7 +55,7 @@ local function renderPopular()
 	local list = Leaderboard.Popular()
 	local rows = {}
 	for i, c in list do rows[i] = { n = c.name .. "  -  " .. c.owner, v = if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new", u = c.ownerId } end
-	publish("popular", rows, if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!")
+	publish("popular", rows, if #list > 0 then "online now - press E to visit" else "no courses online yet - build one!")
 end
 
 -- a two-tone studded paved plaza (8x8 tiles) under the whole hall, with a darker curb

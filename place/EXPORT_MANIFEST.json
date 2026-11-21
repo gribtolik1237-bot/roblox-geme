@@ -1,7 +1,7 @@
 {
-  "exportedAt": "2026-11-20T08:59:28.476Z",
+  "exportedAt": "2026-11-21T13:22:02.682Z",
   "placeId": 135937017652181,
-  "placeVersion": 236,
+  "placeVersion": 252,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
   "verification": "Inventory and Adler-32 before/after export, UTF-8 byte counts, local SHA-256",
   "scope": "LuaSourceContainer under the eight game services listed in export-place.cjs; geometry and assets are separate",
@@ -90,9 +90,9 @@
       "studioPath": "ReplicatedStorage/Shared/BoardSkin",
       "file": "ReplicatedStorage/Shared/BoardSkin.luau",
       "class": "ModuleScript",
-      "bytes": 9716,
-      "adler32": 3475310585,
-      "sha256": "cda6d05dba930f8d2a17b33a3da8ea23e87b3c794602893657567f4692ed5608"
+      "bytes": 9810,
+      "adler32": 1581786638,
+      "sha256": "0f166bcad456b3e89418998dd487df8684823caf6affd1f4d2233899e3f40573"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/DecorModels",
@@ -122,9 +122,9 @@
       "studioPath": "ReplicatedStorage/Shared/ObstacleModels",
       "file": "ReplicatedStorage/Shared/ObstacleModels.luau",
       "class": "ModuleScript",
-      "bytes": 29701,
-      "adler32": 546199223,
-      "sha256": "cb387dcce041655178d1ef8b25dfe098d89d180f1fec883a123ff1233b47f439"
+      "bytes": 29248,
+      "adler32": 2325597203,
+      "sha256": "fe4370b83177e7fecd8f70bbecdcdb784c2bbe71c290074f8bdbde1b9009a7e2"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/PlotMath",
@@ -202,17 +202,17 @@
       "studioPath": "ServerScriptService/Services/HallService",
       "file": "ServerScriptService/Services/HallService.luau",
       "class": "ModuleScript",
-      "bytes": 7059,
-      "adler32": 1280613238,
-      "sha256": "73718e50a241513f861843c2251c2e6b107b35a77ceabc9defee03154176c99e"
+      "bytes": 6993,
+      "adler32": 4021519180,
+      "sha256": "64a61f9f6d396cab2dd128aef3a76ffc84c14ae1804ab244df4241cba201b1fb"
     },
     {
       "studioPath": "ServerScriptService/Services/LeaderboardService",
       "file": "ServerScriptService/Services/LeaderboardService.luau",
       "class": "ModuleScript",
-      "bytes": 7819,
-      "adler32": 4019461136,
-      "sha256": "2d8b5f046ae2a0108af43855b4a4eb8c5594368958101fb958258f75f5f78250"
+      "bytes": 9704,
+      "adler32": 3404422585,
+      "sha256": "c6fd4df006a78a1c8764a97d530d395031128ced793939b9b4869035c54cc7a9"
     },
     {
       "studioPath": "ServerScriptService/Services/LoginRewardService",
@@ -474,9 +474,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BoardController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau",
       "class": "ModuleScript",
-      "bytes": 2483,
-      "adler32": 3831378649,
-      "sha256": "7a55e5e71f724b2d681bfeb993633e53bc15d8c3d37e573deb29b31af0eb5335"
+      "bytes": 2638,
+      "adler32": 748381157,
+      "sha256": "a211eb488d87fa3b4bb76d45ebd9266f70d61a59cfd583faa5f14df321c72958"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController",

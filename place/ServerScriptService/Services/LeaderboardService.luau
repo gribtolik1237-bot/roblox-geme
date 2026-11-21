@@ -21,7 +21,8 @@ local STORE = { money = "TrapLab_TopMoney_v1" .. SUFFIX, rebirths = "TrapLab_Top
 L.Kinds = { "money", "rebirths", "obby" }
 
 local cache: { [string]: Board } = {}
-local names: { [number]: string } = {}
+local names: { [number]: { n: string, ok: boolean, t: number } } = {}   -- D039-2: failures are retried, not cached forever
+local inflight: { [string]: boolean } = {}                              -- D039-1: one GetSortedAsync wave per board at a time
 local lastWrite: { [Player]: number } = {}
 local lastValue: { [Player]: { [string]: number } } = {}
 
@@ -90,13 +91,38 @@ function L.Flush(player: Player, force: boolean?)
 	end
 end
 
+local NAME_RETRY, NAME_BATCH = 90, 15
+-- D039-1/2 (chief, S13): resolve up to 100 names in parallel batches (not 100 sequential web calls), keep a failure only for
+-- NAME_RETRY seconds and show "User <id>" meanwhile, so a rate-limit hiccup no longer leaves "Player" on the board for good.
+local function resolveNames(uids: { number })
+	local todo: { number } = {}
+	for _, uid in uids do
+		if not Players:GetPlayerByUserId(uid) then
+			local e = names[uid]
+			if not e or (not e.ok and os.clock() - e.t > NAME_RETRY) then todo[#todo + 1] = uid end
+		end
+	end
+	for i = 1, #todo, NAME_BATCH do
+		local left = 0
+		for j = i, math.min(i + NAME_BATCH - 1, #todo) do
+			left += 1
+			local uid = todo[j]
+			task.spawn(function()
+				local ok, n = pcall(Players.GetNameFromUserIdAsync, Players, uid)
+				names[uid] = { n = if ok and type(n) == "string" then n else ("User " .. uid), ok = ok and type(n) == "string", t = os.clock() }
+				left -= 1
+			end)
+		end
+		local t0 = os.clock()
+		while left > 0 and os.clock() - t0 < 10 do task.wait(0.05) end
+	end
+end
+
 local function nameOf(userId: number): string
 	local pl = Players:GetPlayerByUserId(userId)
 	if pl then return pl.DisplayName end
-	if names[userId] then return names[userId] end
-	local ok, n = pcall(function() return Players:GetNameFromUserIdAsync(userId) end)
-	names[userId] = if ok then n else "Player"
-	return names[userId]
+	local e = names[userId]
+	return if e then e.n else ("User " .. userId)
 end
 
 local function serverRows(kind: string): { BoardRow }
@@ -115,26 +141,42 @@ end
 function L.Fetch(kind: string): Board
 	local c = cache[kind]
 	if c and os.clock() - c.t < B.ReadEvery then return c end
-	local s = store(kind)
+	if inflight[kind] then          -- another caller is already refreshing this board: serve the old list, or wait for the new one
+		if c then return c end
+		local t0 = os.clock()
+		while inflight[kind] and os.clock() - t0 < 30 do task.wait(0.2) end
+		return cache[kind] or { t = os.clock(), rows = serverRows(kind), source = "server" }
+	end
+	inflight[kind] = true
+	local okStore, s = pcall(store, kind)      -- chief P3-1: nothing below may throw while inflight is set
+	if not okStore then s = nil end
 	local rows: { BoardRow }? = nil
 	if s then
-		local ok, list = pcall(function(): { BoardRow }
-			local out: { BoardRow } = {}
+		local ok, entries = pcall(function(): { any }
+			local out = {}
 			for i, e in s:GetSortedAsync(false, B.Size):GetCurrentPage() do
 				local uid = tonumber(e.key)
-				if uid and e.value > 0 then out[#out + 1] = { rank = i, userId = uid, name = nameOf(uid), value = e.value } end
+				if uid and e.value > 0 then out[#out + 1] = { rank = i, userId = uid, value = e.value } end
 			end
 			return out
 		end)
-		if ok then rows = list end
+		if ok then
+			local uids = {}
+			for i, e in entries do uids[i] = e.userId end
+			pcall(resolveNames, uids)
+			rows = {}
+			for i, e in entries do (rows :: any)[i] = { rank = e.rank, userId = e.userId, name = nameOf(e.userId), value = e.value } end
+		end
 	end
 	local res: Board
 	if rows then
 		res = { t = os.clock(), rows = rows, source = "global" }
 	else
-		res = { t = os.clock(), rows = serverRows(kind), source = "server" }
+		local okRows, sr = pcall(serverRows, kind)
+		res = { t = os.clock(), rows = if okRows then sr else {}, source = "server" }
 	end
 	cache[kind] = res
+	inflight[kind] = nil
 	return res
 end
 

@@ -17,8 +17,8 @@ local function fill(refs, board, id)
 	local mine
 	for i, row in refs.rows do
 		local r = rows[i]
-		row.Visible = r ~= nil or i <= 10
-		row:FindFirstChild("Name").Text = if r then tostring(r.n) else "-"
+		row.Visible = r ~= nil or (i == 1 and #rows == 0)      -- D039-5: no "-" filler rows, one invitation row when the board is empty
+		row:FindFirstChild("Name").Text = if r then tostring(r.n) else (if id == "popular" then "No courses yet" else "Be the first!")
 		row:FindFirstChild("Value").Text = if r then tostring(r.v) else ""
 		if r and r.u == player.UserId then mine = i end
 	end

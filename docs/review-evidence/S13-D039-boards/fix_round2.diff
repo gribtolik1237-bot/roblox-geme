@@ -1,0 +1,152 @@
+diff --git a/place/ReplicatedStorage/Shared/BoardSkin.luau b/place/ReplicatedStorage/Shared/BoardSkin.luau
+index 3e3107b..e2b34f3 100644
+--- a/place/ReplicatedStorage/Shared/BoardSkin.luau
++++ b/place/ReplicatedStorage/Shared/BoardSkin.luau
+@@ -94,7 +94,8 @@ function Skin.buildScroll(board: BasePart, face: Enum.NormalId, stand, parent: I
+ 	list.ScrollBarImageColor3 = stand.color; list.ScrollBarImageTransparency = 0.1; list.Active = true; list.Parent = bg
+ 	local lay = Instance.new("UIListLayout"); lay.Padding = UDim.new(0, ROW_GAP); lay.SortOrder = Enum.SortOrder.LayoutOrder; lay.Parent = list
+ 	local refs = { gui = g, you = you, list = list, rows = {} }
+-	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.948), Text = "", Font = SignKit.BODY, TextColor3 = SignKit.MUTED, noStroke = true })
++	-- D039-4: taller footer (was 0.04, unreadable on phones); the text is short (HallService)
++	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.052), Position = UDim2.fromScale(0.03, 0.944), Text = "", Font = SignKit.TITLE, TextColor3 = SignKit.MUTED, noStroke = true })
+ 	-- rows are created on demand (Popular has only a few), never more than Balance.Boards.Size
+ 	function refs.ensure(n: number)
+ 		for i = #refs.rows + 1, math.min(n, Balance.Boards.Size) do refs.rows[i] = scrollRow(list, i, stand) end
+diff --git a/place/ServerScriptService/Services/HallService.luau b/place/ServerScriptService/Services/HallService.luau
+index ce9e658..b341656 100644
+--- a/place/ServerScriptService/Services/HallService.luau
++++ b/place/ServerScriptService/Services/HallService.luau
+@@ -47,7 +47,7 @@ local function renderBoard(id)
+ 	local res = Leaderboard.Fetch(id)
+ 	local rows = {}
+ 	for i, r in res.rows do rows[i] = { n = r.name, v = short(r.value), u = r.userId } end
+-	publish(id, rows, if res.source == "global" then "worldwide - updates every minute - scroll for the top 100" else "this server only (global list unavailable)")
++	publish(id, rows, if res.source == "global" then "top 100 worldwide - scroll" else "this server only - scroll")
+ end
+ 
+ -- POPULAR: courses of the players online now (Leaderboard.Popular, same score as TOP OBBY): name, owner, shown rating
+@@ -55,7 +55,7 @@ local function renderPopular()
+ 	local list = Leaderboard.Popular()
+ 	local rows = {}
+ 	for i, c in list do rows[i] = { n = c.name .. "  -  " .. c.owner, v = if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new", u = c.ownerId } end
+-	publish("popular", rows, if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!")
++	publish("popular", rows, if #list > 0 then "online now - press E to visit" else "no courses online yet - build one!")
+ end
+ 
+ -- a two-tone studded paved plaza (8x8 tiles) under the whole hall, with a darker curb
+diff --git a/place/ServerScriptService/Services/LeaderboardService.luau b/place/ServerScriptService/Services/LeaderboardService.luau
+index 794f54a..ac3e10b 100644
+--- a/place/ServerScriptService/Services/LeaderboardService.luau
++++ b/place/ServerScriptService/Services/LeaderboardService.luau
+@@ -21,7 +21,8 @@ local STORE = { money = "TrapLab_TopMoney_v1" .. SUFFIX, rebirths = "TrapLab_Top
+ L.Kinds = { "money", "rebirths", "obby" }
+ 
+ local cache: { [string]: Board } = {}
+-local names: { [number]: string } = {}
++local names: { [number]: { n: string, ok: boolean, t: number } } = {}   -- D039-2: failures are retried, not cached forever
++local inflight: { [string]: boolean } = {}                              -- D039-1: one GetSortedAsync wave per board at a time
+ local lastWrite: { [Player]: number } = {}
+ local lastValue: { [Player]: { [string]: number } } = {}
+ 
+@@ -90,13 +91,38 @@ function L.Flush(player: Player, force: boolean?)
+ 	end
+ end
+ 
++local NAME_RETRY, NAME_BATCH = 90, 15
++-- D039-1/2 (chief, S13): resolve up to 100 names in parallel batches (not 100 sequential web calls), keep a failure only for
++-- NAME_RETRY seconds and show "User <id>" meanwhile, so a rate-limit hiccup no longer leaves "Player" on the board for good.
++local function resolveNames(uids: { number })
++	local todo: { number } = {}
++	for _, uid in uids do
++		if not Players:GetPlayerByUserId(uid) then
++			local e = names[uid]
++			if not e or (not e.ok and os.clock() - e.t > NAME_RETRY) then todo[#todo + 1] = uid end
++		end
++	end
++	for i = 1, #todo, NAME_BATCH do
++		local left = 0
++		for j = i, math.min(i + NAME_BATCH - 1, #todo) do
++			left += 1
++			local uid = todo[j]
++			task.spawn(function()
++				local ok, n = pcall(Players.GetNameFromUserIdAsync, Players, uid)
++				names[uid] = { n = if ok and type(n) == "string" then n else ("User " .. uid), ok = ok and type(n) == "string", t = os.clock() }
++				left -= 1
++			end)
++		end
++		local t0 = os.clock()
++		while left > 0 and os.clock() - t0 < 10 do task.wait(0.05) end
++	end
++end
++
+ local function nameOf(userId: number): string
+ 	local pl = Players:GetPlayerByUserId(userId)
+ 	if pl then return pl.DisplayName end
+-	if names[userId] then return names[userId] end
+-	local ok, n = pcall(function() return Players:GetNameFromUserIdAsync(userId) end)
+-	names[userId] = if ok then n else "Player"
+-	return names[userId]
++	local e = names[userId]
++	return if e then e.n else ("User " .. userId)
+ end
+ 
+ local function serverRows(kind: string): { BoardRow }
+@@ -115,18 +141,31 @@ end
+ function L.Fetch(kind: string): Board
+ 	local c = cache[kind]
+ 	if c and os.clock() - c.t < B.ReadEvery then return c end
++	if inflight[kind] then          -- another caller is already refreshing this board: serve the old list, or wait for the new one
++		if c then return c end
++		local t0 = os.clock()
++		while inflight[kind] and os.clock() - t0 < 30 do task.wait(0.2) end
++		return cache[kind] or { t = os.clock(), rows = serverRows(kind), source = "server" }
++	end
++	inflight[kind] = true
+ 	local s = store(kind)
+ 	local rows: { BoardRow }? = nil
+ 	if s then
+-		local ok, list = pcall(function(): { BoardRow }
+-			local out: { BoardRow } = {}
++		local ok, entries = pcall(function(): { any }
++			local out = {}
+ 			for i, e in s:GetSortedAsync(false, B.Size):GetCurrentPage() do
+ 				local uid = tonumber(e.key)
+-				if uid and e.value > 0 then out[#out + 1] = { rank = i, userId = uid, name = nameOf(uid), value = e.value } end
++				if uid and e.value > 0 then out[#out + 1] = { rank = i, userId = uid, value = e.value } end
+ 			end
+ 			return out
+ 		end)
+-		if ok then rows = list end
++		if ok then
++			local uids = {}
++			for i, e in entries do uids[i] = e.userId end
++			pcall(resolveNames, uids)
++			rows = {}
++			for i, e in entries do (rows :: any)[i] = { rank = e.rank, userId = e.userId, name = nameOf(e.userId), value = e.value } end
++		end
+ 	end
+ 	local res: Board
+ 	if rows then
+@@ -135,6 +174,7 @@ function L.Fetch(kind: string): Board
+ 		res = { t = os.clock(), rows = serverRows(kind), source = "server" }
+ 	end
+ 	cache[kind] = res
++	inflight[kind] = nil
+ 	return res
+ end
+ 
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau
+index cbe59b5..25c246d 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau
+@@ -17,8 +17,8 @@ local function fill(refs, board, id)
+ 	local mine
+ 	for i, row in refs.rows do
+ 		local r = rows[i]
+-		row.Visible = r ~= nil or i <= 10
+-		row:FindFirstChild("Name").Text = if r then tostring(r.n) else "-"
++		row.Visible = r ~= nil or (i == 1 and #rows == 0)      -- D039-5: no "-" filler rows, one invitation row when the board is empty
++		row:FindFirstChild("Name").Text = if r then tostring(r.n) else (if id == "popular" then "No courses yet" else "Be the first!")
+ 		row:FindFirstChild("Value").Text = if r then tostring(r.v) else ""
+ 		if r and r.u == player.UserId then mine = i end
+ 	end

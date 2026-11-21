@@ -94,7 +94,8 @@ function Skin.buildScroll(board: BasePart, face: Enum.NormalId, stand, parent: I
 	list.ScrollBarImageColor3 = stand.color; list.ScrollBarImageTransparency = 0.1; list.Active = true; list.Parent = bg
 	local lay = Instance.new("UIListLayout"); lay.Padding = UDim.new(0, ROW_GAP); lay.SortOrder = Enum.SortOrder.LayoutOrder; lay.Parent = list
 	local refs = { gui = g, you = you, list = list, rows = {} }
-	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.948), Text = "", Font = SignKit.BODY, TextColor3 = SignKit.MUTED, noStroke = true })
+	-- D039-4: taller footer (was 0.04, unreadable on phones); the text is short (HallService)
+	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.052), Position = UDim2.fromScale(0.03, 0.944), Text = "", Font = SignKit.TITLE, TextColor3 = SignKit.MUTED, noStroke = true })
 	-- rows are created on demand (Popular has only a few), never more than Balance.Boards.Size
 	function refs.ensure(n: number)
 		for i = #refs.rows + 1, math.min(n, Balance.Boards.Size) do refs.rows[i] = scrollRow(list, i, stand) end

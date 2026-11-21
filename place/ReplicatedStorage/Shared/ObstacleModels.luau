@@ -84,10 +84,7 @@ end
 
 B.MovingPlatform = function(m)
 	for _, z in { 14.5, -14.5 } do
-		part(m, "EndPadBase", V(10, 1.2, 5), CF(0, 0.6, z), C.wood2, Enum.Material.Plastic)
-		-- S12 art pass: same studded plastic + rarity side trims as every other deck (was flat SmoothPlastic); friction kept at SmoothPlastic 0.2
-		part(m, "EndPad", V(10, 0.8, 5), CF(0, 1.6, z), C.deck, Enum.Material.Plastic, { TopSurface = Enum.SurfaceType.Studs, CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.2, 0.5, 1, 1) })
-		for _, s in { -1, 1 } do part(m, "EndPadTrim", V(0.8, 0.3, 5), CF(s * 4.6, 2.15, z), C.teal, Enum.Material.SmoothPlastic, { CanCollide = false, CanQuery = false, CanTouch = false }) end
+		deckSlab(m, "EndPad", 10, 5, 0, z, C.teal)   -- S13 (chief P3): the shared deck recipe (studded Plastic, friction 0.2, side trims) instead of a hand copy
 		part(m, "EndStripe", V(10, 0.1, 0.6), CF(0, 2.02, if z > 0 then 12.6 else -12.6), C.yellow, Enum.Material.Neon, { CanCollide = false })
 	end
 	for _, s in { -1, 1 } do

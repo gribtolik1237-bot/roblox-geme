@@ -1,0 +1,242 @@
+commit 88ee8af60437d1fbeb8e761a51ec115db8db862d
+Author: gribtolik1237-bot <301790371+gribtolik1237-bot@users.noreply.github.com>
+Date:   Fri Nov 20 12:02:06 2026 +0300
+
+    D-039: leaderboards top 100 with scrolling (client BoardController, server publishes rows)
+    
+    Play-tested: 100 rows, mouse wheel scrolls, You: #N. Self-check only (limit 99 %), chief review pending in S13.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+diff --git a/place/ReplicatedStorage/Configs/Balance.luau b/place/ReplicatedStorage/Configs/Balance.luau
+index ef4fe48..de37ba2 100644
+--- a/place/ReplicatedStorage/Configs/Balance.luau
++++ b/place/ReplicatedStorage/Configs/Balance.luau
+@@ -114,7 +114,7 @@ Balance.Rating = { Criteria = { "Interest", "Build quality", "Difficulty", "Vari
+ 
+ -- Leaderboards (spec 15). TOP OBBY = 10000 * sum(weight_i * norm_i): no criterion may exceed 25% (the largest weight is 0.20).
+ Balance.Boards = {
+-	Size = 10, ReadEvery = 60, WriteEvery = 90,
++	Size = 100, ReadEvery = 60, WriteEvery = 90,   -- D-039: top 100, boards scroll (GetSortedAsync page max = 100)
+ 	ObbyWeights = { Quality = 0.20, Clears = 0.20, Popularity = 0.15, Ratings = 0.20, Difficulty = 0.10, Activity = 0.15 },
+ 	Caps = { Clears = 50, Plays = 100, Visitors = 20, Stages = 8, Types = 5 },
+ 	VisitorWindowDays = 7,
+diff --git a/place/ReplicatedStorage/Shared/BoardSkin.luau b/place/ReplicatedStorage/Shared/BoardSkin.luau
+index c6b0706..3e3107b 100644
+--- a/place/ReplicatedStorage/Shared/BoardSkin.luau
++++ b/place/ReplicatedStorage/Shared/BoardSkin.luau
+@@ -40,7 +40,7 @@ function Skin.build(board: BasePart, face: Enum.NormalId, stand)
+ 
+ 	local refs = { sub = sub, rows = {} }
+ 	local top, h, gap = 0.235, 0.0655, 0.0045
+-	for i = 1, Balance.Boards.Size do
++	for i = 1, 10 do      -- baked Edit-time preview face (10 rows); in the game clients draw the scrolling top-100 face (D-039)
+ 		local medal = PLACE[i]
+ 		local row = Instance.new("Frame"); row.Size = UDim2.fromScale(0.96, h); row.Position = UDim2.fromScale(0.02, top + (i - 1) * (h + gap))
+ 		row.BackgroundColor3 = if medal then medal:Lerp(NAVY, 0.5) else (if i % 2 == 0 then ROW_A else ROW_B); row.BorderSizePixel = 0; row.Parent = bg
+@@ -58,6 +58,51 @@ function Skin.build(board: BasePart, face: Enum.NormalId, stand)
+ 	return refs
+ end
+ 
++-- D-039 (owner, 2026-11-20): TOP 100 that scrolls up/down. The client builds this face in PlayerGui (Adornee = board): a SurfaceGui
++-- in Workspace gets no input. Same header as Skin.build, then a "You" strip, a ScrollingFrame of big rows (~7 visible) and the footer.
++local ROW_H, ROW_GAP = 54, 6
++local function scrollRow(list: Instance, i: number, stand)
++	local medal = PLACE[i]
++	local row = Instance.new("Frame"); row.Name = "Row" .. i; row.LayoutOrder = i; row.Size = UDim2.new(1, -26, 0, ROW_H)
++	row.BackgroundColor3 = if medal then medal:Lerp(NAVY, 0.5) else (if i % 2 == 0 then ROW_A else ROW_B); row.BorderSizePixel = 0; row.Parent = list
++	corner(row, 14)
++	if medal then stroke(row, medal, 3) end
++	local rank = text(row, "Rank", { Size = UDim2.fromScale(0.3, 0.84), Position = UDim2.fromScale(0.012, 0.08), Text = tostring(i), Font = SignKit.TITLE,
++		TextColor3 = if medal then INK else CREAM, BackgroundTransparency = 0, BackgroundColor3 = medal or NAVY_TOP, noStroke = medal ~= nil, strokeThickness = 2.5 })
++	local ar = Instance.new("UIAspectRatioConstraint"); ar.AspectRatio = 1; ar.DominantAxis = Enum.DominantAxis.Height; ar.Parent = rank
++	corner(rank, 100)
++	text(row, "Name", { Size = UDim2.fromScale(0.55, 0.8), Position = UDim2.fromScale(0.1, 0.1), Text = "-", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = if medal then WHITE else CREAM, strokeThickness = 3 })
++	text(row, "Value", { Size = UDim2.fromScale(0.3, 0.8), Position = UDim2.fromScale(0.67, 0.1), Text = "", Font = SignKit.TITLE, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = medal or stand.color:Lerp(WHITE, 0.3), strokeThickness = 3 })
++	return row
++end
++
++function Skin.buildScroll(board: BasePart, face: Enum.NormalId, stand, parent: Instance)
++	local g = Instance.new("SurfaceGui"); g.Name = "BoardScroll_" .. tostring(board:GetAttribute("StandId")) .. "_" .. face.Name
++	g.Adornee = board; g.Face = face; g.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud; g.PixelsPerStud = 30
++	g.LightInfluence = 0; g.Brightness = 1.1; g.ResetOnSpawn = false; g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; g.MaxDistance = 400
++	local bg = Instance.new("Frame"); bg.Size = UDim2.fromScale(1, 1); bg.BackgroundColor3 = NAVY; bg.BorderSizePixel = 0; bg.Parent = g
++	gradient(bg, NAVY_TOP, NAVY, 90)
++	local bar = Instance.new("Frame"); bar.Name = "Bar"; bar.Size = UDim2.fromScale(0.96, 0.2); bar.Position = UDim2.fromScale(0.02, 0.016)
++	bar.BackgroundColor3 = stand.color; bar.BorderSizePixel = 0; bar.Parent = bg
++	corner(bar, 26); stroke(bar, INK, 5); gradient(bar, stand.color:Lerp(WHITE, 0.3), stand.color, 90)
++	text(bar, "Title", { Size = UDim2.fromScale(0.94, 0.66), Position = UDim2.fromScale(0.03, 0.04), Text = stand.title, Font = SignKit.TITLE, TextColor3 = WHITE, strokeThickness = 6 })
++	text(bar, "Sub", { Size = UDim2.fromScale(0.94, 0.24), Position = UDim2.fromScale(0.03, 0.72), Text = stand.sub, Font = SignKit.TITLE, TextColor3 = INK, noStroke = true })
++	local you = text(bg, "You", { Size = UDim2.fromScale(0.94, 0.06), Position = UDim2.fromScale(0.03, 0.228), Text = "", Font = SignKit.TITLE, TextColor3 = stand.color:Lerp(WHITE, 0.45), TextXAlignment = Enum.TextXAlignment.Left, strokeThickness = 3 })
++	local list = Instance.new("ScrollingFrame"); list.Name = "List"; list.Size = UDim2.fromScale(0.96, 0.645); list.Position = UDim2.fromScale(0.02, 0.296)
++	list.BackgroundTransparency = 1; list.BorderSizePixel = 0; list.ScrollingDirection = Enum.ScrollingDirection.Y
++	list.CanvasSize = UDim2.new(); list.AutomaticCanvasSize = Enum.AutomaticSize.Y; list.ScrollBarThickness = 16
++	list.ScrollBarImageColor3 = stand.color; list.ScrollBarImageTransparency = 0.1; list.Active = true; list.Parent = bg
++	local lay = Instance.new("UIListLayout"); lay.Padding = UDim.new(0, ROW_GAP); lay.SortOrder = Enum.SortOrder.LayoutOrder; lay.Parent = list
++	local refs = { gui = g, you = you, list = list, rows = {} }
++	refs.footer = text(bg, "Footer", { Size = UDim2.fromScale(0.94, 0.04), Position = UDim2.fromScale(0.03, 0.948), Text = "", Font = SignKit.BODY, TextColor3 = SignKit.MUTED, noStroke = true })
++	-- rows are created on demand (Popular has only a few), never more than Balance.Boards.Size
++	function refs.ensure(n: number)
++		for i = #refs.rows + 1, math.min(n, Balance.Boards.Size) do refs.rows[i] = scrollRow(list, i, stand) end
++	end
++	g.Parent = parent
++	return refs
++end
++
+ -- Restyle the baked boards of a Hall model in place (labels are rebound by HallService.Start).
+ function Skin.restyle(hall: Model)
+ 	for id, info in Skin.INFO do
+diff --git a/place/ServerScriptService/Services/HallService.luau b/place/ServerScriptService/Services/HallService.luau
+index cea53b6..ce9e658 100644
+--- a/place/ServerScriptService/Services/HallService.luau
++++ b/place/ServerScriptService/Services/HallService.luau
+@@ -2,6 +2,7 @@
+ -- Four two-sided leaderboard stands in the market courtyard.
+ local ReplicatedStorage = game:GetService("ReplicatedStorage")
+ local CollectionService = game:GetService("CollectionService")
++local HttpService = game:GetService("HttpService")
+ local ProximityPromptService = game:GetService("ProximityPromptService")
+ local Net = require(ReplicatedStorage.Shared.Net)
+ local SignKit = require(ReplicatedStorage.Shared.SignKit)
+@@ -32,29 +33,29 @@ local function short(n)
+ 	return tostring(n)
+ end
+ 
++-- D-039: the boards are TOP 100 and scroll, so clients draw them (BoardController, SurfaceGui in PlayerGui). The server only publishes the
++-- rows on the board part: attribute "Rows" = JSON { {n = name, v = shown value, u = userId}, ... } in rank order, "Footer" = status line.
++local function publish(id: string, rows: { any }, footer: string)
++	local board = stands[id] and stands[id].board
++	if not board then return end
++	local ok, json = pcall(HttpService.JSONEncode, HttpService, rows)
++	if ok then board:SetAttribute("Rows", json) end
++	board:SetAttribute("Footer", footer)
++end
++
+ local function renderBoard(id)
+ 	local res = Leaderboard.Fetch(id)
+-	for _, refs in stands[id].faces do
+-		for i, row in refs.rows do
+-			local r = res.rows[i]
+-			row:FindFirstChild("Name").Text = if r then r.name else "-"      -- (row.Name would be the Instance name, not the label)
+-			row:FindFirstChild("Value").Text = if r then short(r.value) else ""
+-		end
+-		refs.footer.Text = if res.source == "global" then "worldwide - updates every minute" else "this server only (global list unavailable)"
+-	end
++	local rows = {}
++	for i, r in res.rows do rows[i] = { n = r.name, v = short(r.value), u = r.userId } end
++	publish(id, rows, if res.source == "global" then "worldwide - updates every minute - scroll for the top 100" else "this server only (global list unavailable)")
+ end
+ 
+ -- POPULAR: courses of the players online now (Leaderboard.Popular, same score as TOP OBBY): name, owner, shown rating
+ local function renderPopular()
+ 	local list = Leaderboard.Popular()
+-	for _, refs in stands.popular.faces do
+-		for i, row in refs.rows do
+-			local c = list[i]
+-			row:FindFirstChild("Name").Text = if c then (c.name .. "  -  " .. c.owner) else "-"
+-			row:FindFirstChild("Value").Text = if c then (if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new") else ""
+-		end
+-		refs.footer.Text = if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!"
+-	end
++	local rows = {}
++	for i, c in list do rows[i] = { n = c.name .. "  -  " .. c.owner, v = if c.votes > 0 then ("%.1f (%d)"):format(c.rating, c.votes) else "new", u = c.ownerId } end
++	publish("popular", rows, if #list > 0 then "online now - press E to visit a course" else "no finished courses online yet - build one!")
+ end
+ 
+ -- a two-tone studded paved plaza (8x8 tiles) under the whole hall, with a darker curb
+@@ -118,16 +119,11 @@ function Hall.Start()
+ 	local model = Hall.Build(false)
+ 	for _, st in STANDS do
+ 		local board = model:FindFirstChild("Board_" .. st.id)
+-		stands[st.id] = { faces = {} }
+-		-- bound faces: the GUIs are already in the baked model; rebind their labels
++		stands[st.id] = { board = board }
++		-- D-039: the baked 10-row faces are replaced at runtime by the clients' scrolling top-100 faces (BoardController)
+ 		for _, face in { "Front", "Back" } do
+ 			local g = board:FindFirstChild("Face_" .. face)
+-			local refs = { rows = {}, footer = g.Frame:FindFirstChild("Footer") }
+-			for _, c in g.Frame:GetChildren() do
+-				if c:IsA("Frame") and c:FindFirstChild("Rank") then refs.rows[#refs.rows + 1] = c end
+-			end
+-			table.sort(refs.rows, function(a, b) return a.Position.Y.Scale < b.Position.Y.Scale end)
+-			table.insert(stands[st.id].faces, refs)
++			if g then g:Destroy() end
+ 		end
+ 	end
+ 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Client.client.luau b/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
+index 66ee8e3..8d123b2 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Client.client.luau
+@@ -2,7 +2,7 @@
+ -- TRAP LAB client bootstrap. Controllers are required in dependency order; each may yield safely.
+ local Controllers = script.Parent:WaitForChild("Controllers")
+ 
+-local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "RunController", "NPCController", "RebirthController", "MetaController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController" }
++local order = { "StateController", "HUDController", "CameraController", "FirstPersonController", "ShopController", "BuildController", "CourseSlotsController", "RunController", "NPCController", "RebirthController", "MetaController", "DonateController", "SfxController", "GuideController", "LoginRewardController", "PromenadeController", "BoardController" }
+ for _, name in order do
+ 	local inst = Controllers:FindFirstChild(name)
+ 	if inst then
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau
+new file mode 100644
+index 0000000..cbe59b5
+--- /dev/null
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau
+@@ -0,0 +1,57 @@
++--!nonstrict
++-- D-039 (owner, 2026-11-20): Hall leaderboards show the TOP 100 and scroll up/down (mouse wheel, finger drag).
++-- HallService publishes rows on each Board_<id> part (attribute "Rows" = JSON {n, v, u}, "Footer"). This controller draws every board
++-- face as a SurfaceGui in PlayerGui with Adornee = board (a SurfaceGui left in Workspace receives no input, so it could not scroll).
++local Players = game:GetService("Players")
++local HttpService = game:GetService("HttpService")
++local ReplicatedStorage = game:GetService("ReplicatedStorage")
++local Skin = require(ReplicatedStorage.Shared.BoardSkin)
++
++local BoardController = {}
++local player = Players.LocalPlayer
++
++local function fill(refs, board, id)
++	local ok, rows = pcall(HttpService.JSONDecode, HttpService, board:GetAttribute("Rows") or "[]")
++	if not ok or type(rows) ~= "table" then rows = {} end
++	refs.ensure(math.max(#rows, 10))
++	local mine
++	for i, row in refs.rows do
++		local r = rows[i]
++		row.Visible = r ~= nil or i <= 10
++		row:FindFirstChild("Name").Text = if r then tostring(r.n) else "-"
++		row:FindFirstChild("Value").Text = if r then tostring(r.v) else ""
++		if r and r.u == player.UserId then mine = i end
++	end
++	if id == "popular" then
++		refs.you.Text = if mine then ("Your course: #%d"):format(mine) else ""
++	else
++		refs.you.Text = if mine then ("You: #%d  -  %s"):format(mine, tostring(rows[mine].v)) else "You: not in the top 100 yet"
++	end
++	refs.footer.Text = board:GetAttribute("Footer") or ""
++end
++
++local function bindBoard(board: BasePart, pg: Instance)
++	local id = board:GetAttribute("StandId")
++	local info = id and Skin.INFO[id]
++	if not info then return end
++	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
++		local refs = Skin.buildScroll(board, face, info, pg)
++		fill(refs, board, id)
++		board:GetAttributeChangedSignal("Rows"):Connect(function() fill(refs, board, id) end)
++		board:GetAttributeChangedSignal("Footer"):Connect(function() refs.footer.Text = board:GetAttribute("Footer") or "" end)
++	end
++end
++
++function BoardController.Start()
++	task.spawn(function()
++		local pg = player:WaitForChild("PlayerGui", 15)
++		local wa = workspace:WaitForChild("WorldAssets", 60)
++		local hall = wa and wa:WaitForChild("Hall", 60)
++		if not (pg and hall) then warn("[Boards] Hall or PlayerGui not found - scrolling boards disabled"); return end
++		for _, c in hall:GetChildren() do
++			if c:IsA("BasePart") and c.Name:sub(1, 6) == "Board_" then bindBoard(c, pg) end
++		end
++	end)
++end
++
++return BoardController

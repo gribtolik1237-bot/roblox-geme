@@ -61,3 +61,8 @@ P3 (поправлено): кромки красит `roleAccents` по РОЛИ
 - HighDeck BouncePad: кадр с верхней точки прыжка (studs сверху).
 - HighTrimL/HighTrimR остаются неоновыми зелёными: имя содержит Trim, но roleAccents перекрашивает их по роли — проверить на кадре и записать решение.
 - P3 закрыты (самооценка по кадрам): `speed_close.jpg` — studs на тёмном настиле читаются вблизи с высоты глаза, осветление не нужно; `highdeck_top.jpg` — верх HighDeck со studs; HighTrimL/R после roleAccents синие SmoothPlastic (лог Play: Color 0.23,0.56,1, SmoothPlastic), то есть следуют цвету роли — правка не нужна.
+
+## S13: кадр серии на курсе + NPC (закрывает NOT TESTED раундов 1–3)
+- Чистый профиль (Rebirth 10 в памяти), трасса Basic → SmallJump → Basic → SpeedPlatform → MovingPlatform → RampUp → Finish (y=4): CourseValidation player=true, npc=true, 6 этапов.
+- NPC Starter, 3 забега подряд: 3/3 до финиша (все 6 этапов), 16/20/20 с, монеты 300 → 381 → 445 → 495.
+- Кадр с высоты глаза 10 стад: `course_series_eye.jpg`.
