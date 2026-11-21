@@ -47,3 +47,8 @@ Play, чистый профиль; NPCRig.build на сервере + NPCRig.Dre
 - NOT TESTED: карточки NPC Shop (полка магазина случайная; код тот же NPCRig.PreviewLook).
 
 ## ACCEPT chief (превью и Glitch). Остаток NOT TESTED: карточки NPC Shop с редким NPC на полке, частицы на реальном экране, телефон.
+
+## !!! ДЕФЕКТ на РЕАЛЬНОМ экране (доступ владельца, 2026-11-21, после перезапуска Studio) — `REAL_SCREEN_grey_bug.jpg`
+На настоящем экране Studio (Play, чистый профиль, 6 редких NPC на площадках 1–6) Spectrum, Overlord, Glitch и Galaxy рисуются СЕРЫМИ (голова Glitch тоже серая, хотя сервер красит её зелёной); цветные только Shadow (площадка 1, зелёный диск) и Crystal; неон, звёзды, кайма Highlight, волосы — видны.
+Свойства на клиенте в тот же момент яркие: Glitch торс (20,20,20), Overlord (88,28,40), Spectrum розовый, Galaxy синий; клонов/перекрытий нет (в моделях только Humanoid/Highlight). До перезапуска Studio (кадр `shadow_overlord_glitch.jpg`) Glitch/Overlord были цветные → серость появилась с этого запуска или зависит от площадки/рендера.
+Гипотезы для S14: (1) MeshPart R15 base (ReplicatedStorage.Assets.R15Base) с TextureID/SurfaceAppearance, перекрывающими Color при каком-то условии; (2) состояние рендера Studio после перезапуска (качество графики); (3) что-то связанное с площадками 2–6 vs 1. Проверить: обычный NPC (Bacon) на площадке 2; Glitch на площадке 1; MeshPart.TextureID/SurfaceAppearance у тела; Settings().Rendering.QualityLevel. Частицы на реальном экране на этом кадре не различимы.
