@@ -1,7 +1,7 @@
 {
-  "exportedAt": "2026-11-21T13:53:18.441Z",
+  "exportedAt": "2026-11-21T14:45:38.633Z",
   "placeId": 135937017652181,
-  "placeVersion": 252,
+  "placeVersion": 264,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
   "verification": "Inventory and Adler-32 before/after export, UTF-8 byte counts, local SHA-256",
   "scope": "LuaSourceContainer under the eight game services listed in export-place.cjs; geometry and assets are separate",
@@ -354,9 +354,9 @@
       "studioPath": "ServerScriptService/Services/WearService",
       "file": "ServerScriptService/Services/WearService.luau",
       "class": "ModuleScript",
-      "bytes": 1657,
-      "adler32": 1114315363,
-      "sha256": "659a57ce80fc9393823cb121e417c27048d940031300d40933bc977808c8b2d2"
+      "bytes": 1753,
+      "adler32": 4261492975,
+      "sha256": "6781a43833403cd027fa33486ca0b0f82fa562f56c3b2c443f00f2d746482cd4"
     },
     {
       "studioPath": "ServerScriptService/SurfaceGuiRange",

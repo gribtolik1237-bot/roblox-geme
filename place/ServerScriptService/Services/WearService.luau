@@ -36,7 +36,7 @@ function Service.Start()
 		end
 	end
 	folder.Parent = ReplicatedStorage
-	print(("[Wear] NPC wear loaded: %d ok, %d failed"):format(ok, bad))
+	print(("[Wear] NPC wear: %d items in store (%d newly loaded, %d failed)"):format(#folder:GetChildren(), ok, bad))   -- S13: "0 ok" only meant "nothing new to load"
 end
 
 return Service
