@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-11-21T13:44:16.529Z",
+  "exportedAt": "2026-11-21T13:53:18.441Z",
   "placeId": 135937017652181,
   "placeVersion": 252,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
@@ -106,9 +106,9 @@
       "studioPath": "ReplicatedStorage/Shared/NPCRig",
       "file": "ReplicatedStorage/Shared/NPCRig.luau",
       "class": "ModuleScript",
-      "bytes": 15058,
-      "adler32": 1264778145,
-      "sha256": "63ab67bf1ed815777234409a53c83b8a19eef09ee009325f4a5fd86037fde790"
+      "bytes": 17265,
+      "adler32": 379034538,
+      "sha256": "1cbda170ed4bc19cc54842aa4ecad103013055a94b214c88be48abf3ef16d1bc"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/Net",
@@ -554,9 +554,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/NPCController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau",
       "class": "ModuleScript",
-      "bytes": 27686,
-      "adler32": 2624257361,
-      "sha256": "e4d7da94981332d54ca54188e29a629824e86ddf3c43bc76e7a06a33add8ded7"
+      "bytes": 27832,
+      "adler32": 63909064,
+      "sha256": "36b51950dcd0a9cf60789d095589c1bcc40886b71cc3a2d63294d9a596d4f70a"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/PromenadeController",
@@ -594,9 +594,9 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau",
       "class": "ModuleScript",
-      "bytes": 18320,
-      "adler32": 3819746342,
-      "sha256": "ce506767729854e5e7da82167811d1c1a1fcae6c8ca7f8a30120c3a1347fc89c"
+      "bytes": 18406,
+      "adler32": 3021459488,
+      "sha256": "935f8ad0f04721a3b9138dc73c5468a2d1f4fc1e2402a859e733c043ff266dc0"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/StateController",

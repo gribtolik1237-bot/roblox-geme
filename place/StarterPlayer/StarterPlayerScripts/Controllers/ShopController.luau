@@ -27,7 +27,7 @@ local views = {}   -- kind -> { win, grid, timer, cards = { {update = fn} } }
 local NPCRig = require(ReplicatedStorage.Shared.NPCRig)
 local function npcModel(id)
 	local okRig, rig = pcall(NPCRig.build, id)      -- same builder as the NPC collection window: the real 3D tester, not a letter
-	if okRig and rig then return rig end
+	if okRig and rig then pcall(NPCRig.PreviewLook, rig); return rig end   -- rare NPCs in their in-game colours (static, S13)
 	local a = ReplicatedStorage:FindFirstChild("Assets")
 	local t = a and a:FindFirstChild("NPCs") and a.NPCs:FindFirstChild(id)
 	return t and t:Clone() or nil

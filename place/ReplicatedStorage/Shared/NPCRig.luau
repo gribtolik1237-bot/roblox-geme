@@ -280,4 +280,38 @@ function NPCRig.DressLocal(m: Model)
 	end
 end
 
+-- S13 ART-04 (chief P3): shop cards and the NPC window show the rare NPCs in their in-game look. A STATIC snapshot of the client
+-- FX colours (NPCController fx registry) for ViewportFrame previews - Highlight and particles do not render in a ViewportFrame.
+-- Colour/material of a preview copy only; never called on the server-simulated NPCs.
+local PREVIEW_SEG = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
+	LeftHand = 0.26, RightHand = 0.26, LeftUpperLeg = 0.26, RightUpperLeg = 0.26, LeftLowerLeg = 0.34, RightLowerLeg = 0.34, LeftFoot = 0.42, RightFoot = 0.42 }
+function NPCRig.PreviewLook(m: Model)
+	local id = m:GetAttribute("NpcId")
+	local function each(f: (BasePart, number) -> ())
+		for name, off in PREVIEW_SEG do
+			local p = m:FindFirstChild(name)
+			if p and p:IsA("BasePart") then f(p, off) end
+		end
+	end
+	local function named(pattern: string, f: (BasePart) -> ())
+		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:match(pattern) then f(d) end end
+	end
+	if id == "Spectrum" then
+		each(function(p, off) p.Color = Color3.fromHSV((off * 1.6) % 1, 0.7, 1) end)          -- a full rainbow from head to feet
+	elseif id == "Shadow" then
+		each(function(p) p.Color = Color3.fromRGB(46, 40, 70) end)
+		named(".", function(p) if p.Material == Enum.Material.Neon then p.Color = Color3.fromRGB(170, 100, 255) end end)
+	elseif id == "Overlord" then
+		each(function(p) p.Color = Color3.fromRGB(88, 28, 40) end)
+		named("HornTip", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(255, 90, 40) end)
+		named("CapeTrim", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(255, 90, 40) end)
+	elseif id == "Galaxy" then
+		each(function(p, off) p.Color = Color3.fromHSV(0.55 + 0.27 * (off / 0.42), 0.8, 0.58) end)
+		named("Star%d+$", function(p) p.Color = Color3.fromRGB(255, 255, 255) end)
+	elseif id == "Crystal" then
+		each(function(p, off) local w = off / 0.42; p.Color = Color3.fromHSV(0.46 + 0.06 * w, 0.55 - 0.4 * w, 0.85 + 0.15 * w) end)
+		named("Shard", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(200, 250, 255) end)
+	end
+end
+
 return NPCRig

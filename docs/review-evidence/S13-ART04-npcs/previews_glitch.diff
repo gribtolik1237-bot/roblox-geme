@@ -1,0 +1,92 @@
+diff --git a/place/ReplicatedStorage/Shared/NPCRig.luau b/place/ReplicatedStorage/Shared/NPCRig.luau
+index 7e9c8b8..6f4a5ac 100644
+--- a/place/ReplicatedStorage/Shared/NPCRig.luau
++++ b/place/ReplicatedStorage/Shared/NPCRig.luau
+@@ -280,4 +280,38 @@ function NPCRig.DressLocal(m: Model)
+ 	end
+ end
+ 
++-- S13 ART-04 (chief P3): shop cards and the NPC window show the rare NPCs in their in-game look. A STATIC snapshot of the client
++-- FX colours (NPCController fx registry) for ViewportFrame previews - Highlight and particles do not render in a ViewportFrame.
++-- Colour/material of a preview copy only; never called on the server-simulated NPCs.
++local PREVIEW_SEG = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
++	LeftHand = 0.26, RightHand = 0.26, LeftUpperLeg = 0.26, RightUpperLeg = 0.26, LeftLowerLeg = 0.34, RightLowerLeg = 0.34, LeftFoot = 0.42, RightFoot = 0.42 }
++function NPCRig.PreviewLook(m: Model)
++	local id = m:GetAttribute("NpcId")
++	local function each(f: (BasePart, number) -> ())
++		for name, off in PREVIEW_SEG do
++			local p = m:FindFirstChild(name)
++			if p and p:IsA("BasePart") then f(p, off) end
++		end
++	end
++	local function named(pattern: string, f: (BasePart) -> ())
++		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:match(pattern) then f(d) end end
++	end
++	if id == "Spectrum" then
++		each(function(p, off) p.Color = Color3.fromHSV((off * 1.6) % 1, 0.7, 1) end)          -- a full rainbow from head to feet
++	elseif id == "Shadow" then
++		each(function(p) p.Color = Color3.fromRGB(46, 40, 70) end)
++		named(".", function(p) if p.Material == Enum.Material.Neon then p.Color = Color3.fromRGB(170, 100, 255) end end)
++	elseif id == "Overlord" then
++		each(function(p) p.Color = Color3.fromRGB(88, 28, 40) end)
++		named("HornTip", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(255, 90, 40) end)
++		named("CapeTrim", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(255, 90, 40) end)
++	elseif id == "Galaxy" then
++		each(function(p, off) p.Color = Color3.fromHSV(0.55 + 0.27 * (off / 0.42), 0.8, 0.58) end)
++		named("Star%d+$", function(p) p.Color = Color3.fromRGB(255, 255, 255) end)
++	elseif id == "Crystal" then
++		each(function(p, off) local w = off / 0.42; p.Color = Color3.fromHSV(0.46 + 0.06 * w, 0.55 - 0.4 * w, 0.85 + 0.15 * w) end)
++		named("Shard", function(p) p.Material = Enum.Material.Neon; p.Color = Color3.fromRGB(200, 250, 255) end)
++	end
++end
++
+ return NPCRig
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+index 4895d2d..7a28513 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+@@ -26,7 +26,10 @@ local STAT_HEX = { "#22C8E8", "#56D638", "#FFCC24", "#FF8E20", "#AC5CFF" }   --
+ 
+ local function npcPreview(parent, id, zoom)
+ 	local ok, m = pcall(NPCRig.build, id)
+-	if ok and m then UIKit.preview(parent, m, { zoom = zoom or 1.1, dir = Vector3.new(0.55, 0.3, -1) }) end
++	if ok and m then
++		pcall(NPCRig.PreviewLook, m)      -- rare NPCs in their in-game colours (static, S13)
++		UIKit.preview(parent, m, { zoom = zoom or 1.1, dir = Vector3.new(0.55, 0.3, -1) })
++	end
+ end
+ 
+ local function refreshSlots()
+@@ -268,13 +271,13 @@ function NPCController.Start()
+ 			pe.Speed = NumberRange.new(1, 2); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
+ 			fxEmitters[m] = { pe }
+ 		end
+-		local hit, untilT, nextAt = nil, 0, 0
++		local nextAt = 0
+ 		return function(t)
+-			if hit and t >= untilT then hit.part.Color = base[hit.part]; hit = nil end
+-			if not hit and t >= nextAt and #segs > 0 then
+-				hit = segs[math.random(#segs)]
+-				hit.part.Color = pal[math.random(#pal)]
+-				untilT = t + math.random(1, 3) / 30
++			if t >= nextAt and #segs > 0 then
++				local e = segs[math.random(#segs)]
++				e.part.Color = pal[math.random(#pal)]
++				-- chief P3: the restore runs on its own timer, so a flash never sticks when the NPC leaves the 80-stud update range
++				task.delay(math.random(1, 3) / 30, function() e.part.Color = base[e.part] end)
+ 				nextAt = t + 0.15 + math.random() * 0.35
+ 			end
+ 		end
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
+index ed4e184..2341a38 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/ShopController.luau
+@@ -27,7 +27,7 @@ local views = {}   -- kind -> { win, grid, timer, cards = { {update = fn} } }
+ local NPCRig = require(ReplicatedStorage.Shared.NPCRig)
+ local function npcModel(id)
+ 	local okRig, rig = pcall(NPCRig.build, id)      -- same builder as the NPC collection window: the real 3D tester, not a letter
+-	if okRig and rig then return rig end
++	if okRig and rig then pcall(NPCRig.PreviewLook, rig); return rig end   -- rare NPCs in their in-game colours (static, S13)
+ 	local a = ReplicatedStorage:FindFirstChild("Assets")
+ 	local t = a and a:FindFirstChild("NPCs") and a.NPCs:FindFirstChild(id)
+ 	return t and t:Clone() or nil

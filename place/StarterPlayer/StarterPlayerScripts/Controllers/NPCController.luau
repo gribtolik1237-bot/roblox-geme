@@ -26,7 +26,10 @@ local STAT_HEX = { "#22C8E8", "#56D638", "#FFCC24", "#FF8E20", "#AC5CFF" }   -- 
 
 local function npcPreview(parent, id, zoom)
 	local ok, m = pcall(NPCRig.build, id)
-	if ok and m then UIKit.preview(parent, m, { zoom = zoom or 1.1, dir = Vector3.new(0.55, 0.3, -1) }) end
+	if ok and m then
+		pcall(NPCRig.PreviewLook, m)      -- rare NPCs in their in-game colours (static, S13)
+		UIKit.preview(parent, m, { zoom = zoom or 1.1, dir = Vector3.new(0.55, 0.3, -1) })
+	end
 end
 
 local function refreshSlots()
@@ -268,13 +271,13 @@ function NPCController.Start()
 			pe.Speed = NumberRange.new(1, 2); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
 			fxEmitters[m] = { pe }
 		end
-		local hit, untilT, nextAt = nil, 0, 0
+		local nextAt = 0
 		return function(t)
-			if hit and t >= untilT then hit.part.Color = base[hit.part]; hit = nil end
-			if not hit and t >= nextAt and #segs > 0 then
-				hit = segs[math.random(#segs)]
-				hit.part.Color = pal[math.random(#pal)]
-				untilT = t + math.random(1, 3) / 30
+			if t >= nextAt and #segs > 0 then
+				local e = segs[math.random(#segs)]
+				e.part.Color = pal[math.random(#pal)]
+				-- chief P3: the restore runs on its own timer, so a flash never sticks when the NPC leaves the 80-stud update range
+				task.delay(math.random(1, 3) / 30, function() e.part.Color = base[e.part] end)
 				nextAt = t + 0.15 + math.random() * 0.35
 			end
 		end

@@ -24,7 +24,7 @@ TRAP LAB
 │   │   ├── [С] Шипы, финиш, мост, молот, огонь и другие модели переработаны
 │   │   └── [С] Electric Floor, Moving Platform и Rotating Bar осмотрены на живом стенде
 │   ├── ART-06 [С] NPC и продавцы переведены на одетые Roblox-аватары
-│   │   ├── [С] S13 ART-04 NPC: Mythic и Secret (Spectrum, Shadow, Glitch, Overlord, Crystal, Galaxy) — клиентский реестр эффектов (цвет по сегментам, Highlight, частицы, пульс Neon), ACCEPT chief. Common–Legendary не менялись. NOT TESTED: частицы на реальном экране, телефон, эффекты в карточках магазина. docs/review-evidence/S13-ART04-npcs
+│   │   ├── [С] S13 ART-04 NPC: Mythic и Secret (Spectrum, Shadow, Glitch, Overlord, Crystal, Galaxy) — клиентский реестр эффектов (цвет по сегментам, Highlight, частицы, пульс Neon), ACCEPT chief. Common–Legendary не менялись. Превью в окне NPC и магазине (NPCRig.PreviewLook) и таймер Glitch — ACCEPT chief. NOT TESTED: частицы на реальном экране, телефон, карточка редкого NPC на полке магазина. docs/review-evidence/S13-ART04-npcs
 │   │   ├── [С] Клиентские аксессуары отделены от серверной физики
 │   │   ├── [С] Добавлена одежда Builder и Noob
 │   │   └── [С] Масштаб причёски Titan проверен в Play. Волосы остаются клиентскими.

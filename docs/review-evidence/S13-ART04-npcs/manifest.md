@@ -39,3 +39,11 @@ Play, чистый профиль; NPCRig.build на сервере + NPCRig.Dre
 - Кадры: `crystal_galaxy_overlord.jpg` (Crystal бирюзово-белый с осколками, Galaxy пурпурный торс/синие ноги со звёздами, Overlord красный с каймой), `rare8_front.jpg` — 8 NPC в ряд: Spectrum, Overlord, Glitch, Crystal, Galaxy, Shadow (новые) и Angel, Golden (Legendary) для сравнения.
 - ВАЖНО про кадры: на части снимков screen_capture NPC, которых цикл перекрашивает каждый кадр (Spectrum, Galaxy), выходят серыми, хотя на клиенте цвет яркий. Проверено RenderStepped-выборкой 3 с (45 кадров): насыщенность Spectrum и Galaxy ни разу не ниже 0.70 → это артефакт снимка, а не мигание в игре.
 - Выгрузка 75/75, Studio = локальная правка, линт 2.
+
+## P3 chief: превью в окне NPC/магазине + Glitch (`previews_glitch.diff`, `npc_window_previews.jpg`)
+- `NPCRig.PreviewLook(m)`: статичный «снимок» вида редких NPC для превью (ViewportFrame не рисует Highlight и частицы): Spectrum — радуга от головы к ногам, Shadow — фиолетовое тело и неон, Overlord — (88,28,40) и неоновые рога/кромка, Galaxy — сине-пурпурный градиент и белые звёзды, Crystal — бирюзово-белый блик и неоновые осколки. Вызывается в `NPCController.npcPreview` (слоты и коллекция) и `ShopController.npcModel` (карточки магазина). Только копии для превью; на сервере не вызывается.
+- Glitch: возврат цвета после вспышки — по своему `task.delay`, вспышка больше не зависает за пределом 80 стад.
+- Проверено: require клона NPCRig + PreviewLook на 7 моделях без ошибок; Play (чистый профиль, Rebirth 10): окно NPC Testers — в слотах и коллекции Spectrum радужный, Galaxy синий со звёздами, Crystal бирюзовый, Shadow фиолетовый, Overlord тёмно-красный (`npc_window_previews.jpg`). Первый снимок сразу после восстановления окна Studio был пустой (прогрев рендера), повторный — корректный.
+- NOT TESTED: карточки NPC Shop (полка магазина случайная; код тот же NPCRig.PreviewLook).
+
+## ACCEPT chief (превью и Glitch). Остаток NOT TESTED: карточки NPC Shop с редким NPC на полке, частицы на реальном экране, телефон.
