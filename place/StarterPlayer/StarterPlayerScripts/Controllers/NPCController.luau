@@ -283,6 +283,7 @@ function NPCController.Start()
 	FX.Overlord = function(m: Model)
 		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(255, 60, 40)
 		hl.OutlineTransparency = 0.2; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
+		for _, e in segments(m) do e.part.Color = Color3.fromRGB(88, 28, 40) end   -- chief P3: a touch lighter than the near-black body
 		local glow = {}
 		for _, d in m:GetDescendants() do
 			if d:IsA("BasePart") and (d.Name:find("HornTip") or d.Name:find("CapeTrim")) then d.Material = Enum.Material.Neon; glow[#glow + 1] = d end
@@ -299,6 +300,58 @@ function NPCController.Start()
 		return function(t)
 			local k = 0.5 + 0.5 * math.sin(t * 2.4)
 			for _, p in glow do p.Color = Color3.fromRGB(150, 20, 10):Lerp(Color3.fromRGB(255, 90, 40), k) end
+		end
+	end
+	-- Crystal (Mythic): an ice "glint" - a narrow cyan-to-near-white shimmer that runs over the body, cyan outline,
+	-- pulsing neon shards and rare white sparkles (Glass body alone read as flat turquoise at play distance)
+	FX.Crystal = function(m: Model)
+		local segs = segments(m)
+		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(200, 255, 255)
+		hl.OutlineTransparency = 0.2; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
+		local shards = {}
+		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:find("Shard") then d.Material = Enum.Material.Neon; shards[#shards + 1] = d end end
+		local torso = m:FindFirstChild("UpperTorso")
+		if torso then
+			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxGlints"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+			pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255)); pe.LightEmission = 1
+			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 0) })
+			pe.Lifetime = NumberRange.new(0.6, 1); pe.Rate = 5; pe.Speed = NumberRange.new(0.3, 0.8); pe.SpreadAngle = Vector2.new(180, 180); pe.Parent = torso
+			fxEmitters[m] = { pe }
+		end
+		return function(t)
+			for _, e in segs do
+				local w = 0.5 + 0.5 * math.sin(t * 0.8 + e.off * 8)
+				e.part.Color = Color3.fromHSV(0.46 + 0.06 * w, 0.55 - 0.4 * w, 0.85 + 0.15 * w)
+			end
+			local k = 0.5 + 0.5 * math.sin(t * 2)
+			for _, p in shards do p.Color = Color3.fromRGB(120, 235, 245):Lerp(Color3.fromRGB(240, 255, 255), k) end
+		end
+	end
+	-- Galaxy (Mythic): a slow nebula (blue / magenta / teal per segment, mid brightness - not Shadow's violet), twinkling neon stars
+	-- with their own phases, lavender outline and fine star dust drifting up
+	FX.Galaxy = function(m: Model)
+		local segs = segments(m)
+		local hl = Instance.new("Highlight"); hl.Name = "FxOutline"; hl.FillTransparency = 1; hl.OutlineColor = Color3.fromRGB(200, 170, 255)
+		hl.OutlineTransparency = 0.25; hl.DepthMode = Enum.HighlightDepthMode.Occluded; hl.Adornee = m; hl.Parent = m
+		local stars = {}
+		for _, d in m:GetDescendants() do if d:IsA("BasePart") and d.Name:match("Star%d+$") then stars[#stars + 1] = d end end
+		local torso = m:FindFirstChild("UpperTorso")
+		if torso then
+			local pe = Instance.new("ParticleEmitter"); pe.Name = "FxDust"; pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+			pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(200, 170, 255)); pe.LightEmission = 1
+			pe.Size = NumberSequence.new(0.1); pe.Lifetime = NumberRange.new(1.5, 2.5); pe.Rate = 6
+			pe.Speed = NumberRange.new(0.2, 0.5); pe.SpreadAngle = Vector2.new(60, 60); pe.Acceleration = Vector3.new(0, 0.6, 0); pe.Parent = torso
+			fxEmitters[m] = { pe }
+		end
+		return function(t)
+			for _, e in segs do
+				local w = 0.5 + 0.5 * math.sin(t * 0.35 + e.off * 6)
+				e.part.Color = Color3.fromHSV((0.55 + 0.27 * w) % 1, 0.8, 0.58)   -- blue -> magenta, saturated: the teal end read grey in play light
+			end
+			for i, s in stars do
+				local k = 0.5 + 0.5 * math.sin(t * 4 + i * 1.7)
+				s.Color = Color3.fromRGB(120, 100, 180):Lerp(Color3.fromRGB(255, 255, 255), k)
+			end
 		end
 	end
 	local function startFx(m: Model)

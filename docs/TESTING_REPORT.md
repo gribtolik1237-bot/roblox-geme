@@ -209,3 +209,8 @@
 - T-REBIRTH-WIN: окно Rebirth на R0 (3 строки «сейчас > после», без строки декора) и на R10 MAX (профиль владельца — только просмотр, Daily Gift закрыт крестиком без получения) — PASSED (самооценка по кадрам).
 - T-OBST-27: require клона ObstacleModels и сборка всех 27 моделей после правки MovingPlatform — 27/27 — PASSED.
 - T-MOVING-PHYS: EndPad после смены материала — friction 0.20, density 0.70, elasticity 0.50 (как SmoothPlastic), коллизионные размеры не менялись — PASSED. Движение парома глазами и проход NPC по новому виду — NOT TESTED (физика не менялась).
+
+## S13: доски топ-100, курс серии препятствий, эффекты NPC (2026-11-21, сохранение 262)
+- T-BOARDS-100: 100 тестовых строк — список 5994 px при окне 425 px, «You: #37»; колесо мыши прокручивает (событие поглощено интерфейсом, CanvasPosition 0 → 400); Popular открывается по E, в т.ч. после прокрутки колесом; 100 имён пачками 1.7 с против ~22 с последовательно; два одновременных Fetch — одна волна. ACCEPT chief (раунд 2). NOT TESTED: прокрутка пальцем, тап по prompt на телефоне.
+- T-COURSE-SERIES: Basic → SmallJump → Basic → SpeedPlatform → MovingPlatform → RampUp → Finish — CourseValidation player/npc true, NPC Starter 4/4 до финиша (15–20 с). PASSED.
+- T-NPC-FX: Spectrum/Shadow/Glitch/Overlord/Crystal/Galaxy — эффекты создаются на клиенте, цвет на сервере не меняется (торс белый, NPC управляет сервер); RenderStepped-выборка 45 кадров: насыщенность не ниже 0.70 (серые фигуры на части снимков — артефакт screen_capture). Spectrum по стартовой трассе: 1 срыв на этапе 3, 1 финиш (разброс навыков). ACCEPT chief. NOT TESTED: частицы на реальном экране (доступ к окну Studio не выдан), телефон.
