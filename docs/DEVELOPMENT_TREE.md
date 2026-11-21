@@ -24,6 +24,7 @@ TRAP LAB
 │   │   ├── [С] Шипы, финиш, мост, молот, огонь и другие модели переработаны
 │   │   └── [С] Electric Floor, Moving Platform и Rotating Bar осмотрены на живом стенде
 │   ├── ART-06 [С] NPC и продавцы переведены на одетые Roblox-аватары
+│   │   ├── [П] S13 ART-04 NPC: витрина 21 NPC; Mythic/Secret слабее Legendary. Образец Spectrum (клиентский цикл цвета по сегментам, атрибут Rainbow впервые работает) ACCEPT chief. Дальше Shadow → Glitch → Overlord → Crystal/Galaxy (docs/review-evidence/S13-ART04-npcs)
 │   │   ├── [С] Клиентские аксессуары отделены от серверной физики
 │   │   ├── [С] Добавлена одежда Builder и Noob
 │   │   └── [С] Масштаб причёски Titan проверен в Play. Волосы остаются клиентскими.

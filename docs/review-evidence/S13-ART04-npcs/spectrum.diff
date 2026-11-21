@@ -1,0 +1,48 @@
+diff --git a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+index 81eb533..0354f40 100644
+--- a/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
++++ b/place/StarterPlayer/StarterPlayerScripts/Controllers/NPCController.luau
+@@ -204,12 +204,43 @@ function NPCController.Start()
+ 	progress = UIKit.new("Frame", { Name = "NpcProgress", BackgroundTransparency = 1, Size = UDim2.fromOffset(340, 170), Position = UDim2.new(1, -14, 1, -86), AnchorPoint = Vector2.new(1, 1) }, HUDController.Gui)
+ 	UIKit.new("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Right }, progress)
+ 
++	-- S13 ART-04 (chief): Spectrum's declared Rainbow look (the attribute was set but never read). ONE client Heartbeat for every
++	-- rainbow NPC, colour only (no size, mass or collision change), each body segment with its own hue offset so the colours flow
++	-- from the head down; NPCs farther than 80 studs from the camera are skipped, updates are capped at 30 per second.
++	local rainbow: { [Model]: { { part: BasePart, off: number } } } = {}
++	local RB_OFF = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
++		LeftHand = 0.26, RightHand = 0.26, LeftUpperLeg = 0.26, RightUpperLeg = 0.26, LeftLowerLeg = 0.34, RightLowerLeg = 0.34, LeftFoot = 0.42, RightFoot = 0.42 }
++	local function startRainbow(m: Model)
++		if rainbow[m] then return end
++		local list = {}
++		for name, off in RB_OFF do
++			local p = m:FindFirstChild(name)
++			if p and p:IsA("BasePart") then list[#list + 1] = { part = p, off = off } end
++		end
++		rainbow[m] = list
++	end
++	local rbAcc = 0
++	game:GetService("RunService").Heartbeat:Connect(function(dt)
++		rbAcc += dt
++		if rbAcc < 1 / 30 then return end
++		rbAcc = 0
++		local cam = workspace.CurrentCamera
++		local t = os.clock() * 0.18
++		for m, list in rainbow do
++			if not m.Parent then rainbow[m] = nil; continue end
++			local root = m:FindFirstChild("HumanoidRootPart") :: BasePart?
++			if cam and root and (root.Position - cam.CFrame.Position).Magnitude > 80 then continue end
++			for _, e in list do e.part.Color = Color3.fromHSV((t + e.off) % 1, 0.7, 1) end
++		end
++	end)
++
+ 	-- catalog hair on every NPC in the world, added LOCALLY (cosmetic only; the server-simulated body stays the tested one)
+ 	local function dressIfNpc(m)
+ 		if m:IsA("Model") and m:GetAttribute("Npc") == true then
+ 			task.defer(function()
+ 				m:WaitForChild("Head", 5)
+ 				pcall(NPCRig.DressLocal, m)
++				if m:GetAttribute("Rainbow") then startRainbow(m) end
+ 			end)
+ 		end
+ 	end
