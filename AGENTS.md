@@ -29,3 +29,5 @@
 
 ## Передача от Claude (2026-11-21)
 Последняя работа Claude (S11–S13), открытый дефект (серые редкие NPC на настоящем экране) и все правила — в `docs/HANDOFF_S11_S13_FOR_CHATGPT.md`. Готовый промт для продолжения — `docs/NEXT_PROMPT_CHATGPT.md`.
+
+После работы Codex 1 см. `docs/REPORT_CHATGPT_1.txt` и `docs/NEXT_PROMPT_CHATGPT_2.md`. Владелец передал архив `roblox-craft-studio-v4.zip`. При отсутствии встроенного скилла читать из него `SKILL.md` и нужные разделы `references/`. Белое поле при захвате Studio и яркие свойства деталей не закрывают визуальные проверки.

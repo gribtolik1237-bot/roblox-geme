@@ -208,10 +208,10 @@ function NPCController.Start()
 	UIKit.new("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Bottom, HorizontalAlignment = Enum.HorizontalAlignment.Right }, progress)
 
 	-- S13 ART-04 (chief): rare-NPC looks, CLIENT ONLY. One Heartbeat (<=30 Hz) drives a registry fx[model] = update(t); NPCs farther
-	-- than 80 studs from the camera are skipped and their particles switched off beyond 60 studs. Only Color / Highlight / particles /
-	-- the existing Neon parts change - never size, mass, CanCollide or material of body parts (the server-simulated body is untouched).
+	-- than 80 studs from the camera are skipped and their particles switched off beyond 60 studs.
 	local fx: { [Model]: (number, number) -> () } = {}
 	local fxEmitters: { [Model]: { ParticleEmitter } } = {}
+	local BYPASS_AVATAR_COMPOSITE = { Spectrum = true, Overlord = true, Glitch = true, Galaxy = true }
 	local SEGMENTS = { Head = 0, UpperTorso = 0.08, LowerTorso = 0.16, LeftUpperArm = 0.1, RightUpperArm = 0.1, LeftLowerArm = 0.18, RightLowerArm = 0.18,
 		LeftHand = 0.26, RightHand = 0.26, LeftUpperLeg = 0.26, RightUpperLeg = 0.26, LeftLowerLeg = 0.34, RightLowerLeg = 0.34, LeftFoot = 0.42, RightFoot = 0.42 }
 	local function segments(m: Model): { { part: BasePart, off: number } }
@@ -362,6 +362,17 @@ function NPCController.Start()
 		local id = m:GetAttribute("NpcId")
 		local make = (id and FX[id]) or (m:GetAttribute("Rainbow") and FX.Spectrum)
 		if not make then return end
+		-- Humanoid's avatar texture composite can render tinted R15 plastic grey. Use the mesh's
+		-- own tint on these four looks. This is local to the viewer; the server keeps its rig materials.
+		if BYPASS_AVATAR_COMPOSITE[id] then
+			for _, segment in segments(m) do
+				local part = segment.part
+				if part:IsA("MeshPart") and (part.Material == Enum.Material.Plastic or part.Material == Enum.Material.SmoothPlastic) then
+					part.CustomPhysicalProperties = part.CurrentPhysicalProperties
+					part.Material = Enum.Material.Metal
+				end
+			end
+		end
 		local ok, update = pcall(make, m)
 		if ok and update then fx[m] = update end
 	end
