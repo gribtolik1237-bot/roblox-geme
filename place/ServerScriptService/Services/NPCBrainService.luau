@@ -184,18 +184,20 @@ local function needsPlan(hz: { any }): boolean
 	end
 	return overhead or low >= 2
 end
-local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3, model: Model, nowT: number, preAir: number?): any
+local CROSSING_SPEED_FACTOR = 0.92
+
+local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3, model: Model, nowT: number, preAir: number, runUp: number): any
 	local air = 2 * b.m.jumpPower / workspace.Gravity
-	local pre = preAir or 0       -- > 0: the crossing STARTS with a take-off leap over a gap (session 6): airborne for `pre` seconds
-	local v = 0.92 * b.m.walkSpeed
+	local pre = preAir       -- > 0: the crossing STARTS with a take-off leap over a gap (session 6)
+	local v = CROSSING_SPEED_FACTOR * b.m.walkSpeed
 	local def = Obstacles.ById[model:GetAttribute("ObstacleId")]
 	local along = (flat(model:GetPivot().Position) - flat(hrp.Position)):Dot(dir)
-	local T = (along + (if def then def.size.Z / 2 else 10) + 1.5) / v
+	local T = runUp + (along + (if def then def.size.Z / 2 else 10) + 1.5) / v
 	local DT = 0.04
 	for d = 0, 20, 0.1 do
 		local hits = {}
 		for tau = 0, T, DT do
-			local p = hrp.Position + dir * v * tau
+			local p = hrp.Position + dir * v * math.max(0, tau - runUp)
 			if tau >= pre - 0.02 then        -- low beams pass UNDER the take-off leap
 				for _, h in hz do
 					if h.jumpable and not h.periodic and not h.overhead and hazardHit(h, p, nowT + d + tau, 0.9) then hits[#hits + 1] = tau; break end
@@ -205,7 +207,7 @@ local function planCrossing(b: any, hz: { Hazard }, hrp: BasePart, dir: Vector3,
 		local jumps, ok, i, lastLand = {}, true, 1, (if pre > 0 then pre + 0.13 else -1)   -- no new jump before the leap has landed (+settle)
 		while i <= #hits do
 			local jt = hits[i] - 0.2
-			if jt < 0.05 or jt < lastLand + 0.12 then ok = false; break end
+			if jt < runUp + 0.05 or jt < lastLand + 0.12 then ok = false; break end
 			while i <= #hits and hits[i] <= jt + air - 0.12 do i += 1 end
 			if i <= #hits and hits[i] < jt + air + 0.12 then ok = false; break end
 			jumps[#jumps + 1] = jt
@@ -230,31 +232,57 @@ end
 -- returns action, cap when the planner is in charge of this hazard; nil to fall back to the reactive logic
 plannedControl = function(run: Run, b: any, step: Step, hz: { Hazard }, hrp: BasePart, dir: Vector3, grounded: boolean, now: number, nowT: number): (string?, number?)
 	local model = step.hazardModel
-	local isMovingLaser = model and model:GetAttribute("ObstacleId") == "MovingLaser"
-	if not isMovingLaser and not needsPlan(hz) then return nil end
+	local def = model and Obstacles.ById[model:GetAttribute("ObstacleId")]
+	local isSweep = def and def.behavior.kind == "sweep"
+	if not isSweep and not needsPlan(hz) then return nil end
 	local pl = b.jplan
 	if pl and pl.model ~= model then pl = nil; b.jplan = nil end
 	if not pl then
-		local def = Obstacles.ById[model:GetAttribute("ObstacleId")]
 		local edge = (flat(model:GetPivot().Position) - flat(hrp.Position)):Dot(dir) - (if def then def.size.Z / 2 else 10)
 		local stage = step.stageEdge or 1.4                       -- a leap step stages at its take-off point (gap + margin)
 		if edge > stage + 2.6 then return "go", nil end          -- walk up
 		if edge > stage then return "go", 4 end                  -- slow down to the staging point just before the deck
 		if hrp.AssemblyLinearVelocity.Magnitude > 2.5 then return "hold", nil end   -- settle first: the plan starts from standstill
-		pl = planCrossing(b, hz, hrp, dir, model, nowT, if step.stageEdge then 2 * b.m.jumpPower / workspace.Gravity else 0) or { failed = true, model = model }
+		if isSweep and not grounded and not step.stageEdge then return "hold", nil end -- a knock or landing can lift the root above the beams
+		local preAir = if step.stageEdge then 2 * b.m.jumpPower / workspace.Gravity else 0
+		-- The brain ticks at 10 Hz and the Humanoid accelerates from rest.
+		local runUp = if isSweep and preAir == 0 then 0.12 else 0
+		pl = planCrossing(b, hz, hrp, dir, model, nowT, preAir, runUp) or { failed = true, model = model }
 		b.jplan = pl
 	end
 	if pl.failed then return nil end
 	if nowT < pl.t0 then return "hold", nil end
 	local tau = nowT - pl.t0
+	if tau > pl.T + 1.0 then return nil end
+	if isSweep then
+		local speed = CROSSING_SPEED_FACTOR * b.m.walkSpeed
+		if grounded and now - b.lastJump >= 0.2 then
+			-- The plan picks an entry window. Time each actual jump from the current
+			-- position, since acceleration and airborne steering can shift the crossing.
+			local currentSpeed = flat(hrp.AssemblyLinearVelocity):Dot(dir)
+			local approachSpeed = math.clamp(currentSpeed, speed * 0.5, speed)
+			for eta = 0, 0.28, 0.04 do
+				local p = hrp.Position + dir * approachSpeed * eta
+				local willHit = false
+				for _, h in hz do
+					if h.jumpable and hazardHit(h, p, nowT + eta, 1.15) then willHit = true; break end
+				end
+				if willHit then
+					run.hum.Jump = true
+					b.lastJump = now
+					break
+				end
+			end
+		end
+		return "go", speed
+	end
 	local jt = pl.jumps[pl.i]
 	if jt and tau >= jt - 0.03 then
 		-- jump the moment we touch ground (just after a landing the body may still be airborne): never silently skip a planned jump
 		if grounded then run.hum.Jump = true; b.lastJump = now; pl.i += 1
 		elseif tau > jt + 0.15 then pl.i += 1 end
 	end
-	if tau > pl.T + 1.0 then return nil end                     -- crossing done: hand back
-	return "go", if isMovingLaser then 0.92 * b.m.walkSpeed else nil
+	return "go", nil
 end
 
 -- returns "go" | "hold" | "retreat" (and may trigger a jump over a low hazard)

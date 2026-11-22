@@ -137,14 +137,22 @@ function UIKit.window(gui: ScreenGui, title: string, size: UDim2, accent: Color3
 	UIKit.round(frame, 20); UIKit.stroke(frame, UIKit.INK, 5)
 	UIKit.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(72, 76, 106), Color3.fromRGB(33, 35, 51)), Rotation = 90 }, frame)
 	local sizeC = UIKit.new("UISizeConstraint", { MaxSize = Vector2.new(980, 640), MinSize = Vector2.new(300, 220) }, frame)
-	-- never taller/wider than the visible (UI-scaled) screen: matters on phones in landscape
+	-- Fit inside the ScreenGui's safe area, including the header and icon that hang above the frame.
+	local rootScale = gui:FindFirstChildOfClass("UIScale")
+	local topMargin = if icon then 56 else 38
+	local bottomMargin = 14
 	local function fit()
-		local v = workspace.CurrentCamera.ViewportSize / UIKit.scaleFor()
-		sizeC.MaxSize = Vector2.new(math.max(300, math.min(980, v.X - 40)), math.max(220, math.min(640, v.Y - 70)))
+		local safe = gui.AbsoluteSize / (if rootScale then rootScale.Scale else 1)
+		if safe.X <= 1 or safe.Y <= 1 then return end
+		sizeC.MaxSize = Vector2.new(math.clamp(safe.X - 52, 1, 980), math.clamp(safe.Y - topMargin - bottomMargin, 1, 640))
 		sizeC.MinSize = Vector2.new(math.min(300, sizeC.MaxSize.X), math.min(220, sizeC.MaxSize.Y))
+		local height = math.clamp(size.Y.Scale * safe.Y + size.Y.Offset, sizeC.MinSize.Y, sizeC.MaxSize.Y)
+		local shiftY = math.max(0, topMargin - (safe.Y - height) * 0.5)
+		frame.Position = UDim2.new(0.5, 0, 0.5, shiftY)
 	end
 	fit()
-	workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	if rootScale then rootScale:GetPropertyChangedSignal("Scale"):Connect(fit) end
 	local scale = UIKit.new("UIScale", { Scale = 0.85 }, frame)
 	local key = UIKit.new("Frame", { Name = "Keyline", BackgroundTransparency = 1, Size = UDim2.new(1, -14, 1, -14), Position = UDim2.fromOffset(7, 7) }, frame)
 	UIKit.round(key, 15); UIKit.new("UIStroke", { Color = WHITE, Transparency = 0.87, Thickness = 2 }, key)

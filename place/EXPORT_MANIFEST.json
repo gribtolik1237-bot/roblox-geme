@@ -1,7 +1,7 @@
 {
-  "exportedAt": "2026-11-21T15:37:03.395Z",
+  "exportedAt": "2026-11-22T12:41:51.605Z",
   "placeId": 135937017652181,
-  "placeVersion": 264,
+  "placeVersion": 272,
   "source": "Live Studio Edit datamodel; Source includes current editor state",
   "verification": "Inventory and Adler-32 before/after export, UTF-8 byte counts, local SHA-256",
   "scope": "LuaSourceContainer under the eight game services listed in export-place.cjs; geometry and assets are separate",
@@ -146,9 +146,9 @@
       "studioPath": "ReplicatedStorage/Shared/UIKit",
       "file": "ReplicatedStorage/Shared/UIKit.luau",
       "class": "ModuleScript",
-      "bytes": 24050,
-      "adler32": 4184937846,
-      "sha256": "6a6364f3817ef1e87efdbbce23a83b7613689e8088b02b9ea819c217ecef55b3"
+      "bytes": 24524,
+      "adler32": 1465363794,
+      "sha256": "d866809905fe206b528130702a8c57cff4bb1ba074af77a58e5c6d19615d628a"
     },
     {
       "studioPath": "ReplicatedStorage/Shared/Util",
@@ -234,9 +234,9 @@
       "studioPath": "ServerScriptService/Services/NPCBrainService",
       "file": "ServerScriptService/Services/NPCBrainService.luau",
       "class": "ModuleScript",
-      "bytes": 27467,
-      "adler32": 3858246093,
-      "sha256": "b19e54ed637f4919a4263ce19a5dab1824d8df71a7cb263855f0c0f81ce40f19"
+      "bytes": 28480,
+      "adler32": 3011405367,
+      "sha256": "52ec9b68ff6d32d3a3f2848def1b86c097f38ef439aa93dbd9c1e078e3b369e2"
     },
     {
       "studioPath": "ServerScriptService/Services/NPCPlacementService",
@@ -274,9 +274,9 @@
       "studioPath": "ServerScriptService/Services/ObstacleTraversalService",
       "file": "ServerScriptService/Services/ObstacleTraversalService.luau",
       "class": "ModuleScript",
-      "bytes": 8276,
-      "adler32": 1972256463,
-      "sha256": "6b7bae409aaf3ed55889a0ba3c330ebcd9caf6f424a7904cea771e83e8c0b94d"
+      "bytes": 8403,
+      "adler32": 2777900977,
+      "sha256": "00bebec5f29bc53c35d73c67c1def1ffd0fe100ba9b5c6a24f81de61b78ffce4"
     },
     {
       "studioPath": "ServerScriptService/Services/PlayerDataService",
@@ -474,17 +474,17 @@
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BoardController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BoardController.luau",
       "class": "ModuleScript",
-      "bytes": 2638,
-      "adler32": 748381157,
-      "sha256": "a211eb488d87fa3b4bb76d45ebd9266f70d61a59cfd583faa5f14df321c72958"
+      "bytes": 3953,
+      "adler32": 3269142947,
+      "sha256": "8cd499ba3e2c6ae3b133a92f644544c6c91cfd979854ed1ae6790441f9c6cf03"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController",
       "file": "StarterPlayer/StarterPlayerScripts/Controllers/BuildController.luau",
       "class": "ModuleScript",
-      "bytes": 34747,
-      "adler32": 4178712305,
-      "sha256": "d0df44e51bf59c3e1bb8cea84ebfcdb3447051dfc4d4dd1a8bb136ef704aabd8"
+      "bytes": 36747,
+      "adler32": 1751755760,
+      "sha256": "bae75351b976b01f4389767754ad23d4fcba005b0e048f4fb2966e37f77dabd3"
     },
     {
       "studioPath": "StarterPlayer/StarterPlayerScripts/Controllers/CameraController",

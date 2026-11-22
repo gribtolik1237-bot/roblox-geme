@@ -33,3 +33,5 @@
 После работы Codex 1 см. `docs/REPORT_CHATGPT_1.txt` и `docs/NEXT_PROMPT_CHATGPT_2.md`. Владелец передал архив `roblox-craft-studio-v4.zip`. При отсутствии встроенного скилла читать из него `SKILL.md` и нужные разделы `references/`. Белое поле при захвате Studio и яркие свойства деталей не закрывают визуальные проверки.
 
 Codex 2 завершил визуальный прогон при Auto и Q1. Актуальные результаты и остаток в `docs/TESTING_REPORT.md` и `docs/NEXT_PROMPT_CHATGPT_3.md`.
+
+Codex 3 сохранил Team Create 281. Актуальный прогон с холодным запуском NPC, досками, геймпадом и двумя клиентами в конце `docs/TESTING_REPORT.md`. Открытые пункты в `docs/DEVELOPMENT_TREE.md`.

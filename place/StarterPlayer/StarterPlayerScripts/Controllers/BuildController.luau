@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ContextActionService = game:GetService("ContextActionService")
+local GuiService = game:GetService("GuiService")
 
 local Configs = ReplicatedStorage.Configs
 local UIKit = require(ReplicatedStorage.Shared.UIKit)
@@ -21,6 +22,10 @@ local C = UIKit.C
 local player = Players.LocalPlayer
 local BuildController = {}
 local hasTouch = UserInputService.TouchEnabled
+
+local function usingGamepad()
+	return UserInputService.PreferredInput == Enum.PreferredInput.Gamepad
+end
 
 local active, mode = false, "place"          -- mode: place | move | remove
 local selectedId, rot, level, fine = nil, 0, 0, false
@@ -95,9 +100,14 @@ local function makeGhost(id)
 end
 
 local function cursorRay()
+	local camera = workspace.CurrentCamera
+	if usingGamepad() then
+		local center = camera.ViewportSize * 0.5
+		return camera:ViewportPointToRay(center.X, center.Y)
+	end
 	local pos = if UserInputService.PreferredInput == Enum.PreferredInput.Touch then lastTouch else UserInputService:GetMouseLocation()
 	if not pos then return nil end
-	return workspace.CurrentCamera:ViewportPointToRay(pos.X, pos.Y)
+	return camera:ViewportPointToRay(pos.X, pos.Y)
 end
 
 local function cursorOnPlane(planeY)
@@ -183,12 +193,13 @@ local function refreshTools()
 	local gaps = 8 * math.max(0, visibleCount - 1)
 	local compactLabels = tightTools or naturalWidth + gaps > toolWidth
 	local share = math.min(160, (toolWidth - gaps) / math.max(1, visibleCount))
-	local shortcuts = not hasTouch and not compactLabels
-	ui.tools.move.Text = if mode == "move" then (if compactLabels and holding then "Stop" else "Stop moving") elseif compactLabels then "Move" else ui.tools.moveText
-	ui.tools.rotate.Text = if shortcuts then "Turn (R)" else "Turn"
-	ui.tools.up.Text = if shortcuts then "Up (E)" else "Up"
-	ui.tools.down.Text = if shortcuts then "Down (Q)" else "Down"
-	ui.tools.cancel.Text = if shortcuts then "Cancel (Bksp)" else "Cancel"
+	local gamepad = usingGamepad()
+	local shortcuts = (gamepad or not hasTouch) and not compactLabels
+	ui.tools.move.Text = if mode == "move" then (if compactLabels and holding then "Stop" else "Stop moving") elseif compactLabels then "Move" elseif gamepad then "Move (X)" else ui.tools.moveText
+	ui.tools.rotate.Text = if not shortcuts then "Turn" elseif gamepad then "Turn (RB)" else "Turn (R)"
+	ui.tools.up.Text = if not shortcuts then "Up" elseif gamepad then "Up (D-pad)" else "Up (E)"
+	ui.tools.down.Text = if not shortcuts then "Down" elseif gamepad then "Down (D-pad)" else "Down (Q)"
+	ui.tools.cancel.Text = if not shortcuts then "Cancel" elseif gamepad then "Cancel (B)" else "Cancel (Bksp)"
 	for _, button in ui.toolButtons do
 		local width = if button == ui.tools.move and mode == "move" then 150 else button:GetAttribute("BaseWidth")
 		button.Size = UDim2.fromOffset(if compactLabels then share else width, toolHeight)
@@ -232,7 +243,9 @@ local function refreshBar()
 		UIKit.new("Frame", { Size = UDim2.new(1, -16, 0, 5), Position = UDim2.new(0, 8, 1, -9), BackgroundColor3 = UIKit.rarityColor(def.rarity), BorderSizePixel = 0 }, b)
 		if not def.free then UIKit.tag(b, "x" .. n, C.blue, UDim2.fromOffset(34, 20), UDim2.new(1, -36, 0, 2), 14) end
 		ui.slotIds[i + 1] = def.id
-		b.Activated:Connect(function() if BuildController.Select(def.id) then refreshBar() end end)
+		b.Activated:Connect(function()
+			if BuildController.Select(def.id) and usingGamepad() then GuiService.SelectedObject = nil end
+		end)
 	end
 	if pages > 1 then
 		local mb = newSlot(ui.hot, 50, nil, false)
@@ -364,6 +377,7 @@ local function magnet(def, cx: number, cz: number): (number?, number?, number?, 
 end
 
 local function onStep()
+	ui.aim.Visible = ui.bar.Visible and usingGamepad() and (ghost ~= nil or mode ~= "place")
 	if not active or not plot then return end
 	if (mode == "place" or (mode == "move" and moveUid)) and ghost then
 		local def = Obstacles.ById[ghostId]
@@ -409,14 +423,16 @@ local function onStep()
 		local s = StateController.State
 		-- plain words (session 6): what to do now + the one number that matters
 		local info
-		if mode == "remove" then info = if hasTouch then "Tap a trap to remove it" else "Click a trap to remove it"
+		local gamepad = usingGamepad()
+		if mode == "remove" then info = if gamepad then "Aim at a trap and press RT to remove it" elseif hasTouch then "Tap a trap to remove it" else "Click a trap to remove it"
 		elseif mode == "move" then
-			if moveUid then info = if hasTouch then "Tap a spot, then press PLACE" else "Click where it should go"
-			else info = if hasTouch then "Tap a trap to move it" else "Click a trap to move it" end
+			if moveUid then info = if gamepad then "Aim at a spot and press RT to move it" elseif hasTouch then "Tap a spot, then press PLACE" else "Click where it should go"
+			else info = if gamepad then "Aim at a trap and press RT to pick it" elseif hasTouch then "Tap a trap to move it" else "Click a trap to move it" end
 		elseif not ghost then
 			local c = s and s.course
 			info = if c and not c.playerPlayable and c.objectCount and c.objectCount > 0 then "The course is broken at the red GAP - pick a trap and join it there" else "Pick a trap in the slots below"
-		elseif reason == "Aim" then info = "Tap where the trap should go"
+		elseif reason == "Aim" then info = if gamepad then "Aim at your build area" else "Tap where the trap should go"
+		elseif gamepad and valid then info = if joined then "Joins the course. Press RT to place" else "RT: place    RB: turn"
 		elseif valid and joined then info = if hasTouch then "Joins the course. Press PLACE" else (if turnJoin then "Turn - joins the course! Click to place" else "Joins the course! Click to place") .. "   -   R: turn"
 		elseif valid then info = (if hasTouch then "Press PLACE" else "Click to place   -   R: turn") .. (if level > 0 then ("   -   height " .. level / Balance.LevelStep) else "")
 		else info = UIKit.err(reason) end
@@ -513,10 +529,19 @@ end
 local function rotate() rot = (rot + 90) % 360 end
 local function lvl(d) level = math.clamp(level + d * Balance.LevelStep, 0, Balance.MaxBuildHeight) end
 local function cancelHand() selectedId = nil; moveUid = nil; clearGhost(); refreshBar() end
+local lastTrigger = -math.huge
+local function applyWithTrigger()
+	local now = os.clock()
+	-- The controller emulator can send two Begin events for a single trigger press.
+	if not ui.bar.Visible or now - lastTrigger < 0.12 then return end
+	lastTrigger = now
+	doClick()
+end
 
 -- audit 5.2: build actions go through ContextActionService while the hammer is in hand (keyboard + gamepad; bound on, unbound off).
 -- Touch players use the on-screen bar (Turn / Up / Down / PLACE / Cancel) and the Delete slot - no duplicate CAS touch buttons.
 local BUILD_ACTIONS = {
+	{ "TL_BuildApply", applyWithTrigger, { Enum.KeyCode.ButtonR2 } },
 	{ "TL_BuildTurn", function() rotate() end, { Enum.KeyCode.R, Enum.KeyCode.ButtonR1 } },
 	{ "TL_BuildUp", function() lvl(1) end, { Enum.KeyCode.E, Enum.KeyCode.DPadUp } },
 	{ "TL_BuildDown", function() lvl(-1) end, { Enum.KeyCode.Q, Enum.KeyCode.DPadDown } },
@@ -531,7 +556,11 @@ bindBuildActions = function(on: boolean)
 	for _, a in BUILD_ACTIONS do
 		if on then
 			local fn = a[2]
-			ContextActionService:BindAction(a[1], function(_, state)
+			ContextActionService:BindAction(a[1], function(_, state, input)
+				local key = input.KeyCode
+				if (key == Enum.KeyCode.DPadUp or key == Enum.KeyCode.DPadDown) and GuiService.SelectedObject then
+					return Enum.ContextActionResult.Pass
+				end
 				if state == Enum.UserInputState.Begin then fn() end
 				return Enum.ContextActionResult.Sink
 			end, false, table.unpack(a[3]))
@@ -543,6 +572,11 @@ end
 
 function BuildController.Start()
 	local gui = HUDController.Gui
+	local aimGui = UIKit.new("ScreenGui", { Name = "TrapLabBuildAim", ResetOnSpawn = false, ScreenInsets = Enum.ScreenInsets.None }, gui.Parent)
+	ui.aim = UIKit.new("Frame", { Name = "Reticle", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(10, 10),
+		Position = UDim2.fromScale(0.5, 0.5), BackgroundTransparency = 1, Visible = false }, aimGui)
+	UIKit.round(ui.aim, 5)
+	UIKit.stroke(ui.aim, Color3.new(1, 1, 1), 2)
 	local bar = UIKit.new("Frame", { Name = "BuildBar", AnchorPoint = Vector2.new(0.5, 1), BackgroundColor3 = Color3.new(1, 1, 1), Visible = false }, gui)
 	UIKit.round(bar, 18); UIKit.stroke(bar, UIKit.INK, 4.5)
 	UIKit.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(66, 70, 98), Color3.fromRGB(32, 34, 50)), Rotation = 90 }, bar)

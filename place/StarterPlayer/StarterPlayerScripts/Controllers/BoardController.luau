@@ -10,6 +10,36 @@ local Skin = require(ReplicatedStorage.Shared.BoardSkin)
 local BoardController = {}
 local player = Players.LocalPlayer
 
+local function bindTouchScroll(list: ScrollingFrame)
+	-- SurfaceGui sends touch positions in canvas pixels. Drive the canvas by that
+	-- delta while a finger holds this list, then restore native scrolling.
+	local finger: InputObject? = nil
+	local startY, startCanvas = 0, 0
+	local ended: RBXScriptConnection? = nil
+	local function release()
+		if ended then ended:Disconnect(); ended = nil end
+		finger = nil
+		list.ScrollingEnabled = true
+	end
+	list.InputBegan:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.Touch or finger then return end
+		if list.AbsoluteCanvasSize.Y <= list.AbsoluteWindowSize.Y then return end
+		finger = input
+		startY, startCanvas = input.Position.Y, list.CanvasPosition.Y
+		list.ScrollingEnabled = false
+		ended = input:GetPropertyChangedSignal("UserInputState"):Connect(function()
+			local state = input.UserInputState
+			if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then release() end
+		end)
+	end)
+	list.InputChanged:Connect(function(input)
+		if input ~= finger then return end
+		local limit = math.max(0, list.AbsoluteCanvasSize.Y - list.AbsoluteWindowSize.Y)
+		list.CanvasPosition = Vector2.new(0, math.clamp(startCanvas + startY - input.Position.Y, 0, limit))
+	end)
+	list.Destroying:Once(release)
+end
+
 local function fill(refs, board, id)
 	local ok, rows = pcall(HttpService.JSONDecode, HttpService, board:GetAttribute("Rows") or "[]")
 	if not ok or type(rows) ~= "table" then rows = {} end
@@ -36,6 +66,7 @@ local function bindBoard(board: BasePart, pg: Instance)
 	if not info then return end
 	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
 		local refs = Skin.buildScroll(board, face, info, pg)
+		bindTouchScroll(refs.list)
 		fill(refs, board, id)
 		board:GetAttributeChangedSignal("Rows"):Connect(function() fill(refs, board, id) end)
 		board:GetAttributeChangedSignal("Footer"):Connect(function() refs.footer.Text = board:GetAttribute("Footer") or "" end)

@@ -71,6 +71,7 @@ function T.BuildRoute(plotCF: CFrame, padLocal: Vector3, analysis: NpcTypes.Anal
 		-- previous exit). Its entry point is half its width ahead, but the floor between is the piece itself: step onto it and walk along
 		-- the entry edge (the safe end band of hazard decks) instead of "jumping" that distance.
 		local turn = idx > 1 and math.abs(prevFwd:Dot(fwd)) < 0.3 and gap > 1.0 and gap <= def.size.X / 2 + 1.5
+		local flushSweep = bk == "sweep" and prevFwd:Dot(fwd) > 0.99 and math.abs(entry.Y - prevExit.Y) <= 0.5
 		if def.behavior.kind ~= "ferry" then
 			if turn then
 				walk(prevExit + prevFwd * 1.0 + fwd * 1.2, 1.2)
@@ -96,7 +97,7 @@ function T.BuildRoute(plotCF: CFrame, padLocal: Vector3, analysis: NpcTypes.Anal
 				end
 				steps[#steps + 1] = leap
 				walk(entry + fwd * 2.2, 1.6, landingExtra)
-			else
+			elseif not flushSweep then
 				walk(landing, 2.0, landingExtra)       -- touching piece (also ramps / different heights): just walk on
 			end
 		end
