@@ -15,6 +15,7 @@ local C = {
 
 -- Neon is reserved for hazards and goals (lava, flames, lasers, spike tips, void, goal, bounce, teleport pads); decorative trims are flat paint.
 local GLOW = { Lava = true, Glow = true, Beam = true, Tip = true, Void = true, Goal = true, Bounce = true, Pad = true, Dest = true, Pilot = true, StoneGlow = true, Cap = true }
+local DECO = { CanCollide = false, CanQuery = false, CanTouch = false, Massless = true, CastShadow = false }
 local function isGlow(name: string): boolean
 	return GLOW[name] == true or name:sub(1, 5) == "Flame"
 end
@@ -49,9 +50,13 @@ B.BasicPlatform = function(m)
 end
 
 B.SmallJumpPlatform = function(m)
-	part(m, "PadBase", V(1.2, 6, 6), CF(0, 0.6, 0) * CFrame.Angles(0, 0, math.rad(90)), C.steel, Enum.Material.Metal, { Shape = Enum.PartType.Cylinder })
-	part(m, "Pad", V(0.8, 5.6, 5.6), CF(0, 1.6, 0) * CFrame.Angles(0, 0, math.rad(90)), C.yellow, Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder })
-	part(m, "Ring", V(0.1, 3.6, 3.6), CF(0, 2.02, 0) * CFrame.Angles(0, 0, math.rad(90)), C.orange, Enum.Material.Neon, { Shape = Enum.PartType.Cylinder, CanCollide = false })
+	local flatCylinder = CFrame.Angles(0, 0, math.rad(90))
+	part(m, "PadBase", V(1.2, 6, 6), CF(0, 0.6, 0) * flatCylinder, C.steel, Enum.Material.Metal, { Shape = Enum.PartType.Cylinder })
+	part(m, "Pad", V(0.8, 5.6, 5.6), CF(0, 1.6, 0) * flatCylinder, C.yellow, Enum.Material.SmoothPlastic, { Shape = Enum.PartType.Cylinder })
+	part(m, "PadTrim", V(0.24, 5.9, 5.9), CF(0, 1.23, 0) * flatCylinder, C.teal, Enum.Material.SmoothPlastic, {
+		Shape = Enum.PartType.Cylinder, CanCollide = false, CanQuery = false, CanTouch = false, Massless = true, CastShadow = false,
+	})
+	part(m, "Ring", V(0.1, 3.6, 3.6), CF(0, 2.02, 0) * flatCylinder, C.orange, Enum.Material.Neon, { Shape = Enum.PartType.Cylinder, CanCollide = false })
 end
 
 B.NarrowBridge = function(m)
@@ -62,6 +67,7 @@ B.NarrowBridge = function(m)
 	end
 	for _, s in { -1, 1 } do
 		part(m, "Rope", V(0.25, 0.25, 24), CF(s * 1.9, 1.45, 0), rgb(46, 58, 110), Enum.Material.Plastic, { CanCollide = false })   -- navy rail (was brown rope)
+		part(m, "RailTrim", V(0.32, 0.2, 23.8), CF(s * 1.84, 1.95, 0), C.teal, Enum.Material.SmoothPlastic, DECO)
 	end
 	for _, z in { -11.8, 0, 11.8 } do
 		for _, s in { -1, 1 } do part(m, "Post", V(0.5, 1.6, 0.5), CF(s * 1.9, 1.0, z), rgb(206, 58, 50), Enum.Material.Plastic, { CanCollide = false }) end
@@ -130,6 +136,9 @@ B.FallingPlatform = function(root)
 	t:SetAttribute("Falling", true)
 	for i, off in { -2.4, 0, 2.4 } do
 		part(m, "Crack" .. i, V(0.25, 0.06, 5.5), CF(off, 2.02, 0) * CFrame.Angles(0, math.rad(20 * (i - 2)), 0), C.dark, Enum.Material.SmoothPlastic, { CanCollide = false })
+	end
+	for _, s in { -1, 1 } do
+		part(m, "TileTrim", V(0.42, 0.2, 8), CF(s * 3.79, 1.96, 0), C.teal, Enum.Material.SmoothPlastic, DECO)
 	end
 	for _, sx in { -1, 1 } do for _, sz in { -1, 1 } do
 		part(m, "Bolt", V(0.7, 0.2, 0.7), CF(sx * 3.2, 2.05, sz * 3.2), C.steel, Enum.Material.Metal, { Shape = Enum.PartType.Cylinder, CanCollide = false })
@@ -381,7 +390,6 @@ local ROLE_COL = {
 	move = Color3.fromRGB(58, 142, 255),     -- safe but moving / special surface: blue
 }
 local MOVING_SAFE = { ferry = true, rotplat = true, belt = true, speed = true, bounce = true, falling = true, vanish = true, reveal = true }
-local DECO = { CanCollide = false, CanQuery = false, CanTouch = false, Massless = true, CastShadow = false }
 
 local function roleOf(m: Model, def: any): string
 	local knock = false

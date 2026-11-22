@@ -34,4 +34,4 @@
 
 Codex 2 завершил визуальный прогон при Auto и Q1. Актуальные результаты и остаток в `docs/TESTING_REPORT.md` и `docs/NEXT_PROMPT_CHATGPT_3.md`.
 
-Codex 3 сохранил Team Create 281. Актуальный прогон с холодным запуском NPC, досками, геймпадом и двумя клиентами в конце `docs/TESTING_REPORT.md`. Открытые пункты в `docs/DEVELOPMENT_TREE.md`.
+Codex 3 сохранил Team Create 283. Актуальные проверки NPC, досок, геймпада, двух клиентов, препятствий и аллеи в конце `docs/TESTING_REPORT.md`. Открытые пункты в `docs/DEVELOPMENT_TREE.md`.

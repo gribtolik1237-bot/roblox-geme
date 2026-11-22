@@ -1,5 +1,7 @@
 # Экспорт скриптов TRAP LAB
 
+2026-11-22 (Codex 3). Сохранение Team Create 283, `game.PlaceVersion` в редакторе 272. Повторно выгружены и сверены 75 скриптов. В `ObstacleModels` добавлены кромки Small Jump, Narrow Bridge и Falling Platform. [Тесты и кадры](../docs/TESTING_REPORT.md).
+
 2026-11-22 (Codex 3). Сохранение Team Create 281, `game.PlaceVersion` в редакторе 272. Выгружены и сверены 75 скриптов места 135937017652181. Изменены `NPCBrainService`, `ObstacleTraversalService`, `BoardController`, `UIKit` и `BuildController`. [Тесты и кадры](../docs/TESTING_REPORT.md).
 
 2026-11-21 (Codex 2). Сохранение Team Create 270. Выгружены 75 скриптов открытого места, `game.PlaceVersion` в редакторе 264. В `NPCController` скорректировано положение точки выхода клиентских частиц и подключена штатная текстура Glitch. [Тесты и кадры](../docs/TESTING_REPORT.md).
